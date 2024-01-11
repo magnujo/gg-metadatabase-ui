@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta data spreadsheet upload</title>
+</head>
+<body>
+    <h1>Meta data spreadsheet upload</h1>
+    READ MANUAL BEFORE UPLOADING:
+    <br>
+    <a href="/download_manual" download>Download Manual (PDF)</a>
+    <br>
+    It contains important information about what data you can upload and what happens to it when uploading.
+    <br>
+    <br>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="file">Choose a .txt file to upload:</label>
+        <input type="file" name="file" accept=".txt" required>
+        <br>
+
+        <label for="database_table_name">Select spreadsheet type:</label>
+        <select name="database_table_name" id="database_table_name" required>
+            <option value="field_sample">Field sampling</option>
+            <option value="archive_sample">Archive sampling</option>
+            <option value="robot_sample">Robot sampling</option>
+            <option value="edna_wetlab_report">eDNA Wet lab final report</option>
+            <option value="adna_wetlab_report">aDNA Wet lab final report</option>
+            <option value="cgg_sediment">CGG Sediment</option>
+            <option value="cgg_animal_plant">CGG Plant Animal</option>
+            <!-- Add more options as needed -->
+        </select>
+        <br>
+        
+        <!-- <label for="date_format">Select date format:</label>
+        <select name="date_format" id="date_format" required>
+            <option value="field_sample">YYYY-MM-DD</option>
+            <option value="archive_sample">MM-DD-YYYY</option>
+            <option value="edna_wetlab_report">YY-MM-DD</option>
+            <option value="robot_sample">MM-DD-YY</option>
+            <option value="field_sample">YYYY/MM/DD</option>
+            <option value="archive_sample">MM/DD/YYYY</option>
+            <option value="robot_sample">DD/MM/YY</option>
+            <option value="edna_wetlab_report">YY/MM/DD</option>
+        </select>
+        <br> -->
+
+        <button type="submit">Upload</button>
+    </form>
+    {% if success %}
+        <p style="color: green;">{{ success }}</p>
+    {% endif %}
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <br>
+    
+</body>
+</html>
