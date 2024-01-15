@@ -141,7 +141,7 @@ def download_manual():
 
 @app.route('/download_robot_sampling_edna_example_sheet')
 def download_robot_sampling_edna_example_sheet():
-    file_path = 'example_sheets/robot sampling eDNA.xlsx'
+    file_path = 'example_sheets\eDNA robot sampling.xlsx'
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
