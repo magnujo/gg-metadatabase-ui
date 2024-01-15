@@ -96,7 +96,7 @@ def upload_file():
             clean_sheet.to_sql(name=database_table_name, schema=database_config['schema_name'], con=engine, if_exists='append', index=False)
 
             # Test that uploaded data equals data in file:
-            uploaded_data = pd.read_sql(sql=f'SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';', con=engine)
+            uploaded_data = pd.read_sql(sql=f"SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=engine)
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
 
@@ -120,7 +120,7 @@ def upload_file():
     except AssertionError as ae:
         if os.path.exists(file_path):
             os.remove(file_path)
-        cursor.execute(f'DELETE FROM {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';')
+        cursor.execute(f"DELETE FROM {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
         connection.commit()
         cursor.close()
         connection.close()
