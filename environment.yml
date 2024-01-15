@@ -1,6 +1,6 @@
 name: db_web_app
 dependencies:
-  - python=3.11 
+  - python=3.12
   - psycopg2
   - sqlalchemy
   - pandas

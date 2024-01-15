@@ -28,8 +28,6 @@ database_config2 = {
 }
 
 engine = create_engine(f"postgresql://{database_config['user']}:{database_config['password']}@{database_config['host']}:{database_config['port']}/{database_config['database']}")
-connection = psycopg2.connect(**database_config2)
-cursor = connection.cursor()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -120,6 +118,8 @@ def upload_file():
     except AssertionError as ae:
         if os.path.exists(file_path):
             os.remove(file_path)
+        connection = psycopg2.connect(**database_config2)
+        cursor = connection.cursor()
         cursor.execute(f"DELETE FROM {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
         connection.commit()
         cursor.close()

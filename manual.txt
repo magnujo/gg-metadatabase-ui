@@ -9,6 +9,13 @@ Column names and positions have to be exactly the same as in the example sheets.
 
 Leave cells empty if there is no data to put there. Do not write "N/A" or "-" or anything. Just leave it empty.
 
+Intervals: 123 - 124
+
+Primary ids must be not null. Remove rows that do not have a primary id. 
+
+If a column contains multiple values, seperate them with semicolon. For example if a sample was taken by multiple people,
+the 'Sampled By' column input should be "Alice; Bob".
+
 Decimal: comma
 Thousand seperator: period
 
