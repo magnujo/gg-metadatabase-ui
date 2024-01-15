@@ -14,6 +14,13 @@
     It contains important information about what data you can upload and what happens to it when uploading.
     <br>
     <br>
+    To help you upload correctly formatted meta data sheets that the database will accept, here are some 
+    example sheets to help you:
+    <br>
+    <a href="/download_robot_sampling_edna_example_sheet" download>Robot sampling eDNA.xlsx</a>
+    
+    <br>
+    <br>
     <form action="/upload" method="post" enctype="multipart/form-data">
         <label for="file">Choose a .txt file to upload:</label>
         <input type="file" name="file" accept=".txt" required>
@@ -23,7 +30,7 @@
         <select name="database_table_name" id="database_table_name" required>
             <option value="field_sample">Field sampling</option>
             <option value="archive_sample">Archive sampling</option>
-            <option value="robot_sample">Robot sampling</option>
+            <option value="robot_sample">Robot sampling eDNA</option>
             <option value="edna_wetlab_report">eDNA Wet lab final report</option>
             <option value="adna_wetlab_report">aDNA Wet lab final report</option>
             <option value="cgg_sediment">CGG Sediment</option>
@@ -47,12 +54,6 @@
 
         <button type="submit">Upload</button>
     </form>
-    {% if success %}
-        <p style="color: green;">{{ success }}</p>
-    {% endif %}
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
     <br>
     
 </body>

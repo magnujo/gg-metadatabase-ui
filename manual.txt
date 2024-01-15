@@ -1,1 +1,45 @@
-test
+General formatting requirements
+Date: YYYY-MM-DD (ISO 8601 standard). Optional time information is also accepted in ISO 8601 format.
+Any column with column name that contains ‘date’ will be validated against 
+this standard and the data will only be uploaded if it conforms to this standard. 
+If this results in any issues or concerns, feel free to contact Magnus or Julian
+and we can figure something out.
+
+Column names and positions have to be exactly the same as in the example sheets.
+
+Leave cells empty if there is no data to put there. Do not write "N/A" or "-" or anything. Just leave it empty.
+
+Decimal: comma
+Thousand seperator: period
+
+The database will in the future only accept the following employee identifiers:
+For internal: KU IDs
+External: email.
+
+This means initials will not be accepted in the future. Make sure to change any protocols or sheet templates to accommodate this, or
+you will have a lot of tedious clean up to do in the future!
+
+Archive sampling
+The database is set up to accept archive sampling meta data spreadsheets containing the following columns: 
+Date (YYYY-MM-DD)
+
+Regarding columns "Lab assistant (KU ID)" and "Submitter (KU ID)" in the example sheet: 
+Even though it says KU ID, you can still upload files with "Lab assistant (initials)"
+for now, but in the future the database will only accept KU IDs, so make sure to change your templates
+and protocols.
+
+IMPORTANT: A row will only be uploaded if it contains an archive tube barcode (example: LV3005888045).
+
+
+Robot sampling
+
+Regarding columns "Lab assistant (KU ID)" and "Submitter (KU ID)" in the example sheet: 
+Even though it says KU ID, you can still upload files with "Lab assistant (initials)"
+for now, but in the future the database will only accept KU IDs, so make sure to change your templates
+and protocols.
+
+
+
+
+
+

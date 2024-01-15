@@ -1,0 +1,7 @@
+name: db_web_app
+dependencies:
+  - python=3.9   # or 2.7 if you are feeling nostalgic
+  - psycopg2
+  - sqlalchemy
+  - pandas
+  - flask

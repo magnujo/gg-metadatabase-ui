@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 from utils.CustomExceptions import DontTriggerFileDeletion
 import psycopg2
 from psycopg2 import sql
+import numpy as np
+from pandas import testing
 
 
 database_config = {
@@ -80,15 +82,30 @@ def upload_file():
 
             clean_sheet = clean_up(tsv_file_path=file_path, database_table_name=database_table_name)
 
+            # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = database_config['user']
+
+            # Adds information about which file the data came from:
             clean_sheet['from_spreadsheet'] = file_name
-            clean_sheet['database_insert_date_utc'] = pd.Timestamp.now(tz='UTC')
+
+            # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
+            clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
+            # Convert to ns to enable testing (postgres converts to ns, when uploading)
+            clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+
             clean_sheet.to_sql(name=database_table_name, schema=database_config['schema_name'], con=engine, if_exists='append', index=False)
 
             # Test that uploaded data equals data in file:
             uploaded_data = pd.read_sql(sql=f'SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';', con=engine)
-            # if not clean_sheet.equals(uploaded_data):
-                # raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
+            uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
+            clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
+
+            print(clean_sheet.shape)
+            print(uploaded_data.shape)
+            testing.assert_frame_equal(uploaded_data, clean_sheet)
+
+            if not clean_sheet.equals(uploaded_data):
+                raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
             # Delete the file and the data in database, if above test fails.
 
             return redirect(url_for('success'))
@@ -121,6 +138,11 @@ def upload_file():
 def download_manual():
     manual_path = 'manual.txt'
     return send_file(manual_path, as_attachment=True)
+
+@app.route('/download_robot_sampling_edna_example_sheet')
+def download_robot_sampling_edna_example_sheet():
+    file_path = 'example_sheets/robot sampling eDNA.xlsx'
+    return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
