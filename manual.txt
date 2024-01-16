@@ -2,8 +2,11 @@ General formatting requirements
 Date: YYYY-MM-DD (ISO 8601 standard). Optional time information is also accepted in ISO 8601 format.
 Any column with column name that contains ‘date’ will be validated against 
 this standard and the data will only be uploaded if it conforms to this standard. 
+Dates will be parsed as strings and then converted to a datetime object if the format of the string is correct.
 If this results in any issues or concerns, feel free to contact Magnus or Julian
 and we can figure something out.
+
+Every row that only has empty cells will be deleted.
 
 Column names and positions have to be exactly the same as in the example sheets.
 
@@ -18,6 +21,9 @@ the 'Sampled By' column input should be "Alice; Bob".
 
 Decimal: comma
 Thousand seperator: period
+
+
+Delete rows that should not be in the database, before uploading. 
 
 The database will in the future only accept the following employee identifiers:
 For internal: KU IDs

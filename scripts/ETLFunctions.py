@@ -5,15 +5,43 @@ import re
 
     
 def clean_up(tsv_file_path, database_table_name):
-    sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16')
+    sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16', dtype=str)
     sheet = sheet.dropna(axis='index', how='all')
+
 
     if database_table_name == 'archive_sample':
         
-        # For drop testing:
+        # dtypes = {'Archive rack position': str,
+        #           'Archive RACK name\n(eg. ARack0052)': str,
+        #           'Archive RACK barcode': str,
+        #           'Archive TUBE barcode': str,
+        #           'Depth sampled (tape, cm)': float,
+        #           'Organic content     (High /Low)': str,
+        #           'Surface exposed? (ie Back wall hit?)\n(Yes / No)': str,
+        #           'Remarks from sampling (optional)': str,
+        #           'Sampled by 1 (initials)': str,
+        #           'Sampled by 2 (initials)': str,
+        #           'Sampled date (yyyy-mm-dd)': str,
+        #           'No': int,
+        #           'Submitter\n(initials)': str,
+        #           'Submission date (yyyy-mm-dd)': str,
+        #           'Core segment ID\n(fx ISL23_019_02A)': str,
+        #           'Ordered depth (Calibration tape, cm)': str,
+        #           'Notes from submitter (optional)': str
+        #           }
+                
+        
+        # TODO: Delete after deployment and ask make uploader responsible.
+        sheet = sheet.dropna(axis='index', how='all')
+
+        sheet['Depth sampled (tape, cm)'] = sheet['Depth sampled (tape, cm)'].astype(float)
+        sheet['No'] = sheet['No'].astype(float)
+
+        # For testing that the drops are made correctly:
         l1 = len(sheet[sheet['Archive TUBE barcode'].notnull()])
 
         if 'Archive TUBE barcode' in sheet.columns:
+            # TODO: Remove dropna before deployment. Make users responsible for input to db.
             sheet = sheet.dropna(axis='index', how='all', subset=['Archive TUBE barcode'])
         else:
             raise Exception ("Upload failed. Expected column 'Archive TUBE barcode' not found. Are you sure you uploaded the correct spreadsheet?")
@@ -27,6 +55,7 @@ def clean_up(tsv_file_path, database_table_name):
         if 'Remarks from sampling (real Calibration tape depth)' in sheet.columns:
             sheet = sheet.rename(columns={'Remarks from sampling (real Calibration tape depth)': 'Remarks from sampling (optional)'})
         
+
     elif database_table_name == 'robot_sample':
         
         l1 = len(sheet[sheet["Robot TUBE barcode"].notnull()]) # For drop testing

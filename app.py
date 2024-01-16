@@ -1,3 +1,4 @@
+import sys
 from flask import Flask, render_template, request, send_file, redirect, url_for, flash
 import os
 from scripts.ETLFunctions import clean_up
@@ -8,6 +9,8 @@ import psycopg2
 from psycopg2 import sql
 import numpy as np
 from pandas import testing
+import traceback
+
 
 
 database_config = {
@@ -63,6 +66,8 @@ def upload_file():
             raise DontTriggerFileDeletion('No selected file')
         
         database_table_name = request.form.get('database_table_name')
+        date_format = request.form.get('date_format')
+        
         if not database_table_name:
             raise DontTriggerFileDeletion('Please select a spreadsheet type')
 
@@ -94,26 +99,31 @@ def upload_file():
             clean_sheet.to_sql(name=database_table_name, schema=database_config['schema_name'], con=engine, if_exists='append', index=False)
 
             # Test that uploaded data equals data in file:
+            print(file_name)
+            print(database_config['schema_name'])
+            
             uploaded_data = pd.read_sql(sql=f"SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=engine)
+            print(clean_sheet['No'].dtype)
+            print(uploaded_data['No'].dtype)
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
-
+            print(clean_sheet['No'].dtype)
+            print(uploaded_data['No'].dtype)
+           
             print(clean_sheet.shape)
             print(uploaded_data.shape)
             testing.assert_frame_equal(uploaded_data, clean_sheet)
 
             if not clean_sheet.equals(uploaded_data):
                 raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
-            # Delete the file and the data in database, if above test fails.
 
             return redirect(url_for('success'))
         else:
             raise Exception('Invalid file type. Please upload a tab seperated .txt file. See manual below for help')
 
     except DontTriggerFileDeletion as tfd:
-        print('File not deleted')
-        #return render_template('index.html', error=str(tfd))
-        return redirect(url_for('error', error_message=str(tfd)))
+        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+        # return redirect(url_for('error', error_message=str(tfd)))
 
     except AssertionError as ae:
         if os.path.exists(file_path):
@@ -125,14 +135,16 @@ def upload_file():
         cursor.close()
         connection.close()
         #return render_template('index.html', error=str(ae)) 
-        return redirect(url_for('error', error_message=str(ae)))
+        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+        # return redirect(url_for('error', error_message=str(ae)))
     
     except Exception as e:
         print(f"Error: {e}")
         if os.path.exists(file_path):
             os.remove(file_path)
         print('deleted file')
-        return redirect(url_for('error', error_message=str(e)))
+        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+        # return redirect(url_for('error', error_message=str(e)))
 
 @app.route('/download_manual')
 def download_manual():

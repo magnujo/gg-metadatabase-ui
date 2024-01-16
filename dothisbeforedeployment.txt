@@ -1,0 +1,3 @@
+truncate all data in the database
+remove the dropna stuff.
+Make error messages more user friendly.
