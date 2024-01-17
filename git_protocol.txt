@@ -1,0 +1,11 @@
+1: Assign yourself to a task in GitHub issues
+2: pull from origin main 
+3: make new task/feature branch and switch to it
+4: pull from main branch
+5: commit changes to feature branch 
+6: repeat 4 and 5 until feature is done.
+7: when feature is done and tested push it to origin
+8: Create pull request
+9: Switch and pull from main 
+10: Merge feature into main
+11: push main to origin main

@@ -83,7 +83,7 @@ def upload_file():
             
             file_name = os.path.split(file_path)[-1]
 
-            clean_sheet = clean_up(tsv_file_path=file_path, database_table_name=database_table_name)
+            clean_sheet = clean_up(tsv_file_path=file_path, database_table_name=database_table_name, date_format=date_format)
 
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = database_config['user']

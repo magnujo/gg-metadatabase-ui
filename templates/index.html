@@ -39,10 +39,13 @@
         </select>
         <br>
         
+        The safest option is to use "-" but others seperators should also work.
         <label for="date_format">Select date format:</label>
         <select name="date_format" id="date_format" required>
-            <option value="dayfirst">Day first</option>
-            <option value="yearfirst">Year first</option>
+            <option value="dayfirst">Day-Month-Year</option> 
+            <option value="">Month-Day-Year</option>
+            <option value="dayfirst">Year-Day-Month</option>
+            <option value="yearfirst">Year-Month-Day</option>
         </select>
         <br>
 
