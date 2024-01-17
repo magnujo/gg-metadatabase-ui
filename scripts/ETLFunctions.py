@@ -110,14 +110,14 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     
     # # Date format validation and converting to datetime:
     date_columns = sheet.columns[sheet.columns.str.lower().str.contains('date')]
-    if date_format == 'year_first':
+    if date_format == 'ymd':
         for ele in date_columns:
                 sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601').astype('datetime64[ns]')
-    elif date_format == 'day_first':
+    elif date_format == 'dmy':
         for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601', dayfirst=True).astype('datetime64[ns]')
+                sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y %H:%M:%S').astype('datetime64[ns]')
     else: 
-        raise Exception;
+        raise Exception('No date format chosen, try again.')
 
     return sheet;
     #return(sheet)
