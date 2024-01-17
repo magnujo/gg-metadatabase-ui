@@ -7,5 +7,5 @@
 7: when feature is done and tested push it to origin
 8: Create pull request
 9: Switch and pull from main 
-10: Merge feature into main
+10: Merge feature into main (git merge feature-branch)
 11: push main to origin main
