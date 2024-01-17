@@ -158,3 +158,8 @@ def download_robot_sampling_edna_example_sheet():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+#Issue 10 add bogus function
+def bogus()
+    return
