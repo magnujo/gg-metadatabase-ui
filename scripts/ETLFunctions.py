@@ -109,15 +109,15 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     # return format: ISO8601
     
     # # Date format validation and converting to datetime:
-    # date_columns = sheet.columns[sheet.columns.str.lower().str.contains('date')]
-    # if date_format == 'year_first':
-    #     for ele in date_columns:
-    #             sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601').astype('datetime64[ns]')
-    # elif date_format == 'day_first':
-    #     for ele in date_columns:
-    #             sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601', dayfirst=True).astype('datetime64[ns]')
-    # else: 
-    #     raise Exception;
+    date_columns = sheet.columns[sheet.columns.str.lower().str.contains('date')]
+    if date_format == 'year_first':
+        for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601').astype('datetime64[ns]')
+    elif date_format == 'day_first':
+        for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601', dayfirst=True).astype('datetime64[ns]')
+    else: 
+        raise Exception;
 
     return sheet;
     #return(sheet)
