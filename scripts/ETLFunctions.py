@@ -8,7 +8,8 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16', dtype=str)
     sheet = sheet.dropna(axis='index', how='all')
 
-    if database_table_name == 'archive_sample':        
+    if database_table_name == 'archive_sample':
+        print("check1")        
         sheet = parse_archive_sample(sheet, date_format)
 
     elif database_table_name == 'robot_sample':
@@ -84,33 +85,26 @@ def parse_archive_sample(sheet, date_format):
     # TODO: Delete after deployment and ask make uploader responsible.
     sheet = sheet.dropna(axis='index', how='all')
     
-    date_columns = ['SubmissionDate', 'SamplingDate']
-    if date_format == 'ymd':
-        for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-    elif date_format == 'dmy':
-        for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y %H:%M:%S')
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-    else: 
-        raise Exception('No date format chosen, try again.')
-    
-    # TODO: Does the following throw error if the date type is not a float?
-    # Convert float cols to float
-    sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
-
     # For testing that the drops are made correctly:
     l1 = len(sheet[sheet['ArchiveSampleID'].notnull()])
 
     if 'ArchiveSampleID' in sheet.columns:
+        print("dropping")
         # TODO: Remove dropna before deployment. Make users responsible for input to db.
-        sheet = sheet.dropna(axis='index', how='all', subset=['Archive TUBE barcode'])
+        sheet = sheet.dropna(axis='index', how='all', subset=['ArchiveSampleID'])
     else:
-        raise Exception ("Upload failed. Expected column 'Archive TUBE barcode' not found. Are you sure you uploaded the correct spreadsheet?")
-    
+        raise Exception ("Upload failed. Expected column 'ArchiveSampleID' not found. Are you sure you uploaded the correct spreadsheet?")
+
     assert l1 == len(sheet), "Dropna test failed"
     
+    date_columns = ['SubmissionDate', 'SamplingDate']
+    sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)
+
+    # TODO: Does the following throw error if the date type is not a float?
+    # Convert float cols to float
+    sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
+
+    # Converts column names, if they are changes to KU ID format.
     if 'SampledBy' in sheet.columns:
         sheet = sheet.rename(columns={'SampledBy': 'SampledBy1'})
         sheet['SampledBy2'] = np.nan
@@ -123,3 +117,15 @@ def parse_archive_sample(sheet, date_format):
         sheet = sheet.rename(columns={'Submitter(KU-ID)': 'Submitter'})
     
 
+def parse_dates(sheet, date_columns, date_format):
+    if date_format == 'ymd':
+        for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
+                sheet[ele] = sheet[ele].astype('datetime64[ns]')
+    elif date_format == 'dmy':
+        for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y %H:%M:%S')
+                sheet[ele] = sheet[ele].astype('datetime64[ns]')
+    else: 
+        raise Exception('No date format chosen, try again.')
+    return sheet
