@@ -53,17 +53,17 @@
         <label for="decimal_point">Select decimal point character used for numeric data:</label>
         <select name="decimal_point" id="decimal_point" required>
             <option value="no_choice"></option> 
-            <option value="europe">,</option> 
-            <option value="non-europe">.</option>
-            <option value="none">My sheet does not contain decimals</option>
+            <option value=",">,</option> 
+            <option value=".">.</option>
+            <option value="not_relevant">My sheet does not contain decimals</option>
         </select>
         <br>        
-        <label for="decimal_point">Select thousands seperator character used for numeric data:</label>
-        <select name="decimal_point" id="decimal_point" required>
+        <label for="thousands_seperator">Select thousands seperator character used for numeric data:</label>
+        <select name="thousands_seperator" id="thousands_seperator" required>
             <option value="no_choice"></option> 
-            <option value="europe">.</option> 
-            <option value="non-europe">,</option>
-            <option value="none">My sheet does not contain thousands seperators</option>
+            <option value=".">.</option> 
+            <option value=",">,</option>
+            <option value="not_relevant">My sheet does not contain thousands seperators</option>
         </select>
         <br>
         <style>

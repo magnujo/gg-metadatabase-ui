@@ -72,8 +72,19 @@ def upload_file():
         
         database_table_name = request.form.get('database_table_name')
         date_format = request.form.get('date_format')
+        decimal_point = request.form.get('decimal_point')
+        thousands_seperator = request.form.get('decimal_point')
         
-        if not database_table_name:
+        if thousands_seperator == "no_choice" or not thousands_seperator:
+            raise DontTriggerFileDeletion('Please select a thousands seperator character')
+
+        if decimal_point == "no_choice" or not decimal_point:
+            raise DontTriggerFileDeletion('Please select a decimal point character')
+        
+        if date_format == "no_choice" or not date_format:
+            raise DontTriggerFileDeletion('Please select a date format type')
+        
+        if database_table_name == "no_choice" or not database_table_name:
             raise DontTriggerFileDeletion('Please select a spreadsheet type')
 
         if file and allowed_file(file.filename):
@@ -162,7 +173,3 @@ def download_robot_sampling_edna_example_sheet():
 if __name__ == '__main__':
     app.run(debug=True)
 
-
-#Issue 10 add bogus function
-def bogus()
-    return
