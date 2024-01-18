@@ -99,7 +99,11 @@ def upload_file():
             
             file_name = os.path.split(file_path)[-1]
 
-            clean_sheet = clean_up(tsv_file_path=file_path, database_table_name=database_table_name, date_format=date_format)
+            clean_sheet = clean_up(tsv_file_path=file_path, 
+                                   database_table_name=database_table_name, 
+                                   date_format=date_format,
+                                   decimal_point=decimal_point,
+                                   thousands_seperator=thousands_seperator)
 
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = database_config['user']
@@ -112,7 +116,11 @@ def upload_file():
             # Convert to ns to enable testing (postgres converts to ns, when uploading)
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
 
-            clean_sheet.to_sql(name=database_table_name, schema=database_config['schema_name'], con=engine, if_exists='append', index=False)
+            clean_sheet.to_sql(name=database_table_name, 
+                               schema=database_config['schema_name'], 
+                               con=engine, 
+                               if_exists='append', 
+                               index=False)
 
             # Test that uploaded data equals data in file:
             print(file_name)
