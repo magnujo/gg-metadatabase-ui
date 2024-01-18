@@ -7,6 +7,8 @@
 7: repeat 4 and 5 until feature is done.
 8: when feature is done and tested push it to origin
 9: Create pull request
+
+Magnus only:
 10: Switch and pull from main 
-11: Merge feature into main (git merge feature-branch)
+11: Merge feature into main (git merge <feature-branch>)
 12: push main to origin main

@@ -11,6 +11,11 @@ import numpy as np
 from pandas import testing
 import traceback
 
+# Makes commas recognized as decimal point and dot recognized as thousand seperator:
+import locale
+
+
+
 
 
 database_config = {
@@ -67,8 +72,19 @@ def upload_file():
         
         database_table_name = request.form.get('database_table_name')
         date_format = request.form.get('date_format')
+        decimal_point = request.form.get('decimal_point')
+        thousands_seperator = request.form.get('decimal_point')
         
-        if not database_table_name:
+        if thousands_seperator == "no_choice" or not thousands_seperator:
+            raise DontTriggerFileDeletion('Please select a thousands seperator character')
+
+        if decimal_point == "no_choice" or not decimal_point:
+            raise DontTriggerFileDeletion('Please select a decimal point character')
+        
+        if date_format == "no_choice" or not date_format:
+            raise DontTriggerFileDeletion('Please select a date format type')
+        
+        if database_table_name == "no_choice" or not database_table_name:
             raise DontTriggerFileDeletion('Please select a spreadsheet type')
 
         if file and allowed_file(file.filename):
@@ -83,7 +99,11 @@ def upload_file():
             
             file_name = os.path.split(file_path)[-1]
 
-            clean_sheet = clean_up(tsv_file_path=file_path, database_table_name=database_table_name, date_format=date_format)
+            clean_sheet = clean_up(tsv_file_path=file_path, 
+                                   database_table_name=database_table_name, 
+                                   date_format=date_format,
+                                   decimal_point=decimal_point,
+                                   thousands_seperator=thousands_seperator)
 
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = database_config['user']
@@ -96,22 +116,24 @@ def upload_file():
             # Convert to ns to enable testing (postgres converts to ns, when uploading)
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
 
-            clean_sheet.to_sql(name=database_table_name, schema=database_config['schema_name'], con=engine, if_exists='append', index=False)
+            clean_sheet.to_sql(name=database_table_name, 
+                               schema=database_config['schema_name'], 
+                               con=engine, 
+                               if_exists='append', 
+                               index=False)
 
             # Test that uploaded data equals data in file:
             print(file_name)
             print(database_config['schema_name'])
             
             uploaded_data = pd.read_sql(sql=f"SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=engine)
-            print(clean_sheet['No'].dtype)
-            print(uploaded_data['No'].dtype)
+
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
-            print(clean_sheet['No'].dtype)
-            print(uploaded_data['No'].dtype)
+
            
-            print(clean_sheet.shape)
-            print(uploaded_data.shape)
+            print(len(clean_sheet.columns))
+            print(len(uploaded_data.columns))
             testing.assert_frame_equal(uploaded_data, clean_sheet)
 
             if not clean_sheet.equals(uploaded_data):
@@ -159,7 +181,3 @@ def download_robot_sampling_edna_example_sheet():
 if __name__ == '__main__':
     app.run(debug=True)
 
-
-#Issue 10 add bogus function
-def bogus()
-    return
