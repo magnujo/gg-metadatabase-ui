@@ -2,15 +2,17 @@ import os
 import pandas as pd
 import numpy as np
 import re
-
+import locale
     
 def clean_up(tsv_file_path, database_table_name, date_format):
     sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16', dtype=str)
-    sheet = sheet.dropna(axis='index', how='all')
+    locale.setlocale(locale.LC_ALL, 'german')
+    print(locale.getlocale())
 
+    
     if database_table_name == 'archive_sample':
         print("check1")        
-        sheet = parse_archive_sample(sheet, date_format)
+        sheet = parse_archive_sample(tsv_file_path, date_format)
 
     elif database_table_name == 'robot_sample':
         
@@ -64,6 +66,7 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     
     # return format: ISO8601
     
+    # TODO: Should be done in the seperate sheet parsing functions, to make it specific to each sheet
     # # Date format validation and converting to datetime:
     date_columns = sheet.columns[sheet.columns.str.lower().str.contains('date')]
     if date_format == 'ymd':
@@ -80,7 +83,30 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     # return len(sheet)
 
 
-def parse_archive_sample(sheet, date_format):
+def parse_archive_sample(file_path, date_format):
+    
+    dtypes = {'ArchiveSampleID': str,
+              'PositionInRack': str,
+              'RackName': str,
+              'RackID': str,
+              'BulkSampleID': str,
+              'DepthSampledCalTape': float,
+              'DepthOrderedCalTape': str,
+              'OrganicContent': str,
+              'SurfaceExposed': str,
+              'RemarksArchiveSampling': str,
+              'SampledBy1': str,
+              'SampledBy2': str,
+              'SamplingDate': str,
+              'Submitter': str,
+              'SubmissionDate': str,
+              'NotesSubmitter': str}
+    
+    # sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=dtypes, thousands='.', decimal=',')
+    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+    sheet = sheet.dropna(axis='index', how='all')
+    
+    print(sheet.dtypes)
     
     # TODO: Delete after deployment and ask make uploader responsible.
     sheet = sheet.dropna(axis='index', how='all')
@@ -88,21 +114,24 @@ def parse_archive_sample(sheet, date_format):
     # For testing that the drops are made correctly:
     l1 = len(sheet[sheet['ArchiveSampleID'].notnull()])
 
+    # Drop all rows that does not contain ArchiveSampleID
     if 'ArchiveSampleID' in sheet.columns:
         print("dropping")
         # TODO: Remove dropna before deployment. Make users responsible for input to db.
         sheet = sheet.dropna(axis='index', how='all', subset=['ArchiveSampleID'])
     else:
         raise Exception ("Upload failed. Expected column 'ArchiveSampleID' not found. Are you sure you uploaded the correct spreadsheet?")
-
     assert l1 == len(sheet), "Dropna test failed"
     
+    # Parse dates, throws error if formatting is wrong in the sheet
     date_columns = ['SubmissionDate', 'SamplingDate']
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)
 
     # TODO: Does the following throw error if the date type is not a float?
     # Convert float cols to float
-    sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
+    # sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
+    sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].apply(float)
+    
 
     # Converts column names, if they are changes to KU ID format.
     if 'SampledBy' in sheet.columns:
@@ -115,8 +144,8 @@ def parse_archive_sample(sheet, date_format):
         sheet.insert(sheet.columns.get_loc('SampledBy1')+1, 'SampledBy2', sheet.pop('SampledBy2'))
     if 'Submitter(KU-ID)' in sheet.columns:
         sheet = sheet.rename(columns={'Submitter(KU-ID)': 'Submitter'})
+    return sheet
     
-
 def parse_dates(sheet, date_columns, date_format):
     if date_format == 'ymd':
         for ele in date_columns:

@@ -11,6 +11,11 @@ import numpy as np
 from pandas import testing
 import traceback
 
+# Makes commas recognized as decimal point and dot recognized as thousand seperator:
+import locale
+
+
+
 
 
 database_config = {
@@ -103,15 +108,13 @@ def upload_file():
             print(database_config['schema_name'])
             
             uploaded_data = pd.read_sql(sql=f"SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=engine)
-            print(clean_sheet['No'].dtype)
-            print(uploaded_data['No'].dtype)
+
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
-            print(clean_sheet['No'].dtype)
-            print(uploaded_data['No'].dtype)
+
            
-            print(clean_sheet.shape)
-            print(uploaded_data.shape)
+            print(len(clean_sheet.columns))
+            print(len(uploaded_data.columns))
             testing.assert_frame_equal(uploaded_data, clean_sheet)
 
             if not clean_sheet.equals(uploaded_data):
