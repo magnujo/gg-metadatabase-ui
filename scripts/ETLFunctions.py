@@ -132,14 +132,7 @@ def parse_archive_sample(file_path, date_format, decimal_point, thousands_sepera
     float_cols = ['DepthSampledCalTape']
     
     sheet = parse_floats(sheet, float_cols, decimal_point, thousands_seperator)
-    
-    
         
-    
-    
-    sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].apply(float)
-    
-
     # Converts column names, if they are changes to KU ID format.
     if 'SampledBy' in sheet.columns:
         sheet = sheet.rename(columns={'SampledBy': 'SampledBy1'})
@@ -170,23 +163,52 @@ def parse_dates(sheet, date_columns, date_format):
 # Converts to float and throws error if string is not a float (for example if it contains thousands seperators)
 def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
     
-    # check for inconsistencies
-    
-#  if , + not relevant and a dot i found, throw error
-# if not rele + , and a dot is found throw error.
-# if . not rele and a comma is found throw error
-# if not rele . and a comma is found throw error
- 
     for ele in float_columns:
+        
+        # Checks for inconsistencies in data and user input
         match (decimal_point, thousands_seperator):
-            case ("not_relevant", ",") | (",", "not_relevant"):
+        
+            case ("not_relevant", ","):
                 if "." in sheet[ele]:
                     raise Exception("Found . (period) in numeric data, but not in user input")
-            case (".", "not_relevant") | ("not_relevant", "."):
+                else:
+                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                    
+            case (",", "not_relevant"):
+                if "." in sheet[ele]:
+                    raise Exception("Found . (period) in numeric data, but not in user input")
+                else:
+                    sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+                    
+            case (".", "not_relevant"):
                 if "," in sheet[ele]:
                     raise Exception("Found , (comma) in numeric data, but not in user input")
                 
-        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
-        sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
-        sheet[ele] = sheet[ele].astype(float)        
+            case ("not_relevant", "."):
+                if "," in sheet[ele]:
+                    raise Exception("Found , (comma) in numeric data, but not in user input")
+                else:
+                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+
+            case ("not_relevant", "not_relevant"):
+                if "," or "." in sheet[ele]:
+                    raise Exception("Found , (comma) or . (period) in numeric data, but not in user input")
+                    
+            case (",", "."):
+                if "," in sheet[ele]:
+                    raise Exception("Found , (comma) in numeric data, but not in user input")
+                else:
+                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                    sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+                    
+            case (".", ","):
+                if "," in sheet[ele]:
+                    raise Exception("Found , (comma) in numeric data, but not in user input")
+                else:
+                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+            
+            case _:
+                raise Exception("case _ reached in parse floats. Contact database admin.")
+                    
+        sheet[ele] = sheet[ele].astype(float)   
 
