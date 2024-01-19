@@ -4,15 +4,14 @@ import numpy as np
 import re
 import locale
     
-def clean_up(tsv_file_path, database_table_name, date_format):
+def clean_up(tsv_file_path, database_table_name, date_format, decimal_point, 
+             thousands_seperator):
+    
     sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16', dtype=str)
-    locale.setlocale(locale.LC_ALL, 'german')
-    print(locale.getlocale())
-
     
     if database_table_name == 'archive_sample':
         print("check1")        
-        sheet = parse_archive_sample(tsv_file_path, date_format)
+        sheet = parse_archive_sample(tsv_file_path, date_format, decimal_point, thousands_seperator)
 
     elif database_table_name == 'robot_sample':
         
@@ -83,7 +82,7 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     # return len(sheet)
 
 
-def parse_archive_sample(file_path, date_format):
+def parse_archive_sample(file_path, date_format, decimal_point, thousands_seperator):
     
     dtypes = {'ArchiveSampleID': str,
               'PositionInRack': str,
@@ -127,9 +126,17 @@ def parse_archive_sample(file_path, date_format):
     date_columns = ['SubmissionDate', 'SamplingDate']
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)
 
-    # TODO: Does the following throw error if the date type is not a float?
-    # Convert float cols to float
+    # Convert float cols to float. Throws error if not a float.
     # sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
+    
+    float_cols = ['DepthSampledCalTape']
+    
+    sheet = parse_floats(sheet, float_cols, decimal_point, thousands_seperator)
+    
+    
+        
+    
+    
     sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].apply(float)
     
 
@@ -158,3 +165,28 @@ def parse_dates(sheet, date_columns, date_format):
     else: 
         raise Exception('No date format chosen, try again.')
     return sheet
+
+#TODO: What if not_relevant?
+# Converts to float and throws error if string is not a float (for example if it contains thousands seperators)
+def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
+    
+    # check for inconsistencies
+    
+#  if , + not relevant and a dot i found, throw error
+# if not rele + , and a dot is found throw error.
+# if . not rele and a comma is found throw error
+# if not rele . and a comma is found throw error
+ 
+    for ele in float_columns:
+        match (decimal_point, thousands_seperator):
+            case ("not_relevant", ",") | (",", "not_relevant"):
+                if "." in sheet[ele]:
+                    raise Exception("Found . (period) in numeric data, but not in user input")
+            case (".", "not_relevant") | ("not_relevant", "."):
+                if "," in sheet[ele]:
+                    raise Exception("Found , (comma) in numeric data, but not in user input")
+                
+        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+        sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+        sheet[ele] = sheet[ele].astype(float)        
+

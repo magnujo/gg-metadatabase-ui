@@ -81,6 +81,9 @@ def upload_file():
         if decimal_point == "no_choice" or not decimal_point:
             raise DontTriggerFileDeletion('Please select a decimal point character')
         
+        if decimal_point == thousands_seperator:
+            raise DontTriggerFileDeletion('Decimal point has to be different from thousands seperator')
+        
         if date_format == "no_choice" or not date_format:
             raise DontTriggerFileDeletion('Please select a date format type')
         

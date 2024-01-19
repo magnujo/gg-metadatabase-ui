@@ -14,8 +14,9 @@ Leave cells empty if there is no data to put there. Do not write "N/A" or "-" or
 
 Intervals: 123 - 124
 
-Thousand seperator = "."
-Decimal point = ","
+The following is the safest approach (doesnt require custom code to convert, as pandas uses this as standard)
+Thousand seperator = ","
+Decimal point = "."
 
 Primary ids must be not null. Remove rows that do not have a primary id. 
 

@@ -28,7 +28,7 @@
 
         <label for="database_table_name">Select spreadsheet type:</label>
         <select name="database_table_name" id="database_table_name" required>
-            <option value="no_choice"></option> 
+            <option value="no_choice">Select one...</option> 
             <option value="field_sample">Field sampling</option>
             <option value="archive_sample">Archive sampling</option>
             <option value="robot_sample">Robot sampling eDNA</option>
@@ -42,7 +42,7 @@
         
         <label for="date_format">Select date format:</label>
         <select name="date_format" id="date_format" required>
-            <option value="no_choice"></option> 
+            <option value="no_choice">Select one...</option> 
             <option value="dmy">DD-MM-YYYY</option> 
             <option value="ymd">YYYY-MM-DD</option>
         </select>
@@ -50,19 +50,19 @@
         The datebase is setup to accept dates with "-" as seperators, but other seperators might also work.
         <br>
         
-        <label for="decimal_point">Select decimal point character used for numeric data:</label>
+        <label for="decimal_point">Select decimal point character used:</label>
         <select name="decimal_point" id="decimal_point" required>
-            <option value="no_choice"></option> 
-            <option value=",">,</option> 
-            <option value=".">.</option>
+            <option value="no_choice">Select one...</option> 
+            <option value=",">, (comma)</option> 
+            <option value=".">. (period)</option>
             <option value="not_relevant">My sheet does not contain decimals</option>
         </select>
         <br>        
-        <label for="thousands_seperator">Select thousands seperator character used for numeric data:</label>
+        <label for="thousands_seperator">Select thousands seperator used:</label>
         <select name="thousands_seperator" id="thousands_seperator" required>
-            <option value="no_choice"></option> 
-            <option value=".">.</option> 
-            <option value=",">,</option>
+            <option value="no_choice">Select one...</option> 
+            <option value=",">, (comma)</option>
+            <option value=".">. (period)</option> 
             <option value="not_relevant">My sheet does not contain thousands seperators</option>
         </select>
         <br>
