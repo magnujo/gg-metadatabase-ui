@@ -10,6 +10,8 @@ from psycopg2 import sql
 import numpy as np
 from pandas import testing
 import traceback
+global admin_email
+
 
 # Makes commas recognized as decimal point and dot recognized as thousand seperator:
 import locale
@@ -182,5 +184,6 @@ def download_robot_sampling_edna_example_sheet():
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
+    admin_email = 'magnus_johannsen@sund.ku.dk'
     app.run(debug=True)
 
