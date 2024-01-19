@@ -3,16 +3,16 @@ import pandas as pd
 import numpy as np
 import re
 import locale
-    
-def clean_up(tsv_file_path, database_table_name, date_format):
-    sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16', dtype=str)
-    locale.setlocale(locale.LC_ALL, 'german')
-    print(locale.getlocale())
+admin_email = 'magnus.johannsen@sund.ku.dk'
 
+def clean_up(tsv_file_path, database_table_name, date_format, decimal_point, 
+             thousands_seperator):
+    
+    sheet = pd.read_csv(tsv_file_path, sep='\t', encoding='utf_16', dtype=str)
     
     if database_table_name == 'archive_sample':
         print("check1")        
-        sheet = parse_archive_sample(tsv_file_path, date_format)
+        sheet = parse_archive_sample(tsv_file_path, date_format, decimal_point, thousands_seperator)
 
     elif database_table_name == 'robot_sample':
         
@@ -83,7 +83,7 @@ def clean_up(tsv_file_path, database_table_name, date_format):
     # return len(sheet)
 
 
-def parse_archive_sample(file_path, date_format):
+def parse_archive_sample(file_path, date_format, decimal_point, thousands_seperator):
     
     dtypes = {'ArchiveSampleID': str,
               'PositionInRack': str,
@@ -127,12 +127,13 @@ def parse_archive_sample(file_path, date_format):
     date_columns = ['SubmissionDate', 'SamplingDate']
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)
 
-    # TODO: Does the following throw error if the date type is not a float?
-    # Convert float cols to float
+    # Convert float cols to float. Throws error if not a float.
     # sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
-    sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].apply(float)
     
-
+    float_cols = ['DepthSampledCalTape']
+    
+    sheet = parse_floats(sheet, float_cols, decimal_point, thousands_seperator)
+        
     # Converts column names, if they are changes to KU ID format.
     if 'SampledBy' in sheet.columns:
         sheet = sheet.rename(columns={'SampledBy': 'SampledBy1'})
@@ -157,4 +158,63 @@ def parse_dates(sheet, date_columns, date_format):
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
     else: 
         raise Exception('No date format chosen, try again.')
+    return sheet
+
+#TODO: What if not_relevant?
+# Converts to float and throws error if string is not a float (for example if it contains thousands seperators)
+def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
+    
+    for ele in float_columns:
+        if ele in sheet.columns:
+        
+            # Checks for inconsistencies in data and user input
+            match (decimal_point, thousands_seperator):
+            
+                case ("not_relevant", ","):
+                    if "." in sheet[ele]:
+                        raise Exception("Found . (period) in numeric data, but not in user input")
+                    else:
+                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                        
+                case (",", "not_relevant"):
+                    if "." in sheet[ele]:
+                        raise Exception("Found . (period) in numeric data, but not in user input")
+                    else:
+                        sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+                        
+                case (".", "not_relevant"):
+                    if "," in sheet[ele]:
+                        raise Exception("Found , (comma) in numeric data, but not in user input")
+                    
+                case ("not_relevant", "."):
+                    if "," in sheet[ele]:
+                        raise Exception("Found , (comma) in numeric data, but not in user input")
+                    else:
+                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+
+                case ("not_relevant", "not_relevant"):
+                    if "," in sheet[ele] or "." in sheet[ele]:
+                        raise Exception("Found , (comma) or . (period) in numeric data, but not in user input")
+                        
+                case (",", "."):
+                    if "," in sheet[ele]:
+                        raise Exception("Found , (comma) in numeric data, but not in user input")
+                    else:
+                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                        sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+                        
+                case (".", ","):
+                    if "," in sheet[ele]:
+                        raise Exception("Found , (comma) in numeric data, but not in user input")
+                    else:
+                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                
+                case _:
+                    raise Exception("case _ reached in parse floats. Contact database admin.")
+                        
+            sheet[ele] = sheet[ele].astype(float)   
+            
+        else:
+            raise Exception(f"Did not find expected float column {ele} in input. Contact admin at {admin_email}")
+
     return sheet

@@ -10,6 +10,8 @@ from psycopg2 import sql
 import numpy as np
 from pandas import testing
 import traceback
+global admin_email
+
 
 # Makes commas recognized as decimal point and dot recognized as thousand seperator:
 import locale
@@ -80,6 +82,9 @@ def upload_file():
 
         if decimal_point == "no_choice" or not decimal_point:
             raise DontTriggerFileDeletion('Please select a decimal point character')
+        
+        if decimal_point == thousands_seperator:
+            raise DontTriggerFileDeletion('Decimal point has to be different from thousands seperator')
         
         if date_format == "no_choice" or not date_format:
             raise DontTriggerFileDeletion('Please select a date format type')
@@ -179,5 +184,6 @@ def download_robot_sampling_edna_example_sheet():
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
+    admin_email = 'magnus_johannsen@sund.ku.dk'
     app.run(debug=True)
 
