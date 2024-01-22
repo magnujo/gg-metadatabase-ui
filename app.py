@@ -75,7 +75,7 @@ def upload_file():
         database_table_name = request.form.get('database_table_name')
         date_format = request.form.get('date_format')
         decimal_point = request.form.get('decimal_point')
-        thousands_seperator = request.form.get('decimal_point')
+        thousands_seperator = request.form.get('thousands_seperator')
         
         if thousands_seperator == "no_choice" or not thousands_seperator:
             raise DontTriggerFileDeletion('Please select a thousands seperator character')
@@ -83,7 +83,7 @@ def upload_file():
         if decimal_point == "no_choice" or not decimal_point:
             raise DontTriggerFileDeletion('Please select a decimal point character')
         
-        if decimal_point == thousands_seperator:
+        if decimal_point == thousands_seperator and (decimal_point != "not_relevant" and thousands_seperator != "not_relevant"):
             raise DontTriggerFileDeletion('Decimal point has to be different from thousands seperator')
         
         if date_format == "no_choice" or not date_format:
