@@ -86,11 +86,12 @@
     </form>
     <br>
 
-    <script>
-        function showAlert() {
-            alert("This is an alert box!");
-        }
-    </script>
+    {% if message %}
+        <script>
+            // Display an alert box with the message
+            alert("{{ message }}");
+        </script>
+    {% endif %}
     
 </body>
 </html>

@@ -1,43 +1,20 @@
+import constants
 import sys
 from flask import Flask, render_template, request, send_file, redirect, url_for, flash
 import os
 from scripts.ETLFunctions import clean_up
 import pandas as pd
-from sqlalchemy import create_engine
 from utils.CustomExceptions import DontTriggerFileDeletion
 import psycopg2
 from psycopg2 import sql
 import numpy as np
 from pandas import testing
 import traceback
-global admin_email
+from constants import engine, database_config, database_config2
 
 
 # Makes commas recognized as decimal point and dot recognized as thousand seperator:
 import locale
-
-
-
-
-
-database_config = {
-    'host': 'dandyweb01fl',
-    'database': 'aedna_metadata',
-    'port': '5432',
-    'user': 'upload_user',
-    'password': 'Ce65r-l+!D04',
-    'schema_name': 'test'
-}
-
-database_config2 = {
-    'host': database_config['host'],
-    'dbname': database_config['database'],
-    'port': database_config['port'],
-    'user': database_config['user'],
-    'password': database_config['password'],
-}
-
-engine = create_engine(f"postgresql://{database_config['user']}:{database_config['password']}@{database_config['host']}:{database_config['port']}/{database_config['database']}")
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -96,7 +73,7 @@ def upload_file():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
             if os.path.exists(file_path):
-                raise DontTriggerFileDeletion('A file with the exact same name has already been uploaded to the database. Contact database admin if you believe this is an error, or if you want to re-upload the file')
+                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact database {constants.admin_email} if you believe this is an error, or if you want to re-upload the file')
             
             else:
                 # Use DontTriggerFileDelete before this and use Exception after. 
@@ -184,6 +161,5 @@ def download_robot_sampling_edna_example_sheet():
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
-    admin_email = 'magnus_johannsen@sund.ku.dk'
     app.run(debug=True)
 
