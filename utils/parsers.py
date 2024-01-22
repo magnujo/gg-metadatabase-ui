@@ -1,3 +1,6 @@
+import pandas as pd
+import constants
+
 def parse_dates(sheet, date_columns, date_format):
     if date_format == 'ymd':
         for ele in date_columns:
@@ -70,6 +73,6 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             sheet[ele] = sheet[ele].astype(float)   
             
         else:
-            raise Exception(f"Did not find expected float column {ele} in input. Contact admin at {admin_email}")
+            raise Exception(f"Did not find expected float column {ele} in input. Contact admin at {constants.admin_email}")
 
     return sheet

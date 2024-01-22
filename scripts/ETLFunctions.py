@@ -4,8 +4,7 @@ import numpy as np
 import re
 import locale
 from utils.parsers import parse_dates, parse_floats
-
-admin_email = 'magnus.johannsen@sund.ku.dk'
+import constants
 
 from app import database_config, engine
 
@@ -29,7 +28,7 @@ def clean_up(tsv_file_path, database_table_name, date_format, decimal_point,
         
         # Drop test:
         if len(sheet) != l1:
-            raise Exception('Error dropping null values. Contact admin for help.')
+            raise Exception(f'Error dropping null values. Contact {constants.admin_email} for help.')
         
         if 'Lab assistant (initials)' in sheet.columns:
             sheet = sheet.rename(columns={'Lab assistant (initials)': 'Lab assistant (KU ID(s seperated by semicolon))'})
