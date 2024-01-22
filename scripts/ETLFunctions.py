@@ -7,6 +7,8 @@ from utils.parsers import parse_dates, parse_floats
 
 admin_email = 'magnus.johannsen@sund.ku.dk'
 
+from app import database_config, engine
+
 def clean_up(tsv_file_path, database_table_name, date_format, decimal_point, 
              thousands_seperator):
     
@@ -84,28 +86,40 @@ def clean_up(tsv_file_path, database_table_name, date_format, decimal_point,
     #return(sheet)
     # return len(sheet)
 
+    
 
 def parse_archive_sample(file_path, date_format, decimal_point, thousands_seperator):
     
     dtypes = {'ArchiveSampleID': str,
-              'PositionInRack': str,
-              'RackName': str,
-              'RackID': str,
-              'BulkSampleID': str,
-              'DepthSampledCalTape': float,
-              'DepthOrderedCalTape': str,
-              'OrganicContent': str,
-              'SurfaceExposed': str,
-              'RemarksArchiveSampling': str,
-              'SampledBy1': str,
-              'SampledBy2': str,
-              'SamplingDate': str,
-              'Submitter': str,
-              'SubmissionDate': str,
-              'NotesSubmitter': str}
-    
+                'PositionInRack': str,
+                'RackName': str,
+                'RackID': str,
+                'BulkSampleID': str,
+                'DepthSampledCalTape': float,
+                'DepthOrderedCalTape': str,
+                'OrganicContent': str,
+                'SurfaceExposed': str,
+                'RemarksArchiveSampling': str,
+                'SampledBy1': str,
+                'SampledBy2': str,
+                'SamplingDate': str,
+                'Submitter': str,
+                'SubmissionDate': str,
+                'NotesSubmitter': str}
+
     # sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=dtypes, thousands='.', decimal=',')
-    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)    
+    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+    
+    expected_columns = pd.read_sql(sql=f"SELECT * from {database_config['schema_name']}.archive_sample", con=engine).columns
+    
+    expected_columns = expected_columns[:-3] 
+    expected_columns2 = expected_columns.copy().drop('SampledBy2')
+    
+    assert list(expected_columns) == list(sheet.columns) or list(expected_columns2) == list(sheet.columns), ("Column names and/or positions not as expected")
+
+    
+    expected_columns = expected_columns[:-3] 
+    expected_columns2 = expected_columns.copy().drop('SampledBy2') != sheet.columns or expected_columns2 != sheet.columns, ("Column names and/or positions not as expected")    
 
     # Converts column names, if they are changes to KU ID format.
     if 'SampledBy' in sheet.columns:
