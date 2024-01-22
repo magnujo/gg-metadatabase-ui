@@ -115,10 +115,6 @@ def parse_archive_sample(file_path, date_format, decimal_point, thousands_sepera
     
     assert list(expected_columns) == list(sheet.columns) or list(expected_columns2) == list(sheet.columns), ("Column names and/or positions not as expected")
 
-    
-    expected_columns = expected_columns[:-3] 
-    expected_columns2 = expected_columns.copy().drop('SampledBy2') != sheet.columns or expected_columns2 != sheet.columns, ("Column names and/or positions not as expected")    
-
     # Converts column names, if they are changes to KU ID format.
     if 'SampledBy' in sheet.columns:
         sheet = sheet.rename(columns={'SampledBy': 'SampledBy1'})
