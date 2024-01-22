@@ -103,10 +103,19 @@ def parse_archive_sample(file_path, date_format, decimal_point, thousands_sepera
               'NotesSubmitter': str}
     
     # sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=dtypes, thousands='.', decimal=',')
-    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
-    sheet = sheet.dropna(axis='index', how='all')
-    
-    print(sheet.dtypes)
+    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)    
+
+    # Converts column names, if they are changes to KU ID format.
+    if 'SampledBy' in sheet.columns:
+        sheet = sheet.rename(columns={'SampledBy': 'SampledBy1'})
+        sheet['SampledBy2'] = np.nan
+        sheet.insert(sheet.columns.get_loc('SampledBy1')+1, 'SampledBy2', sheet.pop('SampledBy2'))
+    elif 'SampleBy2' not in sheet.columns:
+        #sheet = sheet.rename(columns={'SampledBy1': 'SampledBy'})
+        sheet['SampledBy2'] = np.nan
+        sheet.insert(sheet.columns.get_loc('SampledBy1')+1, 'SampledBy2', sheet.pop('SampledBy2'))
+    if 'Submitter(KU-ID)' in sheet.columns:
+        sheet = sheet.rename(columns={'Submitter(KU-ID)': 'Submitter'})
     
     # TODO: Delete after deployment and ask make uploader responsible.
     sheet = sheet.dropna(axis='index', how='all')
@@ -134,17 +143,7 @@ def parse_archive_sample(file_path, date_format, decimal_point, thousands_sepera
     
     sheet = parse_floats(sheet, float_cols, decimal_point, thousands_seperator)
         
-    # Converts column names, if they are changes to KU ID format.
-    if 'SampledBy' in sheet.columns:
-        sheet = sheet.rename(columns={'SampledBy': 'SampledBy1'})
-        sheet['SampledBy2'] = np.nan
-        sheet.insert(sheet.columns.get_loc('SampledBy1')+1, 'SampledBy2', sheet.pop('SampledBy2'))
-    if 'SampledBy(KU-ID)' in sheet.columns:
-        sheet = sheet.rename(columns={'SampledBy(KU-ID)': 'SampledBy1'})
-        sheet['SampledBy2'] = np.nan
-        sheet.insert(sheet.columns.get_loc('SampledBy1')+1, 'SampledBy2', sheet.pop('SampledBy2'))
-    if 'Submitter(KU-ID)' in sheet.columns:
-        sheet = sheet.rename(columns={'Submitter(KU-ID)': 'Submitter'})
+
     return sheet
     
 def parse_dates(sheet, date_columns, date_format):
@@ -171,43 +170,47 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             match (decimal_point, thousands_seperator):
             
                 case ("not_relevant", ","):
-                    if "." in sheet[ele]:
-                        raise Exception("Found . (period) in numeric data, but not in user input")
+                    bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
+                    if bad_rows.any():
+                        raise Exception(f"Found . (period) in numeric data in the following rows, \
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
                     else:
-                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
                         
                 case (",", "not_relevant"):
-                    if "." in sheet[ele]:
-                        raise Exception("Found . (period) in numeric data, but not in user input")
+                    bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
+                    if bad_rows.any():
+                        raise Exception(f"Found . (period) in numeric data in the following rows, \
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
                     else:
-                        sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+                        sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
                         
                 case (".", "not_relevant"):
-                    if "," in sheet[ele]:
-                        raise Exception("Found , (comma) in numeric data, but not in user input")
+                    bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
+                    if bad_rows.any():
+                        raise Exception(f"Found , (comma) in numeric data in the following rows, \
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
                     
                 case ("not_relevant", "."):
-                    if "," in sheet[ele]:
-                        raise Exception("Found , (comma) in numeric data, but not in user input")
+                    bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
+                    if bad_rows.any():
+                        raise Exception(f"Found , (comma) in numeric data in the following rows, \
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
                     else:
                         sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
 
                 case ("not_relevant", "not_relevant"):
-                    if "," in sheet[ele] or "." in sheet[ele]:
-                        raise Exception("Found , (comma) or . (period) in numeric data, but not in user input")
+                    bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
+                    if bad_rows.any():
+                        raise Exception(f"Found , (comma) or . (period) in numeric data in the following rows, \
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
                         
                 case (",", "."):
-                    if "," in sheet[ele]:
-                        raise Exception("Found , (comma) in numeric data, but not in user input")
-                    else:
-                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
-                        sheet[ele] = sheet[ele].str.replace(decimal_point, ".")
+                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
+                    sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
                         
                 case (".", ","):
-                    if "," in sheet[ele]:
-                        raise Exception("Found , (comma) in numeric data, but not in user input")
-                    else:
-                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
                 
                 case _:
                     raise Exception("case _ reached in parse floats. Contact database admin.")
