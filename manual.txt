@@ -8,7 +8,9 @@ and we can figure something out.
 
 Every row that only has empty cells will be deleted.
 
-Column names and positions have to be exactly the same as in the example sheets.
+The column names and positions should be exactly the same as found in the example sheet that can be downloaded 
+from the web page. If it is not, the data will be rejected. If you want the example sheet to be updated (add/remove/rename/relocate columns etc.) 
+contact magnus.johannsen@sund.ku.dk or julian.perez@sund.ku.dk.
 
 Leave cells empty if there is no data to put there. Do not write "N/A" or "-" or anything. Just leave it empty.
 
