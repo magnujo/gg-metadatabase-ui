@@ -5,8 +5,7 @@ import re
 import locale
 from utils.parsers import parse_dates, parse_floats
 import constants
-
-from app import database_config, engine
+from constants import engine, database_config, database_config2
 
 def clean_up(tsv_file_path, database_table_name, date_format, decimal_point, 
              thousands_seperator):
