@@ -24,11 +24,11 @@ DATABASE_CONFIG_2 = {
 ENGINE = create_engine(f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
 
 SHEET_TYPES = {
-    # 'field_sample': 'Field sampling - NOT IMPLEMENTED',
+    # 'field_sample': 'Field sampling,
     'archive_sample': 'eDNA archive sampling',
     'robot_sample': 'eDNA robot sampling',
-#    'edna_wetlab_report': 'eDNA Wet lab final report - NOT IMPLEMENTED',
-#    'adna_wetlab_report': 'aDNA Wet lab final report - NOT IMPLEMENTED',
-#    'cgg_sediment': 'CGG Sediment - NOT IMPLEMENTED',
-#    'cgg_animal_plant': 'CGG Plant Animal - NOT IMPLEMENTED'
+#    'edna_wetlab_report': 'eDNA Wet lab final report,
+#    'adna_wetlab_report': 'aDNA Wet lab final report,
+#    'cgg_sediment': 'CGG Sediment,
+#    'cgg_animal_plant': 'CGG Plant Animal
 }
