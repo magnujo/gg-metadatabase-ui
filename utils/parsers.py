@@ -41,7 +41,7 @@ def parse_dates(sheet, date_columns, date_format):
 
 #TODO: What if not_relevant?
 # Converts to float and throws error if string is not a float (for example if it contains thousands seperators)
-def parse_numerics(sheet, numeric_columns, decimal_point, thousands_seperator):
+def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
     
     '''
     Parses numeric data based on user input (decimal_point, thousands_seperator). Thousands seperator gets removed
@@ -75,7 +75,7 @@ def parse_numerics(sheet, numeric_columns, decimal_point, thousands_seperator):
     ```
     '''
     
-    for ele in numeric_columns:
+    for ele in float_columns:
         if ele in sheet.columns:
         
             # Checks for inconsistencies in data and user input
@@ -127,9 +127,29 @@ def parse_numerics(sheet, numeric_columns, decimal_point, thousands_seperator):
                     sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
                 
                 case _:
-                    raise Exception(f"case _ reached in {parse_numerics.__name__}. Contact database admin.")
+                    raise Exception(f"case _ reached in {parse_floats.__name__}. Contact database admin.")
             
             sheet[ele] = sheet[ele].astype(float)
+            
+        else:
+            raise Exception(f"Did not find expected numeric column {ele} in input. \
+                                Please make sure the format of your spreadsheet matches \
+                                the the example sheet found on the upload website.\
+                                Contact admin at {constants.ADMIN_EMAILS}")
+
+    return sheet
+
+# TODO: Test this function with unit test.
+def validate_integers(sheet, integer_columns):
+    
+    for ele in integer_columns:
+        if ele in sheet.columns:
+            bad_rows = sheet[ele].apply(str).str.contains("[^\d]", regex=True)
+            if bad_rows.any():
+                raise Exception(f"Found non integer in expected integer data in the following rows\
+                                : \n \n {list(sheet[bad_rows].index + 2)}")
+            
+            sheet[ele] = sheet[ele].astype(int)
             
         else:
             raise Exception(f"Did not find expected numeric column {ele} in input. \
