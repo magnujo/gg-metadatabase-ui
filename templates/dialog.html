@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialog</title>
+</head>
+<body>
+    <h2>Empty Rows</h2>
+    <ul>
+        {% for row in null_rows %}
+            <li>{{ row }}</li>
+        {% endfor %}
+    </ul>
+    <script>
+        var confirmUpload = confirm("Do you want to proceed with the upload?");
+        if (confirmUpload) {
+            // Redirect to upload route if the user pressed OK
+            window.location.href = "/upload";
+        } else {
+            // Redirect to home page if the user pressed Cancel
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>
