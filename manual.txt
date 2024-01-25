@@ -28,6 +28,8 @@ the 'Sampled By' column input should be "Alice; Bob".
 Decimal: comma
 Thousand seperator: period
 
+See example sheets. If want to change them, feel free to send me a revised version and I will try to implement it.
+
 
 Delete rows that should not be in the database, before uploading. 
 

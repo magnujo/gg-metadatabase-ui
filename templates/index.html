@@ -16,9 +16,12 @@
     <br>
     To help you upload correctly formatted meta data sheets that the database will accept, here are some 
     example sheets to help you:
-    <br>
-    <a href="/download_robot_sampling_edna_example_sheet" download>Robot sampling eDNA.xlsx</a>
     
+    <br>
+    {% for key in SHEET_TYPES %} 
+    <p><a href="{{ url_for('download_file', filename=SHEET_TYPES[key] + '.xlsx') }}" download>{{ SHEET_TYPES[key] }}</a></p>
+    {% endfor %} 
+
     <br>
     <br>
     <form action="/upload" method="post" enctype="multipart/form-data">
@@ -29,14 +32,9 @@
         <label for="database_table_name">Select spreadsheet type:</label>
         <select name="database_table_name" id="database_table_name" required>
             <option value="no_choice">Select one...</option> 
-            <option value="field_sample">Field sampling</option>
-            <option value="archive_sample">Archive sampling</option>
-            <option value="robot_sample">Robot sampling eDNA</option>
-            <option value="edna_wetlab_report">eDNA Wet lab final report</option>
-            <option value="adna_wetlab_report">aDNA Wet lab final report</option>
-            <option value="cgg_sediment">CGG Sediment</option>
-            <option value="cgg_animal_plant">CGG Plant Animal</option>
-            <!-- Add more options as needed -->
+        {% for key in SHEET_TYPES %} 
+            <option value="{{ key }}">{{ SHEET_TYPES[key] }}</option>
+        {% endfor %} 
         </select>
         <br>
         
