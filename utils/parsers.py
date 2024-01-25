@@ -2,6 +2,31 @@ import pandas as pd
 import constants
 
 def parse_dates(sheet, date_columns, date_format):
+    """
+    Parse date columns in a Pandas DataFrame using specified date format.
+
+    Parameters:
+    - sheet (pandas.DataFrame): The DataFrame containing the data.
+    - date_columns (list): A list of column names to be parsed as dates.
+    - date_format (str): The format of the date columns. Supported formats are 'ymd' and 'dmy'.
+
+    Returns:
+    - pandas.DataFrame: The DataFrame with the specified columns parsed as datetime objects.
+
+    Raises:
+    - Exception: If an unsupported date format is provided.
+
+    Example:
+    ```python
+    import pandas as pd
+
+    data = {'Date1': ['2022-01-01', '2022-01-02'], 'Date2': ['10-01-2022 12:30:45', '11-01-2022 14:45:30']}
+    df = pd.DataFrame(data)
+
+    # Parse dates with 'ymd' format
+    result_df = parse_dates(df, date_columns=['Date1', 'Date2'], date_format='ymd')
+    ```
+    """
     if date_format == 'ymd':
         for ele in date_columns:
                 sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
@@ -16,9 +41,41 @@ def parse_dates(sheet, date_columns, date_format):
 
 #TODO: What if not_relevant?
 # Converts to float and throws error if string is not a float (for example if it contains thousands seperators)
-def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
+def parse_numerics(sheet, numeric_columns, decimal_point, thousands_seperator):
     
-    for ele in float_columns:
+    '''
+    Parses numeric data based on user input (decimal_point, thousands_seperator). Thousands seperator gets removed
+    no matter what the user input is, because they are not used in the database. Decimal points gets converted to "." no matter what
+    the user input it, because this is what the database accepts. It also checks that no unexpected decimal
+    points or thousands seperators are found in the columns. For example if you if you input "," as decimal point
+    and "not_relevant" as thousands seperator, it checks for any "." in the data and throws an error if it finds any.
+
+
+    Parameters:
+    - sheet (pandas.DataFrame): The DataFrame containing the data.
+    - numeric_columns (list): A list of column names to be parsed as numeric values.
+    - decimal_point (str): The character used as the decimal point in the numeric data.
+    - thousands_separator (str): The character used as the thousands separator in the numeric data.
+
+    Returns:
+    - pandas.DataFrame: The DataFrame with the specified columns parsed as float values.
+
+    Raises:
+    - Exception: If inconsistencies are found in data and user input, or if expected columns are missing.
+
+    Example:
+    ```python
+    import pandas as pd
+
+    data = {'Amount1': ['1,000.25', '2,500.50'], 'Amount2': ['3.75', '4.80']}
+    df = pd.DataFrame(data)
+
+    # Parse numeric values with ',' as thousands separator and '.' as decimal point
+    result_df = parse_numerics(df, numeric_columns=['Amount1', 'Amount2'], decimal_point='.', thousands_separator=',')
+    ```
+    '''
+    
+    for ele in numeric_columns:
         if ele in sheet.columns:
         
             # Checks for inconsistencies in data and user input
@@ -40,6 +97,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     else:
                         sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
                         
+                        
                 case (".", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
@@ -47,6 +105,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                                         but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
                     
                 case ("not_relevant", "."):
+                    # returns the rows that contains ","
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
                         raise Exception(f"Found , (comma) in numeric data in the following rows, \
@@ -68,11 +127,14 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
                 
                 case _:
-                    raise Exception("case _ reached in parse floats. Contact database admin.")
-                        
-            sheet[ele] = sheet[ele].astype(float)   
+                    raise Exception(f"case _ reached in {parse_numerics.__name__}. Contact database admin.")
+            
+            sheet[ele] = sheet[ele].astype(float)
             
         else:
-            raise Exception(f"Did not find expected float column {ele} in input. Contact admin at {constants.admin_email}")
+            raise Exception(f"Did not find expected numeric column {ele} in input. \
+                                Please make sure the format of your spreadsheet matches \
+                                the the example sheet found on the upload website.\
+                                Contact admin at {constants.ADMIN_EMAILS}")
 
     return sheet

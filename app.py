@@ -1,26 +1,18 @@
 import constants
-import sys
-from flask import Flask, render_template, request, send_file, redirect, url_for, flash
+from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory
 import os
+from constants import SHEET_TYPES
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 from utils.CustomExceptions import DontTriggerFileDeletion
 import psycopg2
-from psycopg2 import sql
 import numpy as np
 from pandas import testing
 import traceback
-from constants import engine, database_config, database_config2
-
-
-# Makes commas recognized as decimal point and dot recognized as thousand seperator:
-import locale
+from constants import ENGINE, DATABASE_CONFIG, DATABASE_CONFIG_2, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
-
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'txt'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -29,7 +21,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', SHEET_TYPES=SHEET_TYPES)
 
 @app.route('/error')
 def error():
@@ -73,7 +65,7 @@ def upload_file():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
             if os.path.exists(file_path):
-                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact database {constants.admin_email} if you believe this is an error, or if you want to re-upload the file')
+                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact database {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
             
             else:
                 # Use DontTriggerFileDelete before this and use Exception after. 
@@ -88,7 +80,7 @@ def upload_file():
                                    thousands_seperator=thousands_seperator)
 
             # Adds rows about which user was responsible for the upload:
-            clean_sheet['database_insert_by'] = database_config['user']
+            clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
 
             # Adds information about which file the data came from:
             clean_sheet['from_spreadsheet'] = file_name
@@ -99,16 +91,16 @@ def upload_file():
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
 
             clean_sheet.to_sql(name=database_table_name, 
-                               schema=database_config['schema_name'], 
-                               con=engine, 
+                               schema=DATABASE_CONFIG['schema_name'], 
+                               con=ENGINE, 
                                if_exists='append', 
                                index=False)
 
             # Test that uploaded data equals data in file:
             print(file_name)
-            print(database_config['schema_name'])
+            print(DATABASE_CONFIG['schema_name'])
             
-            uploaded_data = pd.read_sql(sql=f"SELECT * from {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=engine)
+            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
 
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
@@ -132,9 +124,9 @@ def upload_file():
     except AssertionError as ae:
         if os.path.exists(file_path):
             os.remove(file_path)
-        connection = psycopg2.connect(**database_config2)
+        connection = psycopg2.connect(**DATABASE_CONFIG_2)
         cursor = connection.cursor()
-        cursor.execute(f"DELETE FROM {database_config['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
+        cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
         connection.commit()
         cursor.close()
         connection.close()
@@ -155,10 +147,17 @@ def download_manual():
     manual_path = 'manual.txt'
     return send_file(manual_path, as_attachment=True)
 
-@app.route('/download_robot_sampling_edna_example_sheet')
+@app.route('/download_robot_sampling_edna_example_sheet', methods=['POST'])
 def download_robot_sampling_edna_example_sheet():
     file_path = os.path.join('example_sheets', 'eDNA robot sampling.xlsx')
     return send_file(file_path, as_attachment=True)
+
+@app.route('/download/<path:filename>')
+def download_file(filename):
+    
+    example_sheets_directory = os.path.join(os.getcwd(), 'static', 'example_sheets')
+    print(f"Downloading {example_sheets_directory} / {filename}")
+    return send_from_directory(example_sheets_directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

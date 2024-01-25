@@ -3,3 +3,4 @@ Make error messages more user friendly.
 Complete all todos in python files.
 change port to 5100.
 remove print statements.
+update manual
