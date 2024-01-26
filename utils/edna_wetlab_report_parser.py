@@ -30,6 +30,11 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
                     'Submitting Date',
                     'Project Done Date']
     
+    boolean_columns = ['Return DNA',
+                       'Return Library',
+                       'Return Pool',
+                       'Pool to SeqC']
+    
     primary_key = 'eDNA ID'
         
     # read sheet
@@ -68,5 +73,6 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
             
     sheet = parse_floats(sheet, float_columns, decimal_point, thousands_seperator)
     sheet = validate_integers(sheet, integer_columns)
+    #sheet = parse_booleans(sheet, boolean_columns)
 
     return sheet

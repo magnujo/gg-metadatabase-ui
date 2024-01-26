@@ -1,17 +1,33 @@
 import pandas as pd
 import constants
 
-def parse_dates(sheet, date_columns, date_format):
+def parse_dates(sheet, date_columns, date_format, soft=False):
     """
-    Parse date columns in a Pandas DataFrame using specified date format.
+    Parse date columns in a Pandas DataFrame using specific date format.
+    Dates are pased as follows with pd.to_datetime:    
 
+    1  pd.to_datetime(arg='9-7-8', dayfirst=True)       = day: 9, month: 7, year: 2008 
+    2  pd.to_datetime(arg='9-7-8', dayfirst=False)      = day: 7, month: 9, year: 2008 
+    3  pd.to_datetime(arg='9-7-8', yearfirst=True)      = day: 8, month: 7, year: 2009 
+    
+    # IMPORTANT The below example shows that format should always be "mixed" if relying on dayfirst.
+    # because no matter what a date will not have the month as the last digit.
+    4  pd.to_datetime(arg='2009-7-8', dayfirst=True)    = day: 7, month: 8, year: 2009 
+    4  pd.to_datetime(arg='2009-7-8', dayfirst=True, format="mixed)= day: 8, month: 7, year: 2009 
+    
+    5  pd.to_datetime(arg='2009-7-8', dayfirst=False)   = day: 8, month: 7, year: 2009 
+    6  pd.to_datetime(arg='2009-7-8', yearfirst=True)   = day: 8, month: 7, year: 2009 
+    7  pd.to_datetime(arg='9-7-2008', dayfirst=True)    = day: 9, month: 7, year: 2008 
+    8  pd.to_datetime(arg='9-7-2008', dayfirst=False)   = day: 7, month: 9, year: 2008 
+    9  pd.to_datetime(arg='9-7-2008', yearfirst=True)   = day: 7, month: 9, year: 2008 
+    
     Parameters:
     - sheet (pandas.DataFrame): The DataFrame containing the data.
     - date_columns (list): A list of column names to be parsed as dates.
     - date_format (str): The format of the date columns. Supported formats are 'ymd' and 'dmy'.
 
     Returns:
-    - pandas.DataFrame: The DataFrame with the specified columns parsed as datetime objects.
+    - pandas.DataFrame: The DataFrame with the specified columns parsed as datetime objects (ISO8601 format).
 
     Raises:
     - Exception: If an unsupported date format is provided.
@@ -27,16 +43,39 @@ def parse_dates(sheet, date_columns, date_format):
     result_df = parse_dates(df, date_columns=['Date1', 'Date2'], date_format='ymd')
     ```
     """
-    if date_format == 'ymd':
-        for ele in date_columns:
+    
+    # Might work good for more than one format:
+    
+    # date1 = pd.to_datetime(df['date'], errors='coerce', format='%Y-%m-%d')
+    # date2 = pd.to_datetime(df['date'], errors='coerce', format='%d.%m.%Y')
+    # sheet['date'] = date1.fillna(date2)
+
+    
+    if soft:
+        if date_format == 'ymd':
+            for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', yearfirst=True)
+                sheet[ele] = sheet[ele].astype('datetime64[ns]')
+        elif date_format == 'dmy':
+            for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', dayfirst=True)
+                sheet[ele] = sheet[ele].astype('datetime64[ns]')
+        else: 
+            raise Exception('No date format chosen, try again.')
+        
+    else:
+        if date_format == 'ymd':
+            for ele in date_columns:
                 sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
-    elif date_format == 'dmy':
-        for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y %H:%M:%S')
+        elif date_format == 'dmy':
+            for ele in date_columns:
+                sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y')
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
-    else: 
-        raise Exception('No date format chosen, try again.')
+        else: 
+            raise Exception('No date format chosen, try again.')
+        
+     
     return sheet
 
 #TODO: What if not_relevant?
@@ -129,7 +168,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                 case _:
                     raise Exception(f"case _ reached in {parse_floats.__name__}. Contact database admin.")
             
-            sheet[ele] = sheet[ele].astype(float)
+            sheet[ele] = sheet[ele].astype('float64')
             
         else:
             raise Exception(f"Did not find expected numeric column {ele} in input. \
@@ -149,7 +188,7 @@ def validate_integers(sheet, integer_columns):
                 raise Exception(f"Found non integer in expected integer data in the following rows\
                                 : \n \n {list(sheet[bad_rows].index + 2)}")
             
-            sheet[ele] = sheet[ele].astype(int)
+            sheet[ele] = sheet[ele].astype('int64')
             
         else:
             raise Exception(f"Did not find expected numeric column {ele} in input. \
