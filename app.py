@@ -104,8 +104,16 @@ def upload_file():
 
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
-
+            
            
+
+            # for i in range(len(clean_sheet.dtypes)):
+            #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
+          
+             # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
+             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
+
+            assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
             print(len(clean_sheet.columns))
             print(len(uploaded_data.columns))
             testing.assert_frame_equal(uploaded_data, clean_sheet)
@@ -117,6 +125,7 @@ def upload_file():
         else:
             raise Exception('Invalid file type. Please upload a tab seperated .txt file. See manual below for help')
 
+    # If user tries to upload a file that was already added this error is triggered, to make sure the original file doesnt get deleted.
     except DontTriggerFileDeletion as tfd:
         return redirect(url_for('error', error_message=str(traceback.format_exc())))
         # return redirect(url_for('error', error_message=str(tfd)))
@@ -126,6 +135,7 @@ def upload_file():
             os.remove(file_path)
         connection = psycopg2.connect(**DATABASE_CONFIG_2)
         cursor = connection.cursor()
+        # TODO: Also check that the file was uploaded less than 10 seconds ago. It might happen that two files have the same file name.
         cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
         connection.commit()
         cursor.close()
@@ -139,6 +149,12 @@ def upload_file():
         if os.path.exists(file_path):
             os.remove(file_path)
         print('deleted file')
+        connection = psycopg2.connect(**DATABASE_CONFIG_2)
+        cursor = connection.cursor()
+        cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
+        connection.commit()
+        cursor.close()
+        connection.close()
         return redirect(url_for('error', error_message=str(traceback.format_exc())))
         # return redirect(url_for('error', error_message=str(e)))
 

@@ -1,6 +1,6 @@
 from constants import DATABASE_CONFIG, ADMIN_EMAILS, ENGINE
 import pandas as pd
-from utils.parsers import parse_dates, parse_numerics
+from utils.parsers import parse_dates, parse_floats
 import numpy as np
 
 def parse(file_path, date_format, decimal_point, thousands_seperator):
@@ -69,7 +69,7 @@ def parse(file_path, date_format, decimal_point, thousands_seperator):
     # sheet['DepthSampledCalTape'] = sheet['DepthSampledCalTape'].astype(float)
     
     float_cols = ['DepthSampledCalTape']
-    sheet = parse_numerics(sheet, float_cols, decimal_point, thousands_seperator)
+    sheet = parse_floats(sheet, float_cols, decimal_point, thousands_seperator)
         
 
     return sheet

@@ -3,12 +3,13 @@ import constants
 import pandas as pd
 from constants import DATABASE_CONFIG, ADMIN_EMAILS, ENGINE
 import pandas as pd
-from utils.parsers import parse_dates, parse_numerics
+from utils.parsers import parse_dates, validate_integers
 
 def parse(file_path, date_format, database_table_name, decimal_point, thousands_seperator):
     
-    numeric_columns = ['Mass']
+    integer_columns = ['Mass']
     date_columns = ['SamplingDate', 'SubmissionDate']
+    primary_key = 'SubSampleID'
     
     if not decimal_point == 'not_relevant':
         raise Exception(f"Did not expect decimal numbers. Please contact contact {ADMIN_EMAILS} if you think this is a mistake.")
@@ -16,7 +17,7 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     # read sheet
     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
     
- # TODO: Delete after deployment and ask make uploader responsible.
+    # TODO: Delete after deployment and ask make uploader responsible.
     sheet = sheet.dropna(axis='index', how='all')
     sheet = sheet.drop(columns=sheet.columns[sheet.columns.str.contains('^Unnamed')])
 
@@ -30,11 +31,11 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")
 
-    num_of_not_null_rows = len(sheet[sheet["SubSampleID"].notnull()]) # For drop testing
+    num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) # For drop testing
 
     # TODO: Delete after deployment and ask make uploader responsible.
-    if 'SubSampleID' in sheet.columns:
-        sheet = sheet.dropna(axis='index', how='all', subset=["SubSampleID"])
+    if primary_key in sheet.columns:
+        sheet = sheet.dropna(axis='index', how='all', subset=[primary_key])
     else:
         raise Exception ("Upload failed. Expected column 'Robot TUBE barcode' not found. Are you sure you uploaded the correct spreadsheet?")
     
@@ -45,8 +46,6 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     # Parse dates, throws error if formatting is wrong in the sheet
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)
             
-    sheet = parse_numerics(sheet, numeric_columns, decimal_point, thousands_seperator)
+    sheet = validate_integers(sheet, integer_columns)
     
     return sheet
-        
-        
