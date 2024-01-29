@@ -105,8 +105,15 @@ def upload_file():
             uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
             clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
             
-           
-
+            clean_sheet = clean_sheet.astype(str)
+            uploaded_data = uploaded_data.astype(str)
+            
+            clean_sheet = clean_sheet.replace("NaT", "nan")
+            uploaded_data = uploaded_data.replace("NaT", "nan")
+            
+            #clean_sheet = clean_sheet.fillna(value=np.nan)
+            #uploaded_data = uploaded_data.fillna(value=np.nan)
+            
             # for i in range(len(clean_sheet.dtypes)):
             #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
           

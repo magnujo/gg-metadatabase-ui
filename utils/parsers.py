@@ -70,8 +70,10 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
         elif date_format == 'dmy':
             for ele in date_columns:
+                print(sheet[ele].dtype)
                 sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y')
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
+                print(sheet[ele].head())
         else: 
             raise Exception('No date format chosen, try again.')
         
