@@ -61,8 +61,8 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
         else: 
             raise Exception('No date format chosen, try again.')
-        
     else:
+        
         if date_format == 'YYYY-MM-DD':
             for ele in date_columns:
                 sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
