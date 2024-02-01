@@ -27,7 +27,7 @@ ENGINE = create_engine(f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG
 
 
 SHEET_TYPES = {
-    # 'field_sample': 'Field sampling,
+    'field_sample_internal': 'Field sampling (internal)',
     'archive_sample': 'eDNA archive sampling',
     'robot_sample': 'eDNA robot sampling',
     'edna_wetlab_report': 'eDNA Wet lab final report',
