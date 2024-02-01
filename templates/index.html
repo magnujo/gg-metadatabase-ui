@@ -41,9 +41,10 @@
         <label for="date_format">Select date format:</label>
         <select name="date_format" id="date_format" required>
             <option value="no_choice">Select one...</option> 
-            <option value="dmy">DD-MM-YYYY</option> 
-            <option value="ymd">YYYY-MM-DD</option>
-        </select>
+            {% for ele in ALLOWED_DATE_FORMATS %}
+            <option value="{{ ele }}">{{ ele }}</option>  
+            {% endfor %}         
+            </select>
         <br>
         The datebase is setup to accept dates with "-" as seperators, but other seperators might also work.
         <br>

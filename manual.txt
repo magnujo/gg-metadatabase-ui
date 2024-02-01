@@ -30,6 +30,7 @@ Thousand seperator: period
 
 See example sheets. If want to change them, feel free to send me a revised version and I will try to implement it.
 
+Column names (case sensitive) and columns positions should be exactly as in the example sheet.
 
 Delete rows that should not be in the database, before uploading. 
 

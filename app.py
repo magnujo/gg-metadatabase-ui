@@ -9,7 +9,7 @@ import psycopg2
 import numpy as np
 from pandas import testing
 import traceback
-from constants import ENGINE, DATABASE_CONFIG, DATABASE_CONFIG_2, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
+from constants import ENGINE, DATABASE_CONFIG, DATABASE_CONFIG_2, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -21,7 +21,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html', SHEET_TYPES=SHEET_TYPES)
+    return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
 
 @app.route('/error')
 def error():
