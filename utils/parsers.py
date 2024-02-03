@@ -51,7 +51,7 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
     # sheet['date'] = date1.fillna(date2)
     
     if soft:
-        if date_format == 'YYYY-M-DD':
+        if date_format == 'YYYY-MM-DD':
             for ele in date_columns:
                 sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', yearfirst=True)
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
@@ -61,8 +61,8 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
                 sheet[ele] = sheet[ele].astype('datetime64[ns]')
         else: 
             raise Exception('No date format chosen, try again.')
-        
     else:
+        
         if date_format == 'YYYY-MM-DD':
             for ele in date_columns:
                 sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
@@ -134,7 +134,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
                         raise Exception(f"Found . (period) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
                     else:
                         sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
                         
@@ -142,7 +142,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
                         raise Exception(f"Found . (period) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
                     else:
                         sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
                         
@@ -151,14 +151,14 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
                         raise Exception(f"Found , (comma) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
                     
                 case ("not_relevant", "."):
                     # returns the rows that contains ","
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
                         raise Exception(f"Found , (comma) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
                     else:
                         sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
 
@@ -166,7 +166,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
                     if bad_rows.any():
                         raise Exception(f"Found , (comma) or . (period) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 2)}")
+                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
                         
                 case (",", "."):
                     sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)

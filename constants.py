@@ -27,7 +27,7 @@ ENGINE = create_engine(f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG
 
 
 SHEET_TYPES = {
-    # 'field_sample': 'Field sampling,
+    'field_sample_internal': 'Field sampling (internal)',
     'archive_sample': 'eDNA archive sampling',
     'robot_sample': 'eDNA robot sampling',
     'edna_wetlab_report': 'eDNA Wet lab final report',
@@ -37,3 +37,5 @@ SHEET_TYPES = {
 }
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD']
+# ALLOWED_DATE_FORMATS = {'YYYY-MM-DD': 'ISO8601', 'DD-MM-YYYY': '%d-%m-%Y', 'DD/MM/YYYY': '%d/%m/%Y', 'YYYY/MM/DD': '%Y/%m/%d'}                         
+
