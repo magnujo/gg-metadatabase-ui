@@ -1,7 +1,7 @@
 import constants
-from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session
 import os
-from constants import SHEET_TYPES
+from constants import SHEET_TYPES, ADMIN_EMAILS
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 from utils.CustomExceptions import DontTriggerFileDeletion
@@ -12,7 +12,7 @@ import traceback
 from constants import ENGINE, DATABASE_CONFIG, DATABASE_CONFIG_2, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.urandom(24).hex()
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -30,8 +30,11 @@ def error():
 
 @app.route('/success')
 def success():
-    message = request.args.get('message', 'Success.')
-    return render_template('success.html', message=message)
+    uploaded_data = session.get('uploaded data')
+    uploaded_data = pd.read_json(uploaded_data)
+    # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
+    #message = request.args.get('message', 'Success.')
+    return render_template('success.html', uploaded_data=uploaded_data.iloc[:, :-3], admin_emails=ADMIN_EMAILS)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -65,7 +68,7 @@ def upload_file():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
             if os.path.exists(file_path):
-                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact database {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
             
             else:
                 # Use DontTriggerFileDelete before this and use Exception after. 
@@ -111,6 +114,7 @@ def upload_file():
             clean_sheet = clean_sheet.replace("NaT", "nan")
             uploaded_data = uploaded_data.replace("NaT", "nan")
             
+            
             #clean_sheet = clean_sheet.fillna(value=np.nan)
             #uploaded_data = uploaded_data.fillna(value=np.nan)
             
@@ -127,10 +131,13 @@ def upload_file():
 
             if not clean_sheet.equals(uploaded_data):
                 raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
+            #return render_template('success.html', uploaded_data=uploaded_data.iloc[:, :-3], admin_emails=ADMIN_EMAILS)
 
-            return redirect(url_for('success'))
+            session['uploaded data'] = uploaded_data.to_json()
+
+            return redirect(url_for("success"))
         else:
-            raise Exception('Invalid file type. Please upload a tab seperated .txt file. See manual below for help')
+            raise Exception('Invalid file type. Please upload a tab seperated .txt file. See manual for help')
 
     # If user tries to upload a file that was already added this error is triggered, to make sure the original file doesnt get deleted.
     except DontTriggerFileDeletion as tfd:
