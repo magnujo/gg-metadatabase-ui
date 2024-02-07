@@ -16,17 +16,17 @@ Leave cells empty if there is no data to put there. Do not write "N/A" or "-" or
 
 Intervals: 123 - 124
 
-The following is the safest approach (doesnt require custom code to convert, as pandas uses this as standard)
+The following is the safest and best approach for the database, as this is its standard:
 Thousand seperator = ","
 Decimal point = "."
+
+Makes it easier to work with ranges which has the form "[8, 10)" where comma wont work. 
 
 Primary ids must be not null. Remove rows that do not have a primary id. 
 
 If a column contains multiple values, seperate them with semicolon. For example if a sample was taken by multiple people,
 the 'Sampled By' column input should be "Alice; Bob".
 
-Decimal: comma
-Thousand seperator: period
 
 See example sheets. If want to change them, feel free to send me a revised version and I will try to implement it.
 
@@ -60,6 +60,14 @@ Even though it says KU ID, you can still upload files with "Lab assistant (initi
 for now, but in the future the database will only accept KU IDs, so make sure to change your templates
 and protocols.
 
+
+Field sampling: 
+
+The following is the safest and best approach for the database, as this is its standard:
+Thousand seperator = ","
+Decimal point = "."
+
+Makes it easier to work with ranges which has the form "[8, 10)" where comma wont work. 
 
 
 

@@ -1,4 +1,5 @@
 truncate all data in the database
+delete files from uploads (probably not necessary as it will be empty on the server)
 Make error messages more user friendly.
 Complete all todos in python files.
 change port to 5100.
