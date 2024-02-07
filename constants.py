@@ -28,7 +28,7 @@ SHEET_TYPES = {
     'archive_sample': 'eDNA archive sampling',
     'robot_sample': 'eDNA robot sampling',
     'edna_wetlab_report': 'eDNA Wet lab final report',
-    'adna_wetlab_report': 'aDNA Wet lab final report'
-#    'cgg_sediment': 'CGG Sediment,
+    'adna_wetlab_report': 'aDNA Wet lab final report',
+    'cgg_sediment_water': 'CGG Sediment Water'
 #    'cgg_animal_plant': 'CGG Plant Animal
 }
