@@ -4,6 +4,5 @@
 4: make changes (whenever possible; make new functions/classes instead of adding to existing ones)
 5: commit changes to feature branch 
 6: repeat 4 and 5 until feature is done.
-7: when feature is done push the branch to origin
+7: when feature is done and all tests pass, push the branch to origin 
 8: Create pull request
-9: Switch to main branch and pull from origin main
