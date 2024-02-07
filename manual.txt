@@ -30,6 +30,7 @@ the 'Sampled By' column input should be "Alice; Bob".
 
 See example sheets. If want to change them, feel free to send me a revised version and I will try to implement it.
 
+Column names (case sensitive) and columns positions should be exactly as in the example sheet.
 
 Delete rows that should not be in the database, before uploading. 
 
