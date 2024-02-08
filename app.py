@@ -1,4 +1,5 @@
 import constants
+import argparse
 from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session
 import os
 from constants import SHEET_TYPES, ADMIN_EMAILS
@@ -16,6 +17,10 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def configure_app(argument1, argument2):
+    app.config['FINALTEST'] = argument1
+    app.config['FILE DUPLICATED TEST'] = argument2
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -75,8 +80,9 @@ def upload_file():
         if file and allowed_file(file.filename):
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
-            # if os.path.exists(file_path):
-            #     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+            if not app.config['FILE DUPLICATED TEST'] == "nofileduplicatedtest":
+                if os.path.exists(file_path):
+                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
             
             # else:
                 # Use DontTriggerFileDelete before this and use Exception after. 
@@ -122,10 +128,6 @@ def upload_file():
             clean_sheet = clean_sheet.replace("NaT", "nan")
             uploaded_data = uploaded_data.replace("NaT", "nan")
             
-            
-            #clean_sheet = clean_sheet.fillna(value=np.nan)
-            #uploaded_data = uploaded_data.fillna(value=np.nan)
-            
             # for i in range(len(clean_sheet.dtypes)):
             #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
           
@@ -135,11 +137,13 @@ def upload_file():
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
             # print(len(clean_sheet.columns))
             # print(len(uploaded_data.columns))
-            # testing.assert_frame_equal(uploaded_data, clean_sheet)
+            print(app.config['FINALTEST'])
+            
+            if not app.config['FINALTEST'] == "nofinaltest":
+                testing.assert_frame_equal(uploaded_data, clean_sheet)
 
-            # if not clean_sheet.equals(uploaded_data):
-            #     raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
-            #return render_template('success.html', uploaded_data=uploaded_data.iloc[:, :-3], admin_emails=ADMIN_EMAILS)
+                if not clean_sheet.equals(uploaded_data):
+                    raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
 
             # session['uploaded data'] = uploaded_data.to_json()
             session['database_table_name'] = database_table_name
@@ -200,5 +204,10 @@ def download_file(filename):
     return send_from_directory(example_sheets_directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Flask App with Arguments')
+    parser.add_argument('arg1', help='Description of argument 1')
+    parser.add_argument('arg2', help='Description of argument 2')
+    args = parser.parse_args()
+    configure_app(args.arg1, args.arg2)
     app.run(debug=True)
 
