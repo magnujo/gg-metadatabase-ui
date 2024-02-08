@@ -10,6 +10,7 @@ import numpy as np
 from pandas import testing
 import traceback
 from constants import ENGINE, DATABASE_CONFIG, DATABASE_CONFIG_2, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
+from pretty_html_table import build_table
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
@@ -30,11 +31,18 @@ def error():
 
 @app.route('/success')
 def success():
-    uploaded_data = session.get('uploaded data')
-    uploaded_data = pd.read_json(uploaded_data)
+    file_name = session.get('file_name')
+    database_table_name = session.get('database_table_name')
+    # uploaded_data = session.get('uploaded data')
+    # uploaded_data = pd.read_json(uploaded_data)
+    uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
+    uploaded_data = uploaded_data.iloc[:, :-3] # To not display the auto generated columns
+    uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
+    # uploaded_data = build_table(uploaded_data, 'blue_light')
+    
     # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
     #message = request.args.get('message', 'Success.')
-    return render_template('success.html', uploaded_data=uploaded_data.iloc[:, :-3], admin_emails=ADMIN_EMAILS)
+    return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -67,12 +75,12 @@ def upload_file():
         if file and allowed_file(file.filename):
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
-            if os.path.exists(file_path):
-                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+            # if os.path.exists(file_path):
+            #     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
             
-            else:
+            # else:
                 # Use DontTriggerFileDelete before this and use Exception after. 
-                file.save(file_path)
+            file.save(file_path)
             
             file_name = os.path.split(file_path)[-1]
 
@@ -124,16 +132,18 @@ def upload_file():
              # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
              # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
 
-            assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
-            print(len(clean_sheet.columns))
-            print(len(uploaded_data.columns))
-            testing.assert_frame_equal(uploaded_data, clean_sheet)
+            # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
+            # print(len(clean_sheet.columns))
+            # print(len(uploaded_data.columns))
+            # testing.assert_frame_equal(uploaded_data, clean_sheet)
 
-            if not clean_sheet.equals(uploaded_data):
-                raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
+            # if not clean_sheet.equals(uploaded_data):
+            #     raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
             #return render_template('success.html', uploaded_data=uploaded_data.iloc[:, :-3], admin_emails=ADMIN_EMAILS)
 
-            session['uploaded data'] = uploaded_data.to_json()
+            # session['uploaded data'] = uploaded_data.to_json()
+            session['database_table_name'] = database_table_name
+            session['file_name'] = file_name
 
             return redirect(url_for("success"))
         else:

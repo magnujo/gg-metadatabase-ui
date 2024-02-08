@@ -11,3 +11,5 @@ dependencies:
   - pandas
   - flask
   - ipykernel
+  - pip:
+    - pretty_html_table
