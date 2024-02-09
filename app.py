@@ -204,12 +204,5 @@ def download_file(filename):
     return send_from_directory(example_sheets_directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    print(sys.argv)
-    if '--generate_sheets' in sys.argv:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        data_dir = os.path.join('static', 'auto_sheets')
-        constants.generate_excel(os.path.relpath(data_dir, current_dir))
-    
-    
     app.run(debug=True)
 
