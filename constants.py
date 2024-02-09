@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+import pandas as pd
 
 ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk or julian.perez@sund.ku.dk"
 UPLOAD_FOLDER = 'uploads'
@@ -39,3 +40,17 @@ SHEET_TYPES = {
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD']
 # ALLOWED_DATE_FORMATS = {'YYYY-MM-DD': 'ISO8601', 'DD-MM-YYYY': '%d-%m-%Y', 'DD/MM/YYYY': '%d/%m/%Y', 'YYYY/MM/DD': '%Y/%m/%d'}                         
 
+def generate_excel_from_postgres_table(host, database, user, password, table_name, output_file):
+    # Connect to the PostgreSQL database
+    
+    # Query to get column names and data types
+    query = f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{table_name}'"
+    
+    # Read SQL query into a DataFrame
+    df = pd.read_sql_query(query, ENGINE)
+    
+    # Write DataFrame to Excel file
+    df.to_excel(output_file, index=False)
+    
+    # Close the database connection
+    conn.close()
