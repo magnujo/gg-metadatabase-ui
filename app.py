@@ -1,7 +1,7 @@
 import constants
-import argparse
 from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session
 import os
+import sys
 from constants import SHEET_TYPES, ADMIN_EMAILS
 from scripts.ETLFunctions import clean_up
 import pandas as pd
@@ -16,11 +16,10 @@ from pretty_html_table import build_table
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+argument1 = sys.argv[1] if len(sys.argv) > 1 else None
+argument2 = sys.argv[2] if len(sys.argv) > 2 else None
 
-def configure_app(argument1, argument2):
-    app.config['FINALTEST'] = argument1
-    app.config['FILE DUPLICATED TEST'] = argument2
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -80,7 +79,9 @@ def upload_file():
         if file and allowed_file(file.filename):
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
-            if not app.config['FILE DUPLICATED TEST'] == "nofileduplicatedtest":
+            if argument1 == '--no_file_test' or argument2 == '--no_file_test':
+                pass
+            else:
                 if os.path.exists(file_path):
                     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
             
@@ -117,35 +118,11 @@ def upload_file():
             print(file_name)
             print(DATABASE_CONFIG['schema_name'])
             
-            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
+            if argument1 == '--no_upload_test' or argument2 == '--no_upload_test':
+                pass
+            else:
+                integrity_test(database_table_name, file_name, clean_sheet)
 
-            uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
-            clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
-            
-            clean_sheet = clean_sheet.astype(str)
-            uploaded_data = uploaded_data.astype(str)
-            
-            clean_sheet = clean_sheet.replace("NaT", "nan")
-            uploaded_data = uploaded_data.replace("NaT", "nan")
-            
-            # for i in range(len(clean_sheet.dtypes)):
-            #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
-          
-             # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
-             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
-
-            # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
-            # print(len(clean_sheet.columns))
-            # print(len(uploaded_data.columns))
-            print(app.config['FINALTEST'])
-            
-            if not app.config['FINALTEST'] == "nofinaltest":
-                testing.assert_frame_equal(uploaded_data, clean_sheet)
-
-                if not clean_sheet.equals(uploaded_data):
-                    raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
-
-            # session['uploaded data'] = uploaded_data.to_json()
             session['database_table_name'] = database_table_name
             session['file_name'] = file_name
 
@@ -184,7 +161,33 @@ def upload_file():
         cursor.close()
         connection.close()
         return redirect(url_for('error', error_message=str(traceback.format_exc())))
-        # return redirect(url_for('error', error_message=str(e)))
+
+def integrity_test(database_table_name, file_name, clean_sheet):
+    uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
+
+    uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
+    clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
+            
+    clean_sheet = clean_sheet.astype(str)
+    uploaded_data = uploaded_data.astype(str)
+            
+    clean_sheet = clean_sheet.replace("NaT", "nan")
+    uploaded_data = uploaded_data.replace("NaT", "nan")
+            
+            # for i in range(len(clean_sheet.dtypes)):
+            #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
+          
+             # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
+             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
+
+            # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
+            # print(len(clean_sheet.columns))
+            # print(len(uploaded_data.columns))
+            
+    testing.assert_frame_equal(uploaded_data, clean_sheet)
+
+    if not clean_sheet.equals(uploaded_data):
+        raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
 
 @app.route('/download_manual')
 def download_manual():
@@ -204,10 +207,6 @@ def download_file(filename):
     return send_from_directory(example_sheets_directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Flask App with Arguments')
-    parser.add_argument('arg1', help='Description of argument 1')
-    parser.add_argument('arg2', help='Description of argument 2')
-    args = parser.parse_args()
-    configure_app(args.arg1, args.arg2)
+    print(sys.argv)
     app.run(debug=True)
 
