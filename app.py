@@ -21,7 +21,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/')
+@app.route('/', methods=['POST', 'GET'])
 def index():
     return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
 
@@ -30,17 +30,53 @@ def error():
     error_message = request.args.get('error_message', 'An error occurred.')
     return render_template('error.html', error_message=error_message)
 
-@app.route('/success')
-def success():
+@app.route('/confirmation_request', methods=['GET'])
+def confirmation_request():
     file_name = session.get('file_name')
     database_table_name = session.get('database_table_name')
+    clean_sheet_json = session.get('clean_sheet')
+    clean_sheet = pd.read_json(clean_sheet_json)
+    
+    clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+    clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+
+    return render_template('confirmation_request.html', clean_sheet=clean_sheet, file_name=file_name, database_table_name=database_table_name)
+
+@app.route('/confirmed', methods=['POST'])
+def confirmed():
+    file_name = session.get('file_name')
+    database_table_name = session.get('database_table_name')
+    clean_sheet_json = session.pop('clean_sheet')
+    clean_sheet = pd.read_json(clean_sheet_json)
+    
+    clean_sheet.to_sql(name=database_table_name, 
+                               schema=DATABASE_CONFIG['schema_name'], 
+                               con=ENGINE, 
+                               if_exists='append', 
+                               index=False)
+    
+     # Test that uploaded data equals data in file:
+    print(file_name)
+    print(DATABASE_CONFIG['schema_name'])
+    
+    if '--no_upload_test' in sys.argv:
+        pass
+    else:
+        integrity_test(database_table_name, file_name, clean_sheet)
+    
+    return redirect(url_for("success")) 
+
+@app.route('/success', methods=['GET'])
+def success():
+    file_name = session.pop('file_name')
+    database_table_name = session.pop('database_table_name')
     # uploaded_data = session.get('uploaded data')
     # uploaded_data = pd.read_json(uploaded_data)
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
     uploaded_data = uploaded_data.iloc[:, :-3] # To not display the auto generated columns
     uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
     # uploaded_data = build_table(uploaded_data, 'blue_light')
-    
+ 
     # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
     #message = request.args.get('message', 'Success.')
     return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
@@ -93,7 +129,7 @@ def upload_file():
                                    date_format=date_format,
                                    decimal_point=decimal_point,
                                    thousands_seperator=thousands_seperator)
-
+            
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
 
@@ -105,25 +141,11 @@ def upload_file():
             # Convert to ns to enable testing (postgres converts to ns, when uploading)
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
 
-            clean_sheet.to_sql(name=database_table_name, 
-                               schema=DATABASE_CONFIG['schema_name'], 
-                               con=ENGINE, 
-                               if_exists='append', 
-                               index=False)
-
-            # Test that uploaded data equals data in file:
-            print(file_name)
-            print(DATABASE_CONFIG['schema_name'])
-            
-            if '--no_upload_test' in sys.argv:
-                pass
-            else:
-                integrity_test(database_table_name, file_name, clean_sheet)
-
+            session['clean_sheet'] = clean_sheet.to_json()
             session['database_table_name'] = database_table_name
             session['file_name'] = file_name
 
-            return redirect(url_for("success"))
+            return redirect(url_for("confirmation_request"))
         else:
             raise Exception('Invalid file type. Please upload a tab seperated .txt file. See manual for help')
 
