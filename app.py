@@ -16,9 +16,6 @@ from pretty_html_table import build_table
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
 
-argument1 = sys.argv[1] if len(sys.argv) > 1 else None
-argument2 = sys.argv[2] if len(sys.argv) > 2 else None
-
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
@@ -79,7 +76,7 @@ def upload_file():
         if file and allowed_file(file.filename):
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
-            if argument1 == '--no_file_test' or argument2 == '--no_file_test':
+            if '--no_file_test' in sys.argv:
                 pass
             else:
                 if os.path.exists(file_path):
@@ -118,7 +115,7 @@ def upload_file():
             print(file_name)
             print(DATABASE_CONFIG['schema_name'])
             
-            if argument1 == '--no_upload_test' or argument2 == '--no_upload_test':
+            if '--no_upload_test' in sys.argv:
                 pass
             else:
                 integrity_test(database_table_name, file_name, clean_sheet)
@@ -207,6 +204,5 @@ def download_file(filename):
     return send_from_directory(example_sheets_directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    print(sys.argv)
     app.run(debug=True)
 
