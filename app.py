@@ -32,10 +32,13 @@ def error():
 
 @app.route('/confirmation_request', methods=['GET'])
 def confirmation_request():
-    file_name = session.get('file_name')
-    database_table_name = session.get('database_table_name')
-    clean_sheet_json = session.get('clean_sheet')
-    clean_sheet = pd.read_json(clean_sheet_json)
+    try:
+        file_name = session.get('file_name')
+        database_table_name = session.get('database_table_name')
+        clean_sheet_json = session.get('clean_sheet')
+        clean_sheet = pd.read_json(clean_sheet_json)
+    except Exception as e:
+        return redirect(url_for("index"))        
     
     clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
     clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
@@ -46,7 +49,8 @@ def confirmation_request():
 def confirmed():
     file_name = session.get('file_name')
     database_table_name = session.get('database_table_name')
-    clean_sheet_json = session.pop('clean_sheet')
+    clean_sheet_json = session.get('clean_sheet')
+    session.pop('clean_sheet')
     clean_sheet = pd.read_json(clean_sheet_json)
     
     clean_sheet.to_sql(name=database_table_name, 
@@ -68,8 +72,10 @@ def confirmed():
 
 @app.route('/success', methods=['GET'])
 def success():
-    file_name = session.pop('file_name')
-    database_table_name = session.pop('database_table_name')
+    file_name = session.get('file_name')
+    session.pop('file_name')
+    database_table_name = session.get('database_table_name')
+    session.pop('database_table_name')
     # uploaded_data = session.get('uploaded data')
     # uploaded_data = pd.read_json(uploaded_data)
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
@@ -141,7 +147,7 @@ def upload_file():
             # Convert to ns to enable testing (postgres converts to ns, when uploading)
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
 
-            session['clean_sheet'] = clean_sheet.to_json()
+            session['clean_sheet'] = clean_sheet.to_json(date_format='iso')
             session['database_table_name'] = database_table_name
             session['file_name'] = file_name
 
