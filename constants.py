@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine
 
-ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk or julian.perez@sund.ku.dk"
-UPLOAD_FOLDER = 'uploads'
+ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk"
+UPLOAD_FOLDER = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt'}
+PARSED_SHEETS_FOLDER = 'parsed_sheets'
+TEMP_FOLDER = 'temp'
+ORIGINAL_FILES = 'orignal_sheets'
 
 DATABASE_CONFIG = {
     'host': 'dandyweb01fl',
