@@ -1,3 +1,4 @@
+import inspect
 import shutil
 import constants
 from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session
@@ -24,6 +25,8 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    session.clear()
+    session['visited_success'] = False
     file = request.files['file']
     file_name = file.filename
     try:
@@ -87,7 +90,7 @@ def upload_file():
         else:
             raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt file. See manual for help')
     
-        clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, file.filename), index=False)
+        clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, file.filename), index=False, encoding='utf_16', sep="\t")
 
         return redirect(url_for("confirmation_request"))
     
@@ -112,7 +115,7 @@ def confirmation_request():
     try:
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name))
+        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
         # clean_sheet_json = session.get('clean_sheet')
         # clean_sheet = pd.read_json(clean_sheet_json)
         
@@ -120,7 +123,6 @@ def confirmation_request():
         clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
     
         return render_template('confirmation_request.html', clean_sheet=clean_sheet, file_name=file_name, database_table_name=database_table_name)
-    
     except Exception as e:
         print(str(e))
         # Deletes file from original_sheets and parsed_sheets only, to restore original state 
@@ -136,8 +138,7 @@ def confirmed():
     try:
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name))
-        delete_files(file_name=file_name, parsed=True)
+        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep="\t")
         
         clean_sheet.to_sql(name=database_table_name, 
                                 schema=DATABASE_CONFIG['schema_name'], 
@@ -155,7 +156,10 @@ def confirmed():
     
     else:
         try:
-            shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
+            if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
+                pass
+            else:
+                shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
             # If errors happen from now on, delete the file from the UPLOAD_FOLDER
             
         except Exception as e:
@@ -190,38 +194,37 @@ def confirmed():
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/cancel_upload', methods=['POST'])
 def cancel_upload():
-    try:
-        file_name = session.get('file_name')
-    except Exception as e:
-        print(f"Error: {e}")
-        session.clear()
-        delete_files(file_name=file_name, original=True, parsed=True, uploaded=False)
-        return redirect(url_for('error', error_message=str(traceback.format_exc())))
-    else:
-        delete_files(file_name, original=True, parsed=True, uploaded=False)
-        session.clear()
-        return redirect(url_for("index"))
+    # try:
+    #     file_name = session.get('file_name')
+    # except Exception as e:
+    #     print(f"Error: {e}")
+    #     session.clear()
+    #     delete_files(file_name=file_name, original=True, parsed=True, uploaded=False)
+    #     return redirect(url_for('error', error_message=str(traceback.format_exc())))
+    # else:
+    #     delete_files(file_name, original=True, parsed=True, uploaded=False)
+    #     session.clear()
+    return redirect(url_for("index"))
 
 @app.route('/success', methods=['GET'])
 def success():
-    try:
+    try:      
         file_name = session.get('file_name')
-        session.pop('file_name')
         database_table_name = session.get('database_table_name')
-        session.pop('database_table_name')
         # uploaded_data = session.get('uploaded data')
         # uploaded_data = pd.read_json(uploaded_data)
         uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
         uploaded_data = uploaded_data.iloc[:, :-3] # To not display the auto generated columns
         uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
         # uploaded_data = build_table(uploaded_data, 'blue_light')
-        session.clear()
         # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
         #message = request.args.get('message', 'Success.')
         return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
     
     except:
         session.clear()
+        delete_db_entries(database_table_name=database_table_name, file_name=file_name)
+        delete_files(file_name=file_name, original=True, uploaded=True, parsed=True)
         return redirect(url_for('error', error_message=str(traceback.format_exc())))
 
 @app.route('/error')
@@ -275,6 +278,9 @@ def download_file(filename):
     example_sheets_directory = os.path.join(os.getcwd(), 'static', 'example_sheets')
     print(f"Downloading {example_sheets_directory} / {filename}")
     return send_from_directory(example_sheets_directory, filename, as_attachment=True)
+
+def current_function_name():
+    return inspect.currentframe().f_back.f_code.co_name
 
 if __name__ == '__main__':
     app.run(debug=True)
