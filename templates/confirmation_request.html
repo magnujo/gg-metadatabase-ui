@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pandas DataFrame Display</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Center align content within the container */
+        .container {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <h1>Please confirm</h1>
+        <p>Below you can see what your data will look like in the database, based on your input. Please review and confirm that you want to upload it to the {{ database_table_name }} table. If it looks wrong, make sure you chose the correct format settings on the previous page.
+        </p>
+        <!-- Embedded DataFrame HTML -->
+        {{ clean_sheet|safe }}
+    </div>
+
+    <form action="/confirmed" method="post" enctype="multipart/form-data">
+        <div class="centered">
+            <button type="submit">Confirm</button>
+        </div>
+    </form>
+
+    <form action="/cancel_upload" method="post" enctype="multipart/form-data">
+        <div class="centered">
+            <button type="submit">Cancel</button>
+        </div>
+    </form>
+</body>
+</html>

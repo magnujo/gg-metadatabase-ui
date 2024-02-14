@@ -1,10 +1,11 @@
 import os
+import inspect
+dict = {'file_name': None}
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join('static', 'auto_sheets')
-print(current_dir)
+def current_function_name():
+    return inspect.currentframe().f_back.f_code.co_name
 
+def index():
+    print("Currently executing:", current_function_name())
 
-relative_path = os.path.relpath(data_dir, current_dir)
-
-print(relative_path)
+index()
