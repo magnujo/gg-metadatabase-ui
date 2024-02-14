@@ -27,6 +27,7 @@ def index():
 def upload_file():
     session.clear()
     session['visited_success'] = False
+    session['error'] = False
     file = request.files['file']
     file_name = file.filename
     try:
