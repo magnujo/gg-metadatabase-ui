@@ -113,6 +113,8 @@ def upload_file():
 @app.route('/confirmation_request', methods=['GET'])
 def confirmation_request():
     try:
+        if session['error'] == True:
+            return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
         clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
@@ -208,7 +210,10 @@ def cancel_upload():
 
 @app.route('/success', methods=['GET'])
 def success():
-    try:      
+    try:
+        if session['error'] == True:
+            return redirect(url_for("index"))
+        
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
         # uploaded_data = session.get('uploaded data')
@@ -220,7 +225,7 @@ def success():
         # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
         #message = request.args.get('message', 'Success.')
         return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
-    
+
     except:
         session.clear()
         delete_db_entries(database_table_name=database_table_name, file_name=file_name)
@@ -230,7 +235,7 @@ def success():
 @app.route('/error')
 def error():
     error_message = request.args.get('error_message', 'An error occurred.')
-    
+    session['error'] = True
     return render_template('error.html', error_message=error_message, admin=ADMIN_EMAILS)
 
 def integrity_test(database_table_name, file_name, clean_sheet):
