@@ -8,3 +8,4 @@ update manual
 Remove details in error messages
 Remove all sql statements that delete data. It is too dangerous. Instead upload the sheet to a duplicate database and if the tests gets approved, only then upload to the actual db.
 Turn of debug in main function.
+Delete log file

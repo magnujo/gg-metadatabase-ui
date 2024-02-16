@@ -1,3 +1,6 @@
+from sqlalchemy.exc import SQLAlchemyError
+import psycopg2
+from psycopg2 import Error
 import traceback
 import inspect
 import shutil
@@ -22,6 +25,8 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
     
+files_to_del = {'Before Upload': {'original': False, 'parsed': False, 'uploaded': False},
+                'After Upload': {'original': False, 'parsed': False, 'uploaded': True}}
 
 # logger = logging.getLogger()
 
@@ -138,10 +143,10 @@ def upload_file():
     # If user tries to upload a file that was already added we don't delete anything other than the session data, 
     # to make sure the original file and db data doesn't get deleted.
     except DontTriggerFileDeletion as e1:
-        return general_error_handling(message=e1, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
+        return general_error_handling(message=e1, files_to_del=files_to_del['Before Upload'])
             
     except Exception as e:
-        return general_error_handling(message=e, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
+        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
 
 
 #TODO: Catch errors and delete stuff if catched.
@@ -163,7 +168,7 @@ def confirmation_request():
         return render_template('confirmation_request.html', clean_sheet=clean_sheet, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
-        return general_error_handling(message=e, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
+        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
 
 
 #TODO: Catch errors and delete stuff if catched.
@@ -181,8 +186,13 @@ def confirmed():
                                 if_exists='append', 
                                 index=False)
         # If errors happen from now on, delete the data just inserted to the database
+    
+    except SQLAlchemyError as e:
+        # Catch any SQLAlchemy-related errors
+        return general_error_handling(message=e.orig, files_to_del=files_to_del['Before Upload'])
+    
     except Exception as e:
-        return general_error_handling(message=e, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
+        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
     
     else:
         try:
@@ -190,12 +200,12 @@ def confirmed():
                 pass
             else:
                 shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
-            # If errors happen from now on, delete the file from the UPLOAD_FOLDER
             
         except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
-        
-        else:    
+            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+        # If errors happen from now on, delete the file from the UPLOAD_FOLDER
+            
+        else:
             try:        
                 # Test that uploaded data equals data in file:
                 print(file_name)
@@ -207,7 +217,7 @@ def confirmed():
                     integrity_test(database_table_name, file_name, clean_sheet)
                 
             except Exception as e:
-                return general_error_handling(message=e, revert_db=True, files_to_del={'original': True, 'parsed': True, 'uploaded': True})
+                return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['After Upload'])
                         
             else:
                 return redirect(url_for("success")) 
@@ -216,20 +226,13 @@ def confirmed():
 @app.route('/cancel_upload', methods=['POST'])
 @decorators.log_info(app)
 def cancel_upload():
-    try:
-        file_name = session.get('file_name')
-    except Exception as e:
-        return general_error_handling(message=e,
-                                      files_to_del={'original': True, 'parsed': True, 'uploaded': False})
-    else:
-        delete_files(file_name, original=True, parsed=True, uploaded=False)
-        session.clear()
     return redirect(url_for("index"))
 
 @app.route('/success', methods=['GET'])
 @decorators.log_info(app)
 def success():
     try:
+        
         if session['error'] == True:
             return redirect(url_for("index"))
         
@@ -247,7 +250,7 @@ def success():
 
     except Exception as e:
         return general_error_handling(message=e, delete_db_entries=True, 
-                                      files_to_del={'original': True, 'parsed': True, 'uploaded': True})
+                                      files_to_del=files_to_del['After Upload'])
 
 @app.route('/error')
 @decorators.log_info(app)
@@ -308,7 +311,7 @@ def generate_html_message(message):
     traceback_ = traceback.format_exc()
     app.logger.exception(traceback_)
     return f'''
-<h4>Error Message:</h4>
+<h3>Error Message:</h4>
 <p>{message}</p>
 <br>
 <h4>Traceback (send to admin if needed):</h4>
@@ -323,7 +326,7 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
                 database_table_name = session.get('database_table_name')
                 delete_db_entries(database_table_name, file_name=file_name)
         delete_files(file_name=file_name, **files_to_del)
-        session.clear()
+        # session.clear()
         session['error_message'] = html_message
         return redirect(url_for('error'))
 
