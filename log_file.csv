@@ -1,0 +1,22 @@
+2024-02-16 10:07:40,377; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-16 10:07:40,377; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-16 10:07:40,377; None; None; INFO;  * Restarting with stat
+2024-02-16 10:07:41,072; None; None; WARNING;  * Debugger is active!
+2024-02-16 10:07:41,077; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-16 10:07:55,818; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-16 10:07:55,818; None; None; INFO; 127.0.0.1 - - [16/Feb/2024 10:07:55] "GET / HTTP/1.1" 200 -
+2024-02-16 10:08:00,326; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-16 10:08:00,327; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 89, in upload_file
+    raise DontTriggerFileDeletion('Please select a thousands seperator character')
+utils.CustomExceptions.DontTriggerFileDeletion: Please select a thousands seperator character
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 89, in upload_file
+    raise DontTriggerFileDeletion('Please select a thousands seperator character')
+utils.CustomExceptions.DontTriggerFileDeletion: Please select a thousands seperator character
+2024-02-16 10:08:00,327; None; None; INFO; 127.0.0.1 - - [16/Feb/2024 10:08:00] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-16 10:08:00,339; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-16 10:08:00,339; None; None; INFO; 127.0.0.1 - - [16/Feb/2024 10:08:00] "GET /error HTTP/1.1" 200 -
+2024-02-16 10:08:02,235; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-16 10:08:02,236; None; None; INFO; 127.0.0.1 - - [16/Feb/2024 10:08:02] "GET / HTTP/1.1" 200 -

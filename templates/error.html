@@ -1,9 +1,10 @@
-<h2>Error</h2>
-<p>ATTENTION: DO NOT PRESS BACK IN YOUR BROWSER. This might cause issues. 
+<h2>!!!ATTENTION!!!</h2>
+<p>DO NOT NAVIGATE AWAY FROM THIS PAGE BY USING THE ARROWS IN YOUR BROWSER! USE THE BUTTON BELOW.</p>
 <br>
-If you want to navigate back, please press the button below to return to the home page. </p>
 <br>
-<p>Contact {{ admin }} if you need help resolving the error</p>
+<h3>Error</h3>
+<p>An error has occured while trying to process your request and no data was uploaded to the database. 
+    Send the "Traceback" below to {{ admin }} if you need help resolving the error</p>
 <br>
 <form action="/" method="post" enctype="multipart/form-data">
     <div class="centered">
@@ -11,5 +12,4 @@ If you want to navigate back, please press the button below to return to the hom
     </div>
 </form>
 <br>
-<h3>Error message:</h3>
-<p>{{ error_message }}</p>
+{{ error_message|safe }}
