@@ -2,6 +2,7 @@ import traceback
 import inspect
 import shutil
 import constants
+import log_util
 from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
@@ -21,34 +22,30 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
     
-# logger = logging.getLogger(__name__)
-# logger.setLevel(logging.INFO)
-# file_handler = logging.FileHandler('flask_app2.log')
-# file_handler.setLevel(logging.INFO)
-# file_handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(message)s'))
-# logger.addHandler(file_handler)
-logger = logging.getLogger()
 
-class RequestFormatter(logging.Formatter):
-    def format(self, record):
-        if has_request_context():
-            record.url = request.url
-            record.remote_addr = request.remote_addr
-        else:
-            record.url = None
-            record.remote_addr = None
-        return super().format(record)
+# logger = logging.getLogger()
 
-formatter = RequestFormatter('%(asctime)s; %(remote_addr)s; %(url)s; %(levelname)s; %(message)s')
+# class RequestFormatter(logging.Formatter):
+#     def format(self, record):
+#         if has_request_context():
+#             record.url = request.url
+#             record.remote_addr = request.remote_addr
+#         else:
+#             record.url = None
+#             record.remote_addr = None
+#         return super().format(record)
 
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(formatter)
-logger.addHandler(consoleHandler)
+# formatter = RequestFormatter('%(asctime)s; %(remote_addr)s; %(url)s; %(levelname)s; %(message)s')
 
-fileHandler = logging.FileHandler('log_file.csv')
-fileHandler.setFormatter(formatter)
-logger.addHandler(fileHandler)
+# consoleHandler = logging.StreamHandler()
+# consoleHandler.setFormatter(formatter)
+# logger.addHandler(consoleHandler)
 
+# fileHandler = logging.FileHandler('log_file.csv')
+# fileHandler.setFormatter(formatter)
+# logger.addHandler(fileHandler)
+
+logger = log_util.setup()
 
 # # Set log level
 # app.logger.setLevel(logging.DEBUG)
