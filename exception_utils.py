@@ -1,3 +1,4 @@
+import logging
 from utils.CustomExceptions import DontTriggerFileDeletion
 from functools import wraps
 from flask import redirect, url_for, session
@@ -18,7 +19,6 @@ def delete_files(file_name, original=False, parsed=False, uploaded=False):
     
 # TODO: Make more secure: implement time check for example.
 def delete_db_entries(database_table_name, file_name):
-    file_name = session.get('file_name')
     database_table_name = session.get('database_table_name')
     connection = psycopg2.connect(**DATABASE_CONFIG_2)
     cursor = connection.cursor()
@@ -26,3 +26,4 @@ def delete_db_entries(database_table_name, file_name):
     connection.commit()
     cursor.close()
     connection.close()
+

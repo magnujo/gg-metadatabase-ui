@@ -1,7 +1,9 @@
+import traceback
 import inspect
 import shutil
 import constants
-from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session
+import log_util
+from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
 from constants import SHEET_TYPES, ADMIN_EMAILS, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
@@ -9,25 +11,63 @@ from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
 from pandas import testing
-import traceback
+import logging
 from constants import ENGINE, DATABASE_CONFIG, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
+import decorators
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
+    
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# logger = logging.getLogger()
+
+# class RequestFormatter(logging.Formatter):
+#     def format(self, record):
+#         if has_request_context():
+#             record.url = request.url
+#             record.remote_addr = request.remote_addr
+#         else:
+#             record.url = None
+#             record.remote_addr = None
+#         return super().format(record)
+
+# formatter = RequestFormatter('%(asctime)s; %(remote_addr)s; %(url)s; %(levelname)s; %(message)s')
+
+# consoleHandler = logging.StreamHandler()
+# consoleHandler.setFormatter(formatter)
+# logger.addHandler(consoleHandler)
+
+# fileHandler = logging.FileHandler('log_file.csv')
+# fileHandler.setFormatter(formatter)
+# logger.addHandler(fileHandler)
+
+logger = log_util.setup()
+
+# # Set log level
+# app.logger.setLevel(logging.DEBUG)
 
 @app.route('/', methods=['POST', 'GET'])
+@decorators.log_info(app)
 def index():
+    if 'error' not in session:
+        session['error'] = False 
+    if 'error_message' not in session:  
+        session['error_message'] = None
+    
     return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
 
 @app.route('/upload', methods=['POST'])
+@decorators.log_info(app)
 def upload_file():
+    # logger.info('Running: ' + str(index.__name__))
     session.clear()
-    session['visited_success'] = False
     session['error'] = False
+    session['error_message'] = None
+    session['visited_success'] = False
     file = request.files['file']
     file_name = file.filename
     try:
@@ -98,20 +138,15 @@ def upload_file():
     # If user tries to upload a file that was already added we don't delete anything other than the session data, 
     # to make sure the original file and db data doesn't get deleted.
     except DontTriggerFileDeletion as e1:
-        print(str(e1))
-        session.clear()
-        delete_files(file_name=file_name, original=True, parsed=True)
-        return redirect(url_for('error', error_message=str(traceback.format_exc())))
-     
+        return general_error_handling(message=e1, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
+            
     except Exception as e:
-        print(str(e))
-        session.clear()
-        delete_files(file_name=file_name, original=True, parsed=True)
-        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+        return general_error_handling(message=e, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
 
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmation_request', methods=['GET'])
+@decorators.log_info(app)
 def confirmation_request():
     try:
         if session['error'] == True:
@@ -126,17 +161,14 @@ def confirmation_request():
         clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
     
         return render_template('confirmation_request.html', clean_sheet=clean_sheet, file_name=file_name, database_table_name=database_table_name)
+    
     except Exception as e:
-        print(str(e))
-        # Deletes file from original_sheets and parsed_sheets only, to restore original state 
-        # of the folders.
-        delete_files(file_name, original=True, parsed=True, uploaded=False)
-        session.clear()
-        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+        return general_error_handling(message=e, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
 
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmed', methods=['POST'])
+@decorators.log_info(app)
 def confirmed():
     try:
         file_name = session.get('file_name')
@@ -150,12 +182,7 @@ def confirmed():
                                 index=False)
         # If errors happen from now on, delete the data just inserted to the database
     except Exception as e:
-        print(str(e))
-        # Deletes file from original_sheets and parsed_sheets only, to restore original state 
-        # of the folders.
-        delete_files(file_name, original=True, parsed=True, uploaded=False)
-        session.clear()
-        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+        return general_error_handling(message=e, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
     
     else:
         try:
@@ -166,13 +193,7 @@ def confirmed():
             # If errors happen from now on, delete the file from the UPLOAD_FOLDER
             
         except Exception as e:
-            print(str(e))
-            # Deletes file from original_sheets and parsed_sheets only, to restore original state 
-            # of the folders.
-            delete_db_entries(database_table_name, file_name)
-            delete_files(file_name, original=True, parsed=True, uploaded=False)
-            session.clear()
-            return redirect(url_for('error', error_message=str(traceback.format_exc())))
+            return general_error_handling(message=e, revert_db=True, files_to_del={'original': True, 'parsed': True, 'uploaded': False})
         
         else:    
             try:        
@@ -186,30 +207,27 @@ def confirmed():
                     integrity_test(database_table_name, file_name, clean_sheet)
                 
             except Exception as e:
-                print(f"Error: {e}")
-                delete_files(file_name=file_name, original=True, parsed=True, uploaded=True)
-                delete_db_entries(database_table_name=database_table_name, file_name=file_name)
-                return redirect(url_for('error', error_message=str(traceback.format_exc())))
+                return general_error_handling(message=e, revert_db=True, files_to_del={'original': True, 'parsed': True, 'uploaded': True})
                         
             else:
                 return redirect(url_for("success")) 
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/cancel_upload', methods=['POST'])
+@decorators.log_info(app)
 def cancel_upload():
-    # try:
-    #     file_name = session.get('file_name')
-    # except Exception as e:
-    #     print(f"Error: {e}")
-    #     session.clear()
-    #     delete_files(file_name=file_name, original=True, parsed=True, uploaded=False)
-    #     return redirect(url_for('error', error_message=str(traceback.format_exc())))
-    # else:
-    #     delete_files(file_name, original=True, parsed=True, uploaded=False)
-    #     session.clear()
+    try:
+        file_name = session.get('file_name')
+    except Exception as e:
+        return general_error_handling(message=e,
+                                      files_to_del={'original': True, 'parsed': True, 'uploaded': False})
+    else:
+        delete_files(file_name, original=True, parsed=True, uploaded=False)
+        session.clear()
     return redirect(url_for("index"))
 
 @app.route('/success', methods=['GET'])
+@decorators.log_info(app)
 def success():
     try:
         if session['error'] == True:
@@ -227,15 +245,15 @@ def success():
         #message = request.args.get('message', 'Success.')
         return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
 
-    except:
-        session.clear()
-        delete_db_entries(database_table_name=database_table_name, file_name=file_name)
-        delete_files(file_name=file_name, original=True, uploaded=True, parsed=True)
-        return redirect(url_for('error', error_message=str(traceback.format_exc())))
+    except Exception as e:
+        return general_error_handling(message=e, delete_db_entries=True, 
+                                      files_to_del={'original': True, 'parsed': True, 'uploaded': True})
 
 @app.route('/error')
+@decorators.log_info(app)
 def error():
-    error_message = request.args.get('error_message', 'An error occurred.')
+    # error_message = request.args.get('error_message', 'An error occurred.')
+    error_message = session.get('error_message')
     session['error'] = True
     return render_template('error.html', error_message=error_message, admin=ADMIN_EMAILS)
 
@@ -270,16 +288,13 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/download_manual')
+@decorators.log_info(app)
 def download_manual():
     manual_path = 'manual.txt'
     return send_file(manual_path, as_attachment=True)
 
-@app.route('/download_robot_sampling_edna_example_sheet', methods=['POST'])
-def download_robot_sampling_edna_example_sheet():
-    file_path = os.path.join('example_sheets', 'eDNA robot sampling.xlsx')
-    return send_file(file_path, as_attachment=True)
-
 @app.route('/download/<path:filename>')
+@decorators.log_info(app)
 def download_file(filename):
     example_sheets_directory = os.path.join(os.getcwd(), 'static', 'example_sheets')
     print(f"Downloading {example_sheets_directory} / {filename}")
@@ -288,6 +303,31 @@ def download_file(filename):
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name
 
+def generate_html_message(message):
+    print("hello")
+    traceback_ = traceback.format_exc()
+    app.logger.exception(traceback_)
+    return f'''
+<h4>Error Message:</h4>
+<p>{message}</p>
+<br>
+<h4>Traceback (send to admin if needed):</h4>
+<p>{traceback_}</p>
+'''
+
+def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
+        '''Manages deletions to revert to original state'''
+        file_name = session.get('file_name')
+        html_message = generate_html_message(message)
+        if revert_db:
+                database_table_name = session.get('database_table_name')
+                delete_db_entries(database_table_name, file_name=file_name)
+        delete_files(file_name=file_name, **files_to_del)
+        session.clear()
+        session['error_message'] = html_message
+        return redirect(url_for('error'))
+
 if __name__ == '__main__':
+    print(id(app))
     app.run(debug=True)
 

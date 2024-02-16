@@ -1,4 +1,6 @@
 from sqlalchemy import create_engine
+from flask import Flask
+
 
 ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk"
 UPLOAD_FOLDER = 'uploaded_sheets'
