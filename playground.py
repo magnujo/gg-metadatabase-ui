@@ -9,3 +9,6 @@ def index():
     print("Currently executing:", current_function_name())
 
 index()
+
+I dont want to delete the upload file if everything seems ok
+I 
