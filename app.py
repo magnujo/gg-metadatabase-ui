@@ -253,7 +253,7 @@ def success():
         return general_error_handling(message=e, delete_db_entries=True, 
                                       files_to_del=files_to_del['After Upload'])
 
-@app.route('/error')
+@app.route('/error', methods=['GET'])
 @decorators.log_info(app)
 def error():
     # error_message = request.args.get('error_message', 'An error occurred.')

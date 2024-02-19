@@ -74,5 +74,12 @@ Makes it easier to work with ranges which has the form "[8, 10)" where comma won
 
 
 
-
-
+Your parsed data is shown after you press the "Upload" button.
+After you press upload, your data will be automatically parsed, to match the standard format of the database.
+The database uses YYYY-MM-DD for dates and "." for decimal point. 
+If you use other formats, this means that your data will be automatically transformed to match the above format.
+This parsing is not tested rigidly, so make sure you double check for any errors before you confirm. 
+If your data was parsed correctly you can press confirm, and the parsed data will be uploaded to the database.
+If there were no errors while uploading, a page will show the data as it is represented in the database.
+Here you can doublecheck that everything looks correct.
+If you need to edit your data after you uploaded, ask admin for help with this.

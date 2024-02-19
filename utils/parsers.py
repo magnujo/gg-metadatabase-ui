@@ -49,42 +49,43 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
     # date1 = pd.to_datetime(df['date'], errors='coerce', format='%Y-%m-%d')
     # date2 = pd.to_datetime(df['date'], errors='coerce', format='%d.%m.%Y')
     # sheet['date'] = date1.fillna(date2)
-    
-    if soft:
-        if date_format == 'YYYY-MM-DD':
-            for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', yearfirst=True)
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-        elif date_format == 'DD-MM-YYYY':
-            for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', dayfirst=True)
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-        else: 
-            raise Exception('No date format chosen, try again.')
-    else:
-        
-        if date_format == 'YYYY-MM-DD':
-            for ele in date_columns:
-                sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-        elif date_format == 'DD-MM-YYYY':
-            for ele in date_columns:
-                print(sheet[ele].dtype)
-                sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y')
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-        elif date_format == 'DD/MM/YYYY':
-            for ele in date_columns:
-                print(sheet[ele].dtype)
-                sheet[ele] = pd.to_datetime(sheet[ele], format='%d/%m/%Y')
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-        elif date_format == 'YYYY/MM/DD':
-            for ele in date_columns:
-                print(sheet[ele].dtype)
-                sheet[ele] = pd.to_datetime(sheet[ele], format='%Y/%m/%d')
-                sheet[ele] = sheet[ele].astype('datetime64[ns]')
-        else: 
-            raise Exception('No date format chosen, try again.')
-        
+    try:
+        if soft:
+            if date_format == 'YYYY-MM-DD':
+                for ele in date_columns:
+                    sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', yearfirst=True)
+                    sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            elif date_format == 'DD-MM-YYYY':
+                for ele in date_columns:
+                    sheet[ele] = pd.to_datetime(sheet[ele], format='mixed', dayfirst=True)
+                    sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            else: 
+                raise Exception('No date format chosen, try again.')
+        else:
+            
+            if date_format == 'YYYY-MM-DD':
+                for ele in date_columns:
+                    sheet[ele] = pd.to_datetime(sheet[ele], format='ISO8601')
+                    sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            elif date_format == 'DD-MM-YYYY':
+                for ele in date_columns:
+                    print(sheet[ele].dtype)
+                    sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y')
+                    sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            elif date_format == 'DD/MM/YYYY':
+                for ele in date_columns:
+                    print(sheet[ele].dtype)
+                    sheet[ele] = pd.to_datetime(sheet[ele], format='%d/%m/%Y')
+                    sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            elif date_format == 'YYYY/MM/DD':
+                for ele in date_columns:
+                    print(sheet[ele].dtype)
+                    sheet[ele] = pd.to_datetime(sheet[ele], format='%Y/%m/%d')
+                    sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            else: 
+                raise Exception('No date format chosen, try again.')
+    except Exception:
+        raise Exception(f"Found time data in column {ele} that does not match chosen date format {date_format}.")
      
     return sheet
 
