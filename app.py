@@ -19,6 +19,7 @@ from constants import ENGINE, DATABASE_CONFIG, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
 import decorators
+from datetime import datetime
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -109,7 +110,7 @@ def upload_file():
                 pass
             else:
                 if os.path.exists(os.path.join(UPLOAD_FOLDER, file.filename)):
-                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
             
             # else:
                 # Use DontTriggerFileDelete before this and use Exception after. 
@@ -310,12 +311,14 @@ def generate_html_message(message):
     print("hello")
     traceback_ = traceback.format_exc()
     app.logger.exception(traceback_)
+    current_datetime = datetime.now()
+    client_ip = request.remote_addr
     return f'''
 <h3>Error Message:</h4>
 <p>{message}</p>
 <br>
 <h4>Traceback (send to admin if needed):</h4>
-<p>{traceback_}</p>
+<p>{client_ip}: {current_datetime}: {traceback_}</p>
 '''
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):

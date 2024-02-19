@@ -1,0 +1,91 @@
+2024-02-19 08:51:48,365; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-19 08:51:48,365; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-19 08:51:48,365; None; None; INFO;  * Restarting with stat
+2024-02-19 08:51:49,037; None; None; WARNING;  * Debugger is active!
+2024-02-19 08:51:49,052; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-19 08:51:58,654; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-19 08:51:58,671; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 08:51:58] "GET / HTTP/1.1" 200 -
+2024-02-19 08:51:59,365; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 08:51:59] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-02-19 08:56:31,966; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\exception_utils.py', reloading
+2024-02-19 08:56:32,058; None; None; INFO;  * Restarting with stat
+2024-02-19 08:59:02,690; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-19 08:59:02,690; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-19 08:59:02,690; None; None; INFO;  * Restarting with stat
+2024-02-19 08:59:03,408; None; None; WARNING;  * Debugger is active!
+2024-02-19 08:59:03,423; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-19 08:59:04,990; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-19 08:59:04,990; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 08:59:04] "GET / HTTP/1.1" 200 -
+2024-02-19 08:59:13,811; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-19 08:59:13,811; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 113, in upload_file
+    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name has already been uploaded to the database. Contact magnus.johannsen@sund.ku.dk if you believe this is an error, or if you want to re-upload the file
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 113, in upload_file
+    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name has already been uploaded to the database. Contact magnus.johannsen@sund.ku.dk if you believe this is an error, or if you want to re-upload the file
+2024-02-19 08:59:13,811; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 08:59:13] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-19 08:59:13,826; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-19 08:59:13,826; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 08:59:13] "GET /error HTTP/1.1" 200 -
+2024-02-19 09:01:53,525; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\app.py', reloading
+2024-02-19 09:01:53,622; None; None; INFO;  * Restarting with stat
+2024-02-19 09:01:54,418; None; None; WARNING;  * Debugger is active!
+2024-02-19 09:01:54,418; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-19 09:02:01,466; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\app.py', reloading
+2024-02-19 09:02:01,551; None; None; INFO;  * Restarting with stat
+2024-02-19 09:02:02,346; None; None; WARNING;  * Debugger is active!
+2024-02-19 09:02:02,351; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-19 09:02:24,512; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\app.py', reloading
+2024-02-19 09:02:24,600; None; None; INFO;  * Restarting with stat
+2024-02-19 09:14:39,801; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-19 09:14:39,801; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-19 09:14:39,801; None; None; INFO;  * Restarting with stat
+2024-02-19 09:14:40,504; None; None; WARNING;  * Debugger is active!
+2024-02-19 09:14:40,504; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-19 09:14:44,189; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-19 09:14:44,191; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:14:44] "GET / HTTP/1.1" 200 -
+2024-02-19 09:14:45,775; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-19 09:14:45,790; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:14:45] "GET /error HTTP/1.1" 200 -
+2024-02-19 09:14:48,192; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-19 09:14:48,193; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:14:48] "GET / HTTP/1.1" 200 -
+2024-02-19 09:14:49,233; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-19 09:14:49,233; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 113, in upload_file
+    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name has already been uploaded to the database. Contact magnus.johannsen@sund.ku.dk if you believe this is an error, or if you want to re-upload the file
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 113, in upload_file
+    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact {constants.ADMIN_EMAILS} if you believe this is an error, or if you want to re-upload the file')
+utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name has already been uploaded to the database. Contact magnus.johannsen@sund.ku.dk if you believe this is an error, or if you want to re-upload the file
+2024-02-19 09:14:49,243; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:14:49] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-19 09:14:49,247; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-19 09:14:49,248; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:14:49] "GET /error HTTP/1.1" 200 -
+2024-02-19 09:15:54,027; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\app.py', reloading
+2024-02-19 09:15:54,115; None; None; INFO;  * Restarting with stat
+2024-02-19 09:17:50,251; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-19 09:17:50,251; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-19 09:17:50,251; None; None; INFO;  * Restarting with stat
+2024-02-19 09:17:50,938; None; None; WARNING;  * Debugger is active!
+2024-02-19 09:17:50,938; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-19 09:17:55,273; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-19 09:17:55,283; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:17:55] "GET / HTTP/1.1" 200 -
+2024-02-19 09:18:05,444; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-19 09:18:05,454; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 113, in upload_file
+    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
+utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 113, in upload_file
+    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
+utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file
+2024-02-19 09:18:05,454; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:18:05] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-19 09:18:05,454; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-19 09:18:05,454; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:18:05] "GET /error HTTP/1.1" 200 -
+2024-02-19 09:18:08,033; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-19 09:18:08,039; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:18:08] "POST / HTTP/1.1" 200 -
+2024-02-19 09:18:14,662; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-19 09:18:14,664; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 09:18:14] "GET /error HTTP/1.1" 200 -
