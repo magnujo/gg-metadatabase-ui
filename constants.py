@@ -8,6 +8,7 @@ ALLOWED_EXTENSIONS = {'txt'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'orignal_sheets'
+MANUAL = "Manual.pdf"
 
 DATABASE_CONFIG = {
     'host': 'dandyweb01fl',

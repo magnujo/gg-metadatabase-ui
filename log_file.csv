@@ -437,3 +437,16 @@ Exception: Found time data in column Order Date that does not match chosen date 
 2024-02-19 16:59:19,961; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 16:59:19] "[36mGET /success?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
 2024-02-19 16:59:23,648; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
 2024-02-19 16:59:23,654; None; None; INFO; 127.0.0.1 - - [19/Feb/2024 16:59:23] "GET / HTTP/1.1" 200 -
+2024-02-20 09:20:23,328; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-20 09:20:23,329; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-20 09:20:23,330; None; None; INFO;  * Restarting with stat
+2024-02-20 09:20:24,066; None; None; WARNING;  * Debugger is active!
+2024-02-20 09:20:24,069; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-20 09:20:29,604; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-20 09:20:29,625; None; None; INFO; 127.0.0.1 - - [20/Feb/2024 09:20:29] "GET / HTTP/1.1" 200 -
+2024-02-20 09:20:30,315; None; None; INFO; 127.0.0.1 - - [20/Feb/2024 09:20:30] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-02-20 09:20:45,003; 127.0.0.1; http://127.0.0.1:5000/download_manual; INFO; Running: download_manual
+2024-02-20 09:20:45,040; None; None; INFO; 127.0.0.1 - - [20/Feb/2024 09:20:45] "GET /download_manual HTTP/1.1" 200 -
+2024-02-20 09:22:18,723; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-20 09:22:18,728; None; None; INFO; 127.0.0.1 - - [20/Feb/2024 09:22:18] "GET / HTTP/1.1" 200 -

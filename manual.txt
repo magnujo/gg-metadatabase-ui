@@ -27,10 +27,6 @@ Makes it easier to work with ranges which has the form "[8, 10)" where comma won
 
 Primary ids must be not null. Remove rows that do not have a primary id. 
 
-If a column contains multiple values, seperate them with semicolon. For example if a sample was taken by multiple people,
-the 'Sampled By' column input should be "Alice; Bob".
-
-
 See example sheets. If want to change them, feel free to send me a revised version and I will try to implement it.
 
 Column names (case sensitive) and columns positions should be exactly as in the example sheet.
@@ -41,7 +37,8 @@ The database will in the future only accept the following employee identifiers:
 For internal: KU IDs
 External: email.
 
-This means initials will not be accepted in the future. Make sure to change any protocols or sheet templates to accommodate this, or
+This means initials will not be accepted in the future. 
+Make sure to change any protocols or sheet templates to accommodate this, or
 you will have a lot of tedious clean up to do in the future!
 
 Archive sampling
@@ -62,16 +59,6 @@ Regarding columns "Lab assistant (KU ID)" and "Submitter (KU ID)" in the example
 Even though it says KU ID, you can still upload files with "Lab assistant (initials)"
 for now, but in the future the database will only accept KU IDs, so make sure to change your templates
 and protocols.
-
-
-Field sampling: 
-
-The following is the safest and best approach for the database, as this is its standard:
-Thousand seperator = ","
-Decimal point = "."
-
-Makes it easier to work with ranges which has the form "[8, 10)" where comma wont work. 
-
 
 
 Your parsed data is shown after you press the "Upload" button.

@@ -12,5 +12,7 @@ dependencies:
   - flask
   - ipykernel
   - openpyxl
+  - lxml
+  - gunicorn
   - pip:
     - pretty_html_table
