@@ -25,13 +25,6 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     boolean_columns = []
     
     primary_key = 'CGG ID'
-        
-    # read sheet
-    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
-    
-    # TODO: Delete after deployment and ask make uploader responsible.
-    sheet = sheet.dropna(axis='index', how='all')
-    #sheet = sheet.drop(columns=sheet.columns[sheet.columns.str.contains('^Unnamed')])
 
     # check for expected cols
     expected_columns = pd.read_sql(sql=f"SELECT * from {constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=constants.ENGINE).columns

@@ -5,7 +5,7 @@ from constants import DATABASE_CONFIG, ADMIN_EMAILS, ENGINE
 import pandas as pd
 from utils.parsers import parse_dates, validate_integers
 
-def parse(file_path, date_format, database_table_name, decimal_point, thousands_seperator):
+def parse(sheet, date_format, database_table_name, decimal_point, thousands_seperator):
     
     integer_columns = ['Mass']
     date_columns = ['SamplingDate', 'SubmissionDate']
@@ -13,13 +13,6 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     
     if not decimal_point == 'not_relevant':
         raise Exception(f"Did not expect decimal numbers. Please contact contact {ADMIN_EMAILS} if you think this is a mistake.")
-    
-    # read sheet
-    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
-    
-    # TODO: Delete after deployment and make uploader responsible.
-    sheet = sheet.dropna(axis='index', how='all')
-    sheet = sheet.drop(columns=sheet.columns[sheet.columns.str.contains('^Unnamed')])
 
     # check for expected cols
     expected_columns = pd.read_sql(sql=f"SELECT * from {constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=constants.ENGINE).columns

@@ -1,14 +1,6 @@
 import os
 import inspect
 dict = {'file_name': None}
+import constants
 
-def current_function_name():
-    return inspect.currentframe().f_back.f_code.co_name
-
-def index():
-    print("Currently executing:", current_function_name())
-
-index()
-
-I dont want to delete the upload file if everything seems ok
-I 
+print(constants.ALLOWED_COMMAND_LINE_ARGS['production'] + constants.ALLOWED_COMMAND_LINE_ARGS['development'])

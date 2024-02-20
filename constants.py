@@ -10,6 +10,23 @@ TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'orignal_sheets'
 MANUAL = "Manual.pdf"
 
+'''
+Arguments you can use when starting the app
+Development args are only allowed in development 
+and production args are used for production (can also be used for development)
+
+no_file_test: 
+Skips the check that a file with the same name has already been uploaded
+
+no_upload_test:
+skips the test that the uploaded data equals the parsed sheet
+
+production:
+skips the dropping of null values. if used, the two others are not allowed.
+'''
+ALLOWED_COMMAND_LINE_ARGS = {'development': ['--no_file_test', '--no_upload_test'],
+                             'production': ['--production']}
+
 DATABASE_CONFIG = {
     'host': 'dandyweb01fl',
     'database': 'aedna_metadata',
@@ -40,3 +57,7 @@ SHEET_TYPES = {
 }
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD']
+
+COLUMNS = {'field_sample_internal': 
+    {'float_columns': 
+        []}}

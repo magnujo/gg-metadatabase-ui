@@ -22,9 +22,6 @@ def parse(file_path, date_format, decimal_point, thousands_seperator):
                 'Submitter': str,
                 'SubmissionDate': str,
                 'NotesSubmitter': str}
-
-    # sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=dtypes, thousands='.', decimal=',')
-    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
     
     expected_columns = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.archive_sample", con=ENGINE).columns
     

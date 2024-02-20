@@ -333,6 +333,16 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         return redirect(url_for('error'))
 
 if __name__ == '__main__':
-    print(id(app))
+    production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
+    development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
+    
+    if "--production" in sys.argv:
+        for arg in sys.argv[1:]:
+            if not arg in production_args or arg in development_args:
+                    raise Exception(f"Argument {arg} only allowed for development")
+    else:
+        for arg in sys.argv[1:]:
+            if not arg in production_args + development_args:
+                    raise Exception(f"Argument {arg} not allowed")
     app.run(debug=True)
 
