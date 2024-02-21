@@ -344,13 +344,20 @@ if __name__ == '__main__':
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
     
-    if "--production" in sys.argv:
-        for arg in sys.argv[1:]:
-            if not arg in production_args or arg in development_args:
-                    raise Exception(f"Argument {arg} only allowed for development")
+    production = os.environ.get('PRODUCTION')
+    
+    if production == 'True':
         app.run(host='0.0.0.0', port=5100)
     else:
-        for arg in sys.argv[1:]:
-            if not arg in production_args + development_args:
-                    raise Exception(f"Argument {arg} not allowed")
         app.run(debug=True)
+        
+    # if "--production" in sys.argv:
+    #     for arg in sys.argv[1:]:
+    #         if not arg in production_args or arg in development_args:
+    #                 raise Exception(f"Argument {arg} only allowed for development")
+    #     app.run(host='0.0.0.0', port=5100)
+    # else:
+    #     for arg in sys.argv[1:]:
+    #         if not arg in production_args + development_args:
+    #                 raise Exception(f"Argument {arg} not allowed")
+    #     app.run(debug=True)
