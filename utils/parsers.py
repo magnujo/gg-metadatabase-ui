@@ -1,39 +1,27 @@
 import sys
 import constants
 import pandas as pd
+from utils import queries
 
 def parse(file_path, 
           date_format, 
           database_table_name, 
           decimal_point, 
-          thousands_seperator, 
-          float_columns, 
-          integer_columns, 
-          range_columns,
-          date_columns,
-          boolean_columns,
-          primary_key):
+          thousands_seperator):
     
     
-    float_columns = ['Latitude',
-                     'Longitude',
-                     'Sampling depth (discrete, cm)',
-                     'Correlation depth (bottom, cm)',
-                     'Correlation depth (top, cm)',
-                     'Height above mean sea level (meters)']
-    
-    integer_columns = []
-    
-    date_columns = ['Sampling Date', 
-                    'Storing date',
-                    'Disposal date'
-                    ]
-    
-    boolean_columns = []
-    
-    primary_key = 'Sample label (sticker)'  
     
     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+    df = queries.get_table_dtypes(database_table_name, constants.DATABASE_CONFIG["schema"])
+
+    float_columns = list(df[df['data_type'].isin(constants.postgres_types['floating_point'])]['column_name'])
+    int_columns = list(df[df['data_type'].isin(constants.postgres_types['integer'])]['column_name'])
+    range_columns = list(df[df['data_type'].isin(constants.postgres_types['int_range'])]['column_name'])
+    date_columns = list(df[df['data_type'].isin(constants.postgres_types['date'])]['column_name'])
+    
+    primary_key = queries.get_primary_key(table_name=database_table_name, 
+                                          schema_name=constants.DATABASE_CONFIG["schema"], 
+                                          database_name=constants.DATABASE_CONFIG['database'])
     
     if not '--production' in sys.argv:
         sheet = sheet.dropna(axis='index', how='all')
@@ -63,8 +51,9 @@ def parse(file_path,
     # Parse dates, throws error if formatting is wrong in the sheet
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)       
     sheet = parse_floats(sheet, float_columns, decimal_point, thousands_seperator)
-    sheet = validate_integers(sheet, integer_columns)
+    sheet = validate_integers(sheet, int_columns)
     # sheet = parse_booleans(sheet, boolean_columns)
+    # sheet = parse_ranges()
 
     return sheet
 

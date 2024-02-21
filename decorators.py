@@ -2,7 +2,20 @@ import logging
 from functools import wraps
 from logging.handlers import RotatingFileHandler
 from flask import request
+from constants import DATABASE_CONFIG_2
+import psycopg2
 
+def db_stuff(func):
+    def wrapper():
+        conn = psycopg2.connect(**DATABASE_CONFIG_2)
+
+        cur = conn.cursor()
+        
+        func()  # Call the original function
+        print("Something is happening after the function is called.")
+        cur.close()
+        conn.close() 
+    return wrapper
 
 
 def log_info(app):

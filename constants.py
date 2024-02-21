@@ -61,3 +61,8 @@ ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD']
 COLUMNS = {'field_sample_internal': 
     {'float_columns': 
         []}}
+
+postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'decimal', 'float4', 'float8', 'float'],
+                  'integer': ['smallint', 'integer', 'bigint', 'int', 'int2', 'int4', 'int8'],
+                  'date': ['date', 'timestamptz', 'timestamp', 'time_stamp', 'timestamp with time zone', 'timestamp without timezone'],
+                  'int_range': ['int4range', 'int8range']}

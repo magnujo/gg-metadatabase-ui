@@ -1,3 +1,4 @@
+
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
 from psycopg2 import Error
@@ -18,6 +19,7 @@ import logging
 from constants import ENGINE, DATABASE_CONFIG, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
+from utils import parsers
 import decorators
 from datetime import datetime
 import logging
@@ -118,11 +120,17 @@ def upload_file():
             
             # file_name = os.path.split(file_path)[-1]
 
-            clean_sheet = clean_up(tsv_file_path=file_path, 
-                                   database_table_name=database_table_name, 
-                                   date_format=date_format,
-                                   decimal_point=decimal_point,
-                                   thousands_seperator=thousands_seperator)
+            # clean_sheet = clean_up(tsv_file_path=file_path, 
+            #                        database_table_name=database_table_name, 
+            #                        date_format=date_format,
+            #                        decimal_point=decimal_point,
+            #                        thousands_seperator=thousands_seperator)
+            
+            clean_sheet = parsers.parse(file_path=file_path,
+                                        database_table_name=database_table_name,
+                                        date_format=date_format,
+                                        decimal_point=decimal_point,
+                                        thousands_seperator=thousands_seperator)
             
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
