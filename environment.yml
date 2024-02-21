@@ -14,5 +14,6 @@ dependencies:
   - openpyxl
   - lxml
   - gunicorn
+  - pip
   - pip:
     - pretty_html_table
