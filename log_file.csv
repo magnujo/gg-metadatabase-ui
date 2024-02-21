@@ -927,3 +927,24 @@ utils.CustomExceptions.DontTriggerFileDeletion: A file with the exact same name 
 2024-02-21 14:47:02,560; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:47:02] "[32mPOST /upload HTTP/1.1[0m" 302 -
 2024-02-21 14:47:02,564; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
 2024-02-21 14:47:02,572; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:47:02] "GET /error HTTP/1.1" 200 -
+2024-02-21 15:37:01,935; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-21 15:37:01,936; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 15:37:01,937; None; None; INFO;  * Restarting with stat
+2024-02-21 15:37:02,684; None; None; WARNING;  * Debugger is active!
+2024-02-21 15:37:02,687; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 15:37:37,402; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 15:37:41,532; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 15:38:04,075; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\app.py', reloading
+2024-02-21 15:39:03,949; None; None; INFO;  * Restarting with stat
+2024-02-21 15:39:06,984; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5100
+ * Running on http://10.203.144.229:5100
+2024-02-21 15:39:06,984; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 15:40:00,622; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-21 15:40:00,622; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 15:40:00,624; None; None; INFO;  * Restarting with stat
+2024-02-21 15:40:01,376; None; None; WARNING;  * Debugger is active!
+2024-02-21 15:40:01,379; None; None; INFO;  * Debugger PIN: 106-429-012
