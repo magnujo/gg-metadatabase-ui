@@ -66,3 +66,6 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                   'integer': ['smallint', 'integer', 'bigint', 'int', 'int2', 'int4', 'int8'],
                   'date': ['date', 'timestamptz', 'timestamp', 'time_stamp', 'timestamp with time zone', 'timestamp without timezone'],
                   'int_range': ['int4range', 'int8range']}
+
+
+auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc']
