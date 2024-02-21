@@ -22,3 +22,278 @@
 2024-02-20 13:56:24,422; None; None; INFO;  * Restarting with stat
 2024-02-20 13:56:25,189; None; None; WARNING;  * Debugger is active!
 2024-02-20 13:56:25,192; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 13:48:29,775; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-21 13:48:29,775; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 13:48:29,777; None; None; INFO;  * Restarting with stat
+2024-02-21 13:48:30,548; None; None; WARNING;  * Debugger is active!
+2024-02-21 13:48:30,551; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 13:56:11,501; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-21 13:56:11,501; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 13:56:11,502; None; None; INFO;  * Restarting with stat
+2024-02-21 13:56:12,232; None; None; WARNING;  * Debugger is active!
+2024-02-21 13:56:12,235; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:07:15,382; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 14:07:15,410; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:07:15] "GET / HTTP/1.1" 200 -
+2024-02-21 14:07:16,037; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:07:16] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-02-21 14:07:37,504; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-21 14:07:37,529; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 13, in parse
+    schema_name = constants.DATABASE_CONFIG["schema"]
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: 'schema'
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 13, in parse
+    schema_name = constants.DATABASE_CONFIG["schema"]
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: 'schema'
+2024-02-21 14:07:37,530; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:07:37] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-21 14:07:37,540; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-21 14:07:37,550; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:07:37] "GET /error HTTP/1.1" 200 -
+2024-02-21 14:07:58,990; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:07:59,078; None; None; INFO;  * Restarting with stat
+2024-02-21 14:08:01,271; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:08:01,275; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:08:10,354; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:08:10,443; None; None; INFO;  * Restarting with stat
+2024-02-21 14:08:11,243; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:08:11,247; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:08:12,267; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:08:12,366; None; None; INFO;  * Restarting with stat
+2024-02-21 14:08:13,144; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:08:13,147; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:08:13,933; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 14:08:13,939; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:08:13] "GET / HTTP/1.1" 200 -
+2024-02-21 14:08:15,897; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-21 14:08:16,231; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 17, in parse
+    raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
+Exception: Table field_sample_internal does not exsist in schema test of database aedna_metadata
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 17, in parse
+    raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
+Exception: Table field_sample_internal does not exsist in schema test of database aedna_metadata
+2024-02-21 14:08:16,233; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:08:16] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-21 14:08:16,236; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-21 14:08:16,238; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:08:16] "GET /error HTTP/1.1" 200 -
+2024-02-21 14:08:48,404; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:08:48,492; None; None; INFO;  * Restarting with stat
+2024-02-21 14:08:49,282; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:08:49,286; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:08:53,320; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:08:53,405; None; None; INFO;  * Restarting with stat
+2024-02-21 14:09:04,579; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-21 14:09:04,579; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 14:09:04,580; None; None; INFO;  * Restarting with stat
+2024-02-21 14:09:05,357; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:09:05,360; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:09:05,369; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 14:09:05,375; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:09:05] "GET / HTTP/1.1" 200 -
+2024-02-21 14:09:12,648; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-21 14:09:12,873; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 17, in parse
+    raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
+Exception: Table field_sample_internal does not exsist in schema test of database aedna_metadata
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 17, in parse
+    raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
+Exception: Table field_sample_internal does not exsist in schema test of database aedna_metadata
+2024-02-21 14:09:12,874; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:09:12] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-21 14:09:12,878; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-21 14:09:12,880; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:09:12] "GET /error HTTP/1.1" 200 -
+2024-02-21 14:09:35,569; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:09:35,669; None; None; INFO;  * Restarting with stat
+2024-02-21 14:09:36,485; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:09:36,488; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:09:36,581; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 14:09:36,587; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:09:36] "GET / HTTP/1.1" 200 -
+2024-02-21 14:09:41,450; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-21 14:09:41,680; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 18, in parse
+    raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
+Exception: Table field_sample_internal does not exsist in schema test of database aedna_metadata
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 18, in parse
+    raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
+Exception: Table field_sample_internal does not exsist in schema test of database aedna_metadata
+2024-02-21 14:09:41,681; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:09:41] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-21 14:09:41,684; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-21 14:09:41,686; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:09:41] "GET /error HTTP/1.1" 200 -
+2024-02-21 14:09:55,639; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\parsers.py', reloading
+2024-02-21 14:09:55,722; None; None; INFO;  * Restarting with stat
+2024-02-21 14:10:01,603; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-21 14:10:01,604; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-21 14:10:01,605; None; None; INFO;  * Restarting with stat
+2024-02-21 14:10:02,385; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:10:02,389; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:10:02,397; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-21 14:10:02,403; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:10:02] "GET / HTTP/1.1" 200 -
+2024-02-21 14:10:11,531; 127.0.0.1; http://127.0.0.1:5000/upload; INFO; Running: upload_file
+2024-02-21 14:10:11,866; 127.0.0.1; http://127.0.0.1:5000/upload; ERROR; Traceback (most recent call last):
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\default.py", line 922, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.AmbiguousColumn: column reference "table_catalog" is ambiguous
+LINE 13:         and table_catalog = 'aedna_metadata'
+                     ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 28, in parse
+    primary_key = queries.get_primary_key(table_name=database_table_name,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\queries.py", line 31, in get_primary_key
+    df = pd.read_sql_query(q, ENGINE)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\pandas\io\sql.py", line 486, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\pandas\io\sql.py", line 1776, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\pandas\io\sql.py", line 1599, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1778, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 2344, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\default.py", line 922, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.AmbiguousColumn) column reference "table_catalog" is ambiguous
+LINE 13:         and table_catalog = 'aedna_metadata'
+                     ^
+
+[SQL: 
+    SELECT 
+   *
+    FROM 
+        information_schema.table_constraints AS tc
+    JOIN 
+        information_schema.key_column_usage AS kcu 
+        ON tc.constraint_name = kcu.constraint_name
+    WHERE 
+        tc.constraint_type = 'PRIMARY KEY' 
+        and tc.table_name = 'field_sample_internal'
+        and tc.table_schema = 'test'
+        and table_catalog = 'aedna_metadata'
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\default.py", line 922, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.AmbiguousColumn: column reference "table_catalog" is ambiguous
+LINE 13:         and table_catalog = 'aedna_metadata'
+                     ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\app.py", line 129, in upload_file
+    clean_sheet = parsers.parse(file_path=file_path,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\parsers.py", line 28, in parse
+    primary_key = queries.get_primary_key(table_name=database_table_name,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\Documents\github repoes\upload_web_app\utils\queries.py", line 31, in get_primary_key
+    df = pd.read_sql_query(q, ENGINE)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\pandas\io\sql.py", line 486, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\pandas\io\sql.py", line 1776, in read_query
+    result = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\pandas\io\sql.py", line 1599, in execute
+    return self.con.exec_driver_sql(sql, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1778, in exec_driver_sql
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 2344, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\Lib\site-packages\sqlalchemy\engine\default.py", line 922, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.AmbiguousColumn) column reference "table_catalog" is ambiguous
+LINE 13:         and table_catalog = 'aedna_metadata'
+                     ^
+
+[SQL: 
+    SELECT 
+   *
+    FROM 
+        information_schema.table_constraints AS tc
+    JOIN 
+        information_schema.key_column_usage AS kcu 
+        ON tc.constraint_name = kcu.constraint_name
+    WHERE 
+        tc.constraint_type = 'PRIMARY KEY' 
+        and tc.table_name = 'field_sample_internal'
+        and tc.table_schema = 'test'
+        and table_catalog = 'aedna_metadata'
+    ]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2024-02-21 14:10:11,868; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:10:11] "[32mPOST /upload HTTP/1.1[0m" 302 -
+2024-02-21 14:10:11,873; 127.0.0.1; http://127.0.0.1:5000/error; INFO; Running: error
+2024-02-21 14:10:11,874; None; None; INFO; 127.0.0.1 - - [21/Feb/2024 14:10:11] "GET /error HTTP/1.1" 200 -
+2024-02-21 14:11:26,988; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\queries.py', reloading
+2024-02-21 14:11:27,096; None; None; INFO;  * Restarting with stat
+2024-02-21 14:11:27,852; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:11:27,855; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:11:32,895; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\queries.py', reloading
+2024-02-21 14:11:33,001; None; None; INFO;  * Restarting with stat
+2024-02-21 14:11:33,792; None; None; WARNING;  * Debugger is active!
+2024-02-21 14:11:33,795; None; None; INFO;  * Debugger PIN: 106-429-012
+2024-02-21 14:11:59,972; None; None; INFO;  * Detected change in 'C:\\Users\\glj523\\Documents\\github repoes\\upload_web_app\\utils\\queries.py', reloading
+2024-02-21 14:12:00,077; None; None; INFO;  * Restarting with stat

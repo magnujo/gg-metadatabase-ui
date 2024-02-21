@@ -9,10 +9,16 @@ def parse(file_path,
           decimal_point, 
           thousands_seperator):
     
+    database_name = constants.DATABASE_CONFIG["database"]
+    schema_name = constants.DATABASE_CONFIG["schema_name"]
+    tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
+    print(tables)
     
+    if not database_table_name in list(tables['table_name']):
+        raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}')
     
     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
-    df = queries.get_table_dtypes(database_table_name, constants.DATABASE_CONFIG["schema"])
+    df = queries.get_table_dtypes(database_table_name, schema_name)
 
     float_columns = list(df[df['data_type'].isin(constants.postgres_types['floating_point'])]['column_name'])
     int_columns = list(df[df['data_type'].isin(constants.postgres_types['integer'])]['column_name'])
@@ -20,14 +26,14 @@ def parse(file_path,
     date_columns = list(df[df['data_type'].isin(constants.postgres_types['date'])]['column_name'])
     
     primary_key = queries.get_primary_key(table_name=database_table_name, 
-                                          schema_name=constants.DATABASE_CONFIG["schema"], 
-                                          database_name=constants.DATABASE_CONFIG['database'])
+                                          schema_name=schema_name, 
+                                          database_name=database_name)
     
     if not '--production' in sys.argv:
         sheet = sheet.dropna(axis='index', how='all')
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {schema_name}.{database_table_name}", con=constants.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
    
