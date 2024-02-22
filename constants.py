@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine
 from flask import Flask
 
@@ -24,8 +25,8 @@ skips the test that the uploaded data equals the parsed sheet
 production:
 skips the dropping of null values. if used, the two others are not allowed.
 '''
-ALLOWED_COMMAND_LINE_ARGS = {'development': ['--no_file_test', '--no_upload_test'],
-                             'production': ['--production']}
+ALLOWED_COMMAND_LINE_ARGS = {'development': [],
+                             'production': []}
 
 DATABASE_CONFIG = {
     'host': 'dandyweb01fl',
@@ -69,3 +70,7 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
 
 
 auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc']
+
+RUN_MODE = 'production'
+
+RUN_MODE_OPTIONS = ['production', 'development']

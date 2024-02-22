@@ -31,7 +31,7 @@ def parse(file_path,
                                           schema_name=schema_name, 
                                           database_name=database_name)
     
-    if not '--production' in sys.argv:
+    if not constants.RUN_MODE == 'production':
         sheet = sheet.dropna(axis='index', how='all')
 
     # check for expected cols
@@ -42,7 +42,7 @@ def parse(file_path,
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")
 
-    if '--production' not in sys.argv:
+    if not constants.RUN_MODE == 'production':
         # For drop testing. Counts the number of rows where primary key is not null.
         num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
 
