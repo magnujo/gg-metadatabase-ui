@@ -340,7 +340,6 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message'] = html_message
-        raise Exception
         return redirect(url_for('error'))
 
 @app.errorhandler(Exception)
