@@ -1,3 +1,6 @@
+#log file
+log_file.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -51,6 +54,7 @@ coverage.xml
 .pytest_cache/
 cover/
 *.ipynb
+
 
 # Translations
 *.mo
