@@ -33,36 +33,15 @@ app.secret_key = os.urandom(24).hex()
 files_to_del = {'Before Upload': {'original': False, 'parsed': False, 'uploaded': False},
                 'After Upload': {'original': False, 'parsed': False, 'uploaded': True}}
 
-# logger = logging.getLogger()
-
-# class RequestFormatter(logging.Formatter):
-#     def format(self, record):
-#         if has_request_context():
-#             record.url = request.url
-#             record.remote_addr = request.remote_addr
-#         else:
-#             record.url = None
-#             record.remote_addr = None
-#         return super().format(record)
-
-# formatter = RequestFormatter('%(asctime)s; %(remote_addr)s; %(url)s; %(levelname)s; %(message)s')
-
-# consoleHandler = logging.StreamHandler()
-# consoleHandler.setFormatter(formatter)
-# logger.addHandler(consoleHandler)
-
-# fileHandler = logging.FileHandler('log_file.csv')
-# fileHandler.setFormatter(formatter)
-# logger.addHandler(fileHandler)
-
 logger = log_util.setup()
 
 # # Set log level
-# app.logger.setLevel(logging.DEBUG)
+app.logger.setLevel(logging.DEBUG)
 
 @app.route('/', methods=['POST', 'GET'])
 @decorators.log_info(app)
 def index():
+    app.logger.info("Index")
     if 'error' not in session:
         session['error'] = False 
     if 'error_message' not in session:  
@@ -346,6 +325,7 @@ def handle_uncaught_exception(e):
     return f'Internal Server Error {current_time}', 500
 
 if __name__ == '__main__':
+    print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
     
