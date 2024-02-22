@@ -340,12 +340,15 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message'] = html_message
+        raise Exception
         return redirect(url_for('error'))
 
 @app.errorhandler(Exception)
 def handle_uncaught_exception(e):
-    app.logger.error('Unhandled Exception: %s', e)
-    return 'Internal Server Error', 500
+    current_time = datetime.now()
+    app.logger.exception('Unhandled Exception: %s', traceback.format_exc())
+    app.logger.exception('Unhandled Exception: %s', e)
+    return f'Internal Server Error {current_time}', 500
 
 if __name__ == '__main__':
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
