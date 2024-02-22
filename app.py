@@ -342,6 +342,11 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         session['error_message'] = html_message
         return redirect(url_for('error'))
 
+@app.errorhandler(Exception)
+def handle_uncaught_exception(e):
+    app.logger.error('Unhandled Exception: %s', e)
+    return 'Internal Server Error', 500
+
 if __name__ == '__main__':
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
