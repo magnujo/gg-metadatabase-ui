@@ -12,7 +12,6 @@ def db_stuff(func):
         cur = conn.cursor()
         
         func()  # Call the original function
-        print("Something is happening after the function is called.")
         cur.close()
         conn.close() 
     return wrapper

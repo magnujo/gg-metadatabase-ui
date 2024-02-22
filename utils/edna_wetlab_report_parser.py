@@ -41,10 +41,7 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     expected_columns = pd.read_sql(sql=f"SELECT * from {constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=constants.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
-    
-    print(sheet.columns)
-    print(expected_columns)
-    
+  
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")
 

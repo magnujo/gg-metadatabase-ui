@@ -42,6 +42,9 @@ def parse(file_path,
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")
 
+    if not primary_key in sheet.columns:
+        raise Exception (f"Upload failed. Expected column {primary_key} not found. Are you sure you uploaded the correct spreadsheet?")
+
     if not constants.RUN_MODE == 'production':
         # For drop testing. Counts the number of rows where primary key is not null.
         num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
@@ -133,17 +136,14 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
                     sheet[ele] = sheet[ele].astype('datetime64[ns]')
             elif date_format == 'DD-MM-YYYY':
                 for ele in date_columns:
-                    print(sheet[ele].dtype)
                     sheet[ele] = pd.to_datetime(sheet[ele], format='%d-%m-%Y')
                     sheet[ele] = sheet[ele].astype('datetime64[ns]')
             elif date_format == 'DD/MM/YYYY':
                 for ele in date_columns:
-                    print(sheet[ele].dtype)
                     sheet[ele] = pd.to_datetime(sheet[ele], format='%d/%m/%Y')
                     sheet[ele] = sheet[ele].astype('datetime64[ns]')
             elif date_format == 'YYYY/MM/DD':
                 for ele in date_columns:
-                    print(sheet[ele].dtype)
                     sheet[ele] = pd.to_datetime(sheet[ele], format='%Y/%m/%d')
                     sheet[ele] = sheet[ele].astype('datetime64[ns]')
             else: 

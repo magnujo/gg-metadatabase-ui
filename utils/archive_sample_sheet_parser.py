@@ -51,7 +51,6 @@ def parse(file_path, date_format, decimal_point, thousands_seperator):
 
     # Drop all rows that does not contain ArchiveSampleID
     if 'ArchiveSampleID' in sheet.columns:
-        print("dropping")
         # TODO: Remove dropna before deployment. Make users responsible for input to db.
         sheet = sheet.dropna(axis='index', how='all', subset=['ArchiveSampleID'])
     else:

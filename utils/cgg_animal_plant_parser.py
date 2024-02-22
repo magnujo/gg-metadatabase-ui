@@ -31,9 +31,6 @@ def parse(file_path, date_format, database_table_name, decimal_point, thousands_
     
     expected_columns = expected_columns[:-3] 
 
-    for i in range (len(expected_columns)):
-        print(expected_columns[i] + " " + sheet.columns[i])
-
     
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")

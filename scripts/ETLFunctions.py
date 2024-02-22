@@ -11,7 +11,6 @@ def clean_up(tsv_file_path, database_table_name, date_format, decimal_point,
         sheet = archive_sample_sheet_parser.parse(tsv_file_path, date_format, decimal_point, thousands_seperator)
 
     elif database_table_name == 'robot_sample':
-        print("Robot sample")
         sheet = robot_sample_sheet_parser.parse(file_path=tsv_file_path, 
                                        date_format=date_format, 
                                        database_table_name=database_table_name,

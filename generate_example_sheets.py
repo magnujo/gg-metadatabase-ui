@@ -67,7 +67,3 @@ def generate_excel(output_folder, get_dtypes=False):
     cur.close()
     conn.close()   
 
-
-dtypes = generate_excel(path, True)
-dtypes_ = {key: None for key in dtypes}
-print(dtypes)

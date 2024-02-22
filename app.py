@@ -219,9 +219,7 @@ def confirmed():
         else:
             try:        
                 # Test that uploaded data equals data in file:
-                print(file_name)
-                print(DATABASE_CONFIG['schema_name'])
-                
+              
                 if '--no_upload_test' in sys.argv:
                     pass
                 else:
@@ -310,14 +308,12 @@ def download_manual():
 @decorators.log_info(app)
 def download_file(filename):
     example_sheets_directory = os.path.join(os.getcwd(), 'static', 'example_sheets')
-    print(f"Downloading {example_sheets_directory} / {filename}")
     return send_from_directory(example_sheets_directory, filename, as_attachment=True)
 
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name
 
 def generate_html_message(message):
-    print("hello")
     traceback_ = traceback.format_exc()
     app.logger.exception(traceback_)
     current_datetime = datetime.now()
