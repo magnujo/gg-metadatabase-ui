@@ -9,7 +9,9 @@ ALLOWED_EXTENSIONS = {'txt'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'orignal_sheets'
-MANUAL = "Manual.pdf"
+
+MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
+
 
 '''
 Arguments you can use when starting the app
