@@ -1,0 +1,9 @@
+2024-02-22 10:14:44,526; None; None; INFO; [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-02-22 10:14:44,527; None; None; INFO; [33mPress CTRL+C to quit[0m
+2024-02-22 10:14:44,529; None; None; INFO;  * Restarting with stat
+2024-02-22 10:14:45,629; None; None; WARNING;  * Debugger is active!
+2024-02-22 10:14:45,632; None; None; INFO;  * Debugger PIN: 315-202-737
+2024-02-22 10:14:50,508; 127.0.0.1; http://127.0.0.1:5000/; INFO; Running: index
+2024-02-22 10:14:50,520; None; None; INFO; 127.0.0.1 - - [22/Feb/2024 10:14:50] "GET / HTTP/1.1" 200 -
+2024-02-22 10:14:50,712; None; None; INFO; 127.0.0.1 - - [22/Feb/2024 10:14:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

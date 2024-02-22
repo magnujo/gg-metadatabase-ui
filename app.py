@@ -346,9 +346,10 @@ if __name__ == '__main__':
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
     
-    constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
-    if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
-        raise Exception(f'Unknown value for RUN_MODE')
+    if os.environ.get('RUN_MODE'):
+        constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
+        if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
+            raise Exception(f'Unknown value for RUN_MODE')
     
     if constants.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)

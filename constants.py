@@ -71,6 +71,6 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
 
 auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc']
 
-RUN_MODE = 'production'
+RUN_MODE = 'development'
 
 RUN_MODE_OPTIONS = ['production', 'development']
