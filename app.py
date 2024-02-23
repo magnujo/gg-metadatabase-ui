@@ -1,4 +1,4 @@
-
+import lane_barcode_parser
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
 from psycopg2 import Error
@@ -48,6 +48,7 @@ def index():
         session['error_message'] = None
     
     return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
+    
 
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
@@ -107,26 +108,44 @@ def upload_file():
             #                        decimal_point=decimal_point,
             #                        thousands_seperator=thousands_seperator)
             
-            clean_sheet = parsers.parse(file_path=file_path,
-                                        database_table_name=database_table_name,
-                                        date_format=date_format,
-                                        decimal_point=decimal_point,
-                                        thousands_seperator=thousands_seperator)
+            sheets_to_parse = []
+            if database_table_name in constants.MULTI_TABLE_SHEETS:
+                
+                sheet = pd.read_html(file_path)
+                flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
+                sheets_to_parse.append(flowcell_data)
+                sheets_to_parse.append(top_unknown_barcodes)
+            else:
+                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+                sheets_to_parse.append(sheet)
             
-            # Adds rows about which user was responsible for the upload:
-            clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+            clean_sheets = []
             
-            # Adds information about which file the data came from:
-            clean_sheet['from_spreadsheet'] = file_name
+            for sheet in sheets_to_parse:
+                clean_sheet = parsers.parse(sheet=sheet,
+                                            database_table_name=database_table_name,
+                                            date_format=date_format,
+                                            decimal_point=decimal_point,
+                                            thousands_seperator=thousands_seperator)
+                
+            
+                # Adds rows about which user was responsible for the upload:
+                clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+                
+                # Adds information about which file the data came from:
+                clean_sheet['from_spreadsheet'] = file_name
 
-            # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
-            clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
-            # Convert to ns to enable testing (postgres converts to ns, when uploading)
-            clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
+                clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
+                # Convert to ns to enable testing (postgres converts to ns, when uploading)
+                clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                clean_sheets.append(clean_sheet)
+
         else:
-            raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt file. See manual for help')
-    
-        clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, file.filename), index=False, encoding='utf_16', sep="\t")
+            raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
+
+        for i, clean_sheet in enumerate(clean_sheets):
+            clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file.filename}_{i}'), index=False, encoding='utf_16', sep="\t")
 
         return redirect(url_for("confirmation_request"))
     
@@ -148,14 +167,21 @@ def confirmation_request():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
-        # clean_sheet_json = session.get('clean_sheet')
-        # clean_sheet = pd.read_json(clean_sheet_json)
         
-        clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
-        clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+        clean_sheets = []
+        if database_table_name in constants.MULTI_TABLE_SHEETS:
+            for i in range(constants.MULTI_TABLE_SHEETS[database_table_name]):
+                clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
+                clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+                clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+                clean_sheets.append(clean_sheet)
+        else:
+            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
+            clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+            clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+            clean_sheets.append(clean_sheet)
     
-        return render_template('confirmation_request.html', clean_sheet=clean_sheet, file_name=file_name, database_table_name=database_table_name)
+        return render_template('confirmation_request.html', clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
@@ -168,13 +194,22 @@ def confirmed():
     try:
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep="\t")
         
-        clean_sheet.to_sql(name=database_table_name, 
-                                schema=DATABASE_CONFIG['schema_name'], 
-                                con=ENGINE, 
-                                if_exists='append', 
-                                index=False)
+        if database_table_name in constants.MULTI_TABLE_SHEETS:
+            for i, table_name in enumerate(constants.MULTI_TABLE_SHEETS[database_table_name]):
+                clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                clean_sheet.to_sql(name=table_name, 
+                                    schema=DATABASE_CONFIG['schema_name'], 
+                                    con=ENGINE, 
+                                    if_exists='append', 
+                                    index=False)
+        else:
+            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep="\t")
+            clean_sheet.to_sql(name=database_table_name, 
+                                    schema=DATABASE_CONFIG['schema_name'], 
+                                    con=ENGINE, 
+                                    if_exists='append', 
+                                    index=False)
         # If errors happen from now on, delete the data just inserted to the database
     
     except SQLAlchemyError as e:

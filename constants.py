@@ -5,7 +5,7 @@ from flask import Flask
 
 ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk"
 UPLOAD_FOLDER = 'uploaded_sheets'
-ALLOWED_EXTENSIONS = {'txt'}
+ALLOWED_EXTENSIONS = {'txt', 'html'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'orignal_sheets'
@@ -56,8 +56,13 @@ SHEET_TYPES = {
     'edna_wetlab_report': 'eDNA Wet lab final report',
     'adna_wetlab_report': 'aDNA Wet lab final report',
     'cgg_sediment_water': 'CGG Sediment Water',
-    'cgg_animal_plant': 'CGG Animal Plant'
+    'cgg_animal_plant': 'CGG Animal Plant',
+    'lane_barcode_html': 'Lane Barcode HTML'
 }
+
+# Sheets that are split into multiple tables:
+# Value: Tables in the database that the sheet is split into
+MULTI_TABLE_SHEETS = {'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']}
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD']
 

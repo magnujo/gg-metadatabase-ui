@@ -23,7 +23,9 @@
             Otherwise contact admin for help.
         </p>
         <!-- Embedded DataFrame HTML -->
-        {{ clean_sheet|safe }}
+        {% for clean_sheet in clean_sheets %}
+            {{ clean_sheet|safe }}
+        {% endfor %}  
     </div>
 
     <form action="/confirmed" method="post" enctype="multipart/form-data">
