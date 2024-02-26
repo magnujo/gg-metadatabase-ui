@@ -32,4 +32,5 @@ def parse_top_unknown_barcodes(df_full):
         d.columns = top_unknown_barcodes.columns
         top_unknown_barcodes = pd.concat([top_unknown_barcodes, d], ignore_index=True)
     top_unknown_barcodes['Lane'] = top_unknown_barcodes['Lane'].astype(int)
+    top_unknown_barcodes['Count'] = top_unknown_barcodes['Count'].astype(int)
     return top_unknown_barcodes

@@ -111,7 +111,7 @@ def upload_file():
             sheets_to_parse = []
             if database_table_name in constants.MULTI_TABLE_SHEETS:
                 
-                sheet = pd.read_html(file_path)
+                sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
@@ -121,9 +121,9 @@ def upload_file():
             
             clean_sheets = []
             
-            for sheet in sheets_to_parse:
+            for i, sheet in enumerate(sheets_to_parse):
                 clean_sheet = parsers.parse(sheet=sheet,
-                                            database_table_name=database_table_name,
+                                            database_table_name=constants.TABLE_SPLITTER[database_table_name][i],
                                             date_format=date_format,
                                             decimal_point=decimal_point,
                                             thousands_seperator=thousands_seperator)
@@ -134,6 +134,7 @@ def upload_file():
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
+                
 
                 # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
                 clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
@@ -169,17 +170,25 @@ def confirmation_request():
         database_table_name = session.get('database_table_name')
         
         clean_sheets = []
-        if database_table_name in constants.MULTI_TABLE_SHEETS:
-            for i in range(constants.MULTI_TABLE_SHEETS[database_table_name]):
-                clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
-                clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
-                clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-                clean_sheets.append(clean_sheet)
-        else:
-            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
+        for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
+            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
             clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             clean_sheets.append(clean_sheet)
+            
+        
+        # clean_sheets = []
+        # if database_table_name in constants.MULTI_TABLE_SHEETS:
+        #     for i in range(constants.MULTI_TABLE_SHEETS[database_table_name]):
+        #         clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
+        #         clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+        #         clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+        #         clean_sheets.append(clean_sheet)
+        # else:
+        #     clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
+        #     clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+        #     clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+        #     clean_sheets.append(clean_sheet)
     
         return render_template('confirmation_request.html', clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     

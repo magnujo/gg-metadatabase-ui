@@ -60,6 +60,17 @@ SHEET_TYPES = {
     'lane_barcode_html': 'Lane Barcode HTML'
 }
 
+TABLE_SPLITTER = {
+    'field_sample_internal': ['field_sample_internal'],
+    'edna_archive_sample': ['edna_archive_sample'],
+    'edna_robot_sample': ['edna_robot_sample'],
+    'edna_wetlab_report': ['edna_wetlab_report'],
+    'adna_wetlab_report': ['adna_wetlab_report'],
+    'cgg_sediment_water': ['cgg_sediment_water'],
+    'cgg_animal_plant': ['cgg_animal_plant'],
+    'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']
+}
+
 # Sheets that are split into multiple tables:
 # Value: Tables in the database that the sheet is split into
 MULTI_TABLE_SHEETS = {'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']}
