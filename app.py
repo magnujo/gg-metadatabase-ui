@@ -47,19 +47,22 @@ def index():
     app.logger.info("Index")
     if 'error' not in session:
         session['error'] = False 
-    if 'error_message' not in session:  
-        session['error_message'] = None
+    if 'error_message_user' not in session:  
+        session['error_message_user'] = None
+    if 'error_message_admin' not in session:
+        session['error_message_admin'] = None
     
     return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
 
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
 def upload_file():
-    session['email'] = None
     # logger.info('Running: ' + str(index.__name__))
     session.clear()
+    session['email'] = None
     session['error'] = False
-    session['error_message'] = None
+    session['error_message_user'] = None
+    session['error_message_admin'] = None
     session['visited_success'] = False
     session['email_send'] = False
     file = request.files['file']
@@ -248,7 +251,7 @@ def success():
 @app.route('/error', methods=['GET'])
 @decorators.log_info(app)
 def error():
-    error_message = session.get('error_message')
+    error_message = session.get('error_message_user')
     session['error'] = True
 
     #error_message = request.args.get('error_message', 'An error occurred.')
@@ -320,14 +323,15 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
                 delete_db_entries(database_table_name, file_name=file_name)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
-        session['error_message'] = html_message
+        session['error_message_user'] = html_message
+        session['error_message_admin'] = html_message
         return redirect(url_for('error'))
 
 @app.route('/send_error_details', methods=['POST'])
 @decorators.log_info(app)
 def send_error_details():
     email = request.form['text']
-    error_message = session.get('error_message')
+    error_message = session.get('error_message_admin')
     message = f'{email} \n {error_message}'
     send_email.send('Error on upload website', message)
     session['email_send'] = True

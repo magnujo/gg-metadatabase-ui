@@ -4,6 +4,9 @@
 # Use this to update env:
 # conda env update --file environment.yml --prune
 name: db_web_app
+channels:
+  - conda-forge
+  - defaults
 dependencies:
   - python=3.11
   - psycopg2
@@ -13,7 +16,6 @@ dependencies:
   - ipykernel
   - openpyxl
   - lxml
-  - gunicorn
   - Flask-WTF
   - pip
   - pip:
