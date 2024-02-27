@@ -230,3 +230,10 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+original_sheets/
+original_sheets/*
+parsed_sheets/
+parsed_sheets/*
+uploaded_sheets/*
+uploaded_sheets/
