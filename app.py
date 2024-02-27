@@ -1,3 +1,6 @@
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import Email, DataRequired
 import send_email
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
@@ -7,7 +10,7 @@ import inspect
 import shutil
 import constants
 import log_util
-from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
+from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
 from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
@@ -52,6 +55,7 @@ def index():
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
 def upload_file():
+    session['email'] = None
     # logger.info('Running: ' + str(index.__name__))
     session.clear()
     session['error'] = False
@@ -244,9 +248,10 @@ def success():
 @app.route('/error', methods=['GET'])
 @decorators.log_info(app)
 def error():
-    # error_message = request.args.get('error_message', 'An error occurred.')
     error_message = session.get('error_message')
     session['error'] = True
+
+    #error_message = request.args.get('error_message', 'An error occurred.')
     return render_template('error.html', email_send=session.get('email_send'), error_message=error_message, admin=ADMIN_EMAIL)
 
 def integrity_test(database_table_name, file_name, clean_sheet):
@@ -321,7 +326,10 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
 @app.route('/send_error_details', methods=['POST'])
 @decorators.log_info(app)
 def send_error_details():
-    send_email.send('Error', session.get('error_message'))
+    email = request.form['text']
+    error_message = session.get('error_message')
+    message = f'{email} \n {error_message}'
+    send_email.send('Error on upload website', message)
     session['email_send'] = True
     return redirect(url_for('error'))
 

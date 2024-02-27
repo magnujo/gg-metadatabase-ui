@@ -4,23 +4,30 @@
 </head>
 <h2>Error</h2>
 <p>An error has occured while trying to process your request and no data was uploaded to the database. Try to 
-    resolve it by reading the error message below. If you can't resolve it, send the Traceback to to {{ admin }} if you need help resolving the error</p>
+    resolve it by reading the error message below. If you can't resolve it, enter your email and press the "Report Error" below</p>
 <br>
 <form action="/" method="post" enctype="multipart/form-data">
     <div class="centered">
         <button type="submit">To Homepage</button>
     </div>
 </form>
+
+
 <br>
 {% if email_send %}
-Email send to admin
+Error reported. Thanks!
 {% else %}
-<p>Press button below to report the error to admin:</p>
+<form action="/send_error_details" method="post" enctype="multipart/form-data">
+    <label for="text">Enter email:</label>
+    <input type="text" id="text" name="text">
+    <button type="submit">Report Error</button>
+</form>
+<!-- <p>Press button below to report the error to admin:</p>
 <form action="/send_error_details" method="post" enctype="multipart/form-data">
     <div class="centered">
         <button type="submit">Report Error</button>
     </div>
-</form>
+</form> -->
 {% endif %}
 
 <br>
