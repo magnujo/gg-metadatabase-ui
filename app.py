@@ -307,24 +307,20 @@ def generate_html_message(message):
     current_datetime = datetime.now()
     client_ip = request.remote_addr
     return f'''
-<h3>Error Message:</h4>
 <p>{message}</p>
-<br>
-<h4>Traceback (send to admin if needed):</h4>
-<p>{client_ip}: {current_datetime}: {traceback_}</p>
-'''
+''', traceback_
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
         file_name = session.get('file_name')
-        html_message = generate_html_message(message)
+        user_error, admin_error = generate_html_message(message)
         if revert_db:
                 database_table_name = session.get('database_table_name')
                 delete_db_entries(database_table_name, file_name=file_name)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
-        session['error_message_user'] = html_message
-        session['error_message_admin'] = html_message
+        session['error_message_user'] = user_error
+        session['error_message_admin'] = admin_error
         return redirect(url_for('error'))
 
 @app.route('/send_error_details', methods=['POST'])
