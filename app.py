@@ -1,4 +1,4 @@
-
+import send_email
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
 from psycopg2 import Error
@@ -10,7 +10,7 @@ import log_util
 from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants import SHEET_TYPES, ADMIN_EMAILS, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
+from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
@@ -57,6 +57,7 @@ def upload_file():
     session['error'] = False
     session['error_message'] = None
     session['visited_success'] = False
+    session['email_send'] = False
     file = request.files['file']
     file_name = file.filename
     try:
@@ -234,7 +235,7 @@ def success():
         # uploaded_data = build_table(uploaded_data, 'blue_light')
         # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
         #message = request.args.get('message', 'Success.')
-        return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
+        return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAIL)
 
     except Exception as e:
         return general_error_handling(message=e, delete_db_entries=True, 
@@ -246,7 +247,7 @@ def error():
     # error_message = request.args.get('error_message', 'An error occurred.')
     error_message = session.get('error_message')
     session['error'] = True
-    return render_template('error.html', error_message=error_message, admin=ADMIN_EMAILS)
+    return render_template('error.html', email_send=session.get('email_send'), error_message=error_message, admin=ADMIN_EMAIL)
 
 def integrity_test(database_table_name, file_name, clean_sheet):
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
@@ -316,6 +317,13 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         # session.clear()
         session['error_message'] = html_message
         return redirect(url_for('error'))
+
+@app.route('/send_error_details', methods=['POST'])
+@decorators.log_info(app)
+def send_error_details():
+    send_email.send('Error', session.get('error_message'))
+    session['email_send'] = True
+    return redirect(url_for('error'))
 
 @app.errorhandler(Exception)
 def handle_uncaught_exception(e):

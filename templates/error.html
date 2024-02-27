@@ -12,4 +12,16 @@
     </div>
 </form>
 <br>
+{% if email_send %}
+Email send to admin
+{% else %}
+<p>Press button below to report the error to admin:</p>
+<form action="/send_error_details" method="post" enctype="multipart/form-data">
+    <div class="centered">
+        <button type="submit">Report Error</button>
+    </div>
+</form>
+{% endif %}
+
+<br>
 {{ error_message|safe }}

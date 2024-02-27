@@ -53,11 +53,11 @@ def parse(file_path,
         if primary_key in list(sheet.columns):
             sheet = sheet.dropna(axis='index', how='all', subset=[primary_key])
         else:
-            raise Exception (f"Upload failed. Expected column {primary_key} not found. Contact {constants.ADMIN_EMAILS} if you think this is a mistake")
+            raise Exception (f"Upload failed. Expected column {primary_key} not found. Contact {constants.ADMIN_EMAIL} if you think this is a mistake")
         
         # Drop test:
         if len(sheet) != num_of_not_null_rows:
-            raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAILS} for help.')
+            raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
     
     # Parse dates, throws error if formatting is wrong in the sheet
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)       
@@ -249,7 +249,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             raise Exception(f"Did not find expected numeric column {ele} in input. \
                                 Please make sure the format of your spreadsheet matches \
                                 the the example sheet found on the upload website.\
-                                Contact admin at {constants.ADMIN_EMAILS}")
+                                Contact admin at {constants.ADMIN_EMAIL}")
 
     return sheet
 
@@ -269,5 +269,5 @@ def validate_integers(sheet, integer_columns):
             raise Exception(f"Did not find expected numeric column {ele} in input. \
                                 Please make sure the format of your spreadsheet matches \
                                 the the example sheet found on the upload website.\
-                                Contact admin at {constants.ADMIN_EMAILS}")
+                                Contact admin at {constants.ADMIN_EMAIL}")
     return sheet

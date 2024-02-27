@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from flask import Flask
 
 
-ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk"
+ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOAD_FOLDER = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
@@ -12,6 +12,7 @@ ORIGINAL_FILES = 'orignal_sheets'
 
 MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
 
+EMAIL_SENDER = 'cgg.metadb.ui.website@gmail.com'
 
 '''
 Arguments you can use when starting the app
