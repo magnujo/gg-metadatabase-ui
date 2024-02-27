@@ -320,7 +320,8 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message_user'] = user_error
-        session['error_message_admin'] = admin_error
+        current_time = datetime.now()
+        session['error_message_admin'] = f'{str(current_time)}: {str(admin_error)}'
         return redirect(url_for('error'))
 
 @app.route('/send_error_details', methods=['POST'])
