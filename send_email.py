@@ -6,8 +6,7 @@ import constants
 
 def send(subject, body):
     email_sender = constants.EMAIL_SENDER
-    # email_password = os.environ.get('EMAIL_PASSWORD')
-    email_password = 'hkas tppg gmiq glqw'
+    email_password = os.environ.get('EMAIL_PASSWORD')
     email_receiver = constants.ADMIN_EMAIL
 
     em = EmailMessage()
