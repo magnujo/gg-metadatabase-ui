@@ -345,7 +345,7 @@ if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
-    
+
     if os.environ.get('RUN_MODE'):
         constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
