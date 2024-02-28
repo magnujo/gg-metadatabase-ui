@@ -9,6 +9,14 @@ ALLOWED_EXTENSIONS = {'txt', 'html'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'orignal_sheets'
+RUN_MODE = 'development'
+RUN_MODE_OPTIONS = ['production', 'development']
+
+if os.environ.get('RUN_MODE'):
+        RUN_MODE = os.environ.get('RUN_MODE').lower()
+        if not RUN_MODE in RUN_MODE_OPTIONS:
+            raise Exception(f'Unknown value for RUN_MODE')
+
 
 MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
 
@@ -31,7 +39,7 @@ skips the dropping of null values. if used, the two others are not allowed.
 ALLOWED_COMMAND_LINE_ARGS = {'development': [],
                              'production': []}
 
-if os.environ.get('RUN_MODE').lower() == 'production':
+if RUN_MODE == 'production':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
         'database': 'aedna_metadata',
@@ -41,7 +49,7 @@ if os.environ.get('RUN_MODE').lower() == 'production':
         'schema_name': 'test'
     }
 
-elif os.environ.get('RUN_MODE').lower() == 'development':
+elif RUN_MODE == 'development':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
         'database': 'aedna_metadata_test',
@@ -72,6 +80,8 @@ SHEET_TYPES = {
     'lane_barcode_html': 'Lane Barcode HTML'
 }
 
+DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
+
 TABLE_SPLITTER = {
     'field_sample_internal': ['field_sample_internal'],
     'edna_archive_sample': ['edna_archive_sample'],
@@ -99,8 +109,5 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                   'int_range': ['int4range', 'int8range']}
 
 
-auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc']
+auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid']
 
-RUN_MODE = 'development'
-
-RUN_MODE_OPTIONS = ['production', 'development']
