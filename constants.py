@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from flask import Flask
 
 
-ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk"
+ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOAD_FOLDER = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt', 'html'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
@@ -12,6 +12,7 @@ ORIGINAL_FILES = 'orignal_sheets'
 
 MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
 
+EMAIL_SENDER = 'cgg.metadb.ui.website@gmail.com'
 
 '''
 Arguments you can use when starting the app
@@ -30,14 +31,25 @@ skips the dropping of null values. if used, the two others are not allowed.
 ALLOWED_COMMAND_LINE_ARGS = {'development': [],
                              'production': []}
 
-DATABASE_CONFIG = {
-    'host': 'dandyweb01fl',
-    'database': 'aedna_metadata',
-    'port': '5432',
-    'user': 'upload_user',
-    'password': 'Ce65r-l+!D04',
-    'schema_name': 'test'
-}
+if os.environ.get('RUN_MODE').lower() == 'production':
+    DATABASE_CONFIG = {
+        'host': 'dandyweb01fl',
+        'database': 'aedna_metadata',
+        'port': '5432',
+        'user': 'upload_user',
+        'password': os.environ.get('DB_PASSWORD'),
+        'schema_name': 'test'
+    }
+
+elif os.environ.get('RUN_MODE').lower() == 'development':
+    DATABASE_CONFIG = {
+        'host': 'dandyweb01fl',
+        'database': 'aedna_metadata_test',
+        'port': '5432',
+        'user': 'upload_user',
+        'password': 'Ce65r-l+!D04',
+        'schema_name': 'test'
+    }
 
 DATABASE_CONFIG_2 = {
     'host': DATABASE_CONFIG['host'],

@@ -1,3 +1,7 @@
+from flask_wtf import FlaskForm
+from wtforms import StringField
+from wtforms.validators import Email, DataRequired
+import send_email
 import lane_barcode_parser
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
@@ -7,10 +11,10 @@ import inspect
 import shutil
 import constants
 import log_util
-from flask import Flask, render_template, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
+from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants import SHEET_TYPES, ADMIN_EMAILS, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
+from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
@@ -44,8 +48,10 @@ def index():
     app.logger.info("Index")
     if 'error' not in session:
         session['error'] = False 
-    if 'error_message' not in session:  
-        session['error_message'] = None
+    if 'error_message_user' not in session:  
+        session['error_message_user'] = None
+    if 'error_message_admin' not in session:
+        session['error_message_admin'] = None
     
     return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
     
@@ -55,9 +61,12 @@ def index():
 def upload_file():
     # logger.info('Running: ' + str(index.__name__))
     session.clear()
+    session['email'] = None
     session['error'] = False
-    session['error_message'] = None
+    session['error_message_user'] = None
+    session['error_message_admin'] = None
     session['visited_success'] = False
+    session['email_send'] = False
     file = request.files['file']
     file_name = file.filename
     try:
@@ -278,7 +287,7 @@ def success():
         # uploaded_data = build_table(uploaded_data, 'blue_light')
         # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
         #message = request.args.get('message', 'Success.')
-        return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAILS)
+        return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAIL)
 
     except Exception as e:
         return general_error_handling(message=e, delete_db_entries=True, 
@@ -287,10 +296,11 @@ def success():
 @app.route('/error', methods=['GET'])
 @decorators.log_info(app)
 def error():
-    # error_message = request.args.get('error_message', 'An error occurred.')
-    error_message = session.get('error_message')
+    error_message = session.get('error_message_user')
     session['error'] = True
-    return render_template('error.html', error_message=error_message, admin=ADMIN_EMAILS)
+
+    #error_message = request.args.get('error_message', 'An error occurred.')
+    return render_template('error.html', email_send=session.get('email_send'), error_message=error_message, admin=ADMIN_EMAIL)
 
 def integrity_test(database_table_name, file_name, clean_sheet):
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
@@ -342,24 +352,32 @@ def generate_html_message(message):
     current_datetime = datetime.now()
     client_ip = request.remote_addr
     return f'''
-<h3>Error Message:</h4>
 <p>{message}</p>
-<br>
-<h4>Traceback (send to admin if needed):</h4>
-<p>{client_ip}: {current_datetime}: {traceback_}</p>
-'''
+''', traceback_
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
         file_name = session.get('file_name')
-        html_message = generate_html_message(message)
+        user_error, admin_error = generate_html_message(message)
         if revert_db:
                 database_table_name = session.get('database_table_name')
                 delete_db_entries(database_table_name, file_name=file_name)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
-        session['error_message'] = html_message
+        session['error_message_user'] = user_error
+        current_time = datetime.now()
+        session['error_message_admin'] = f'{str(current_time)}: {str(admin_error)}'
         return redirect(url_for('error'))
+
+@app.route('/send_error_details', methods=['POST'])
+@decorators.log_info(app)
+def send_error_details():
+    email = request.form['text']
+    error_message = session.get('error_message_admin')
+    message = f'{email} \n {error_message}'
+    send_email.send('Error on upload website', message)
+    session['email_send'] = True
+    return redirect(url_for('error'))
 
 @app.errorhandler(Exception)
 def handle_uncaught_exception(e):
@@ -372,7 +390,7 @@ if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
-    
+
     if os.environ.get('RUN_MODE'):
         constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
@@ -384,7 +402,7 @@ if __name__ == '__main__':
         app.run(debug=True)
     else:
         raise Exception('Error')    
-        
+
     # if "--production" in sys.argv:
     #     for arg in sys.argv[1:]:
     #         if not arg in production_args or arg in development_args:
