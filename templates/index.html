@@ -21,15 +21,15 @@
     example/template sheets to help you.
     
     <br>
-    {% for key in SHEET_TYPES %} 
-    <p><a href="{{ url_for('download_file', filename=SHEET_TYPES[key] + '.xlsx') }}" download>{{ SHEET_TYPES[key] }}</a></p>
+    {% for sheet in example_sheets %} 
+    <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
     {% endfor %} 
 
     <br>
-    <br>
+    <h3>Upload options:</h3>
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="file">Choose a .txt file to upload:</label>
-        <input type="file" name="file" accept=".txt" required>
+        <label for="file">Choose a .txt or .html file to upload:</label>
+        <input type="file" name="file" accept=".txt, .html" required>
         <br>
 
         <label for="database_table_name">Select spreadsheet type:</label>
@@ -73,8 +73,6 @@
             width: 50%; /* Adjust the width as needed */
         }
         </style>
-        <br>
-        <br>
         <br>
         <br>
         <br>

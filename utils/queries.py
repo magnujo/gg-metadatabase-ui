@@ -10,7 +10,7 @@ def get_table_names(schema_name, database_name):
     FROM information_schema.tables
     WHERE table_schema = '{schema_name}' and table_catalog = '{database_name}'
     '''
-    df = pd.read_sql_query(q, ENGINE)
+    df = pd.read_sql(sql=q, con=ENGINE)
     return df
 
 def get_primary_key(table_name, schema_name, database_name):
@@ -29,7 +29,7 @@ def get_primary_key(table_name, schema_name, database_name):
         and tc.table_catalog = '{database_name}'
     '''
     df = pd.read_sql_query(q, ENGINE)
-    return list(df['column_name'])[0]
+    return list(df['column_name'])
     
     
 

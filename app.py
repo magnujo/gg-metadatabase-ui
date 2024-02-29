@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import Email, DataRequired
 import send_email
+import lane_barcode_parser
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
 from psycopg2 import Error
@@ -52,7 +53,11 @@ def index():
     if 'error_message_admin' not in session:
         session['error_message_admin'] = None
     
-    return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
+    example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
+    
+    
+    return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
+    
 
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
@@ -115,26 +120,45 @@ def upload_file():
             #                        decimal_point=decimal_point,
             #                        thousands_seperator=thousands_seperator)
             
-            clean_sheet = parsers.parse(file_path=file_path,
-                                        database_table_name=database_table_name,
-                                        date_format=date_format,
-                                        decimal_point=decimal_point,
-                                        thousands_seperator=thousands_seperator)
+            sheets_to_parse = []
+            if database_table_name in constants.MULTI_TABLE_SHEETS:
+                
+                sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
+                flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
+                sheets_to_parse.append(flowcell_data)
+                sheets_to_parse.append(top_unknown_barcodes)
+            else:
+                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+                sheets_to_parse.append(sheet)
             
-            # Adds rows about which user was responsible for the upload:
-            clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+            clean_sheets = []
             
-            # Adds information about which file the data came from:
-            clean_sheet['from_spreadsheet'] = file_name
+            for i, sheet in enumerate(sheets_to_parse):
+                clean_sheet = parsers.parse(sheet=sheet,
+                                            database_table_name=constants.TABLE_SPLITTER[database_table_name][i],
+                                            date_format=date_format,
+                                            decimal_point=decimal_point,
+                                            thousands_seperator=thousands_seperator)
+                
+            
+                # Adds rows about which user was responsible for the upload:
+                clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+                
+                # Adds information about which file the data came from:
+                clean_sheet['from_spreadsheet'] = file_name
+                
 
-            # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
-            clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
-            # Convert to ns to enable testing (postgres converts to ns, when uploading)
-            clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
+                clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
+                # Convert to ns to enable testing (postgres converts to ns, when uploading)
+                clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                clean_sheets.append(clean_sheet)
+
         else:
-            raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt file. See manual for help')
-    
-        clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, file.filename), index=False, encoding='utf_16', sep="\t")
+            raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
+
+        for i, clean_sheet in enumerate(clean_sheets):
+            clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file.filename}_{i}'), index=False, encoding='utf_16', sep="\t")
 
         return redirect(url_for("confirmation_request"))
     
@@ -156,14 +180,16 @@ def confirmation_request():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
-        # clean_sheet_json = session.get('clean_sheet')
-        # clean_sheet = pd.read_json(clean_sheet_json)
         
-        clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
-        clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+        clean_sheets = []
+        for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
+            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
+            clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+            clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+            html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
+            clean_sheets.append(html_table_with_caption)
     
-        return render_template('confirmation_request.html', clean_sheet=clean_sheet, file_name=file_name, database_table_name=database_table_name)
+        return render_template('confirmation_request.html', table_names=constants.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
@@ -176,47 +202,42 @@ def confirmed():
     try:
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep="\t")
-        
-        clean_sheet.to_sql(name=database_table_name, 
+    except Exception as e:
+        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
+    
+    try:
+        for i, table_name in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+            clean_sheet.to_sql(name=table_name, 
                                 schema=DATABASE_CONFIG['schema_name'], 
                                 con=ENGINE, 
                                 if_exists='append', 
                                 index=False)
-        # If errors happen from now on, delete the data just inserted to the database
+            
+            # Test that uploaded data equals data in file:
+            
+            if '--no_upload_test' in sys.argv:
+                pass
+            else:
+                integrity_test(table_name, file_name, clean_sheet)
     
     except SQLAlchemyError as e:
         # Catch any SQLAlchemy-related errors
-        return general_error_handling(message=e.orig, files_to_del=files_to_del['Before Upload'])
+        return general_error_handling(message=e.orig, revert_db=True, files_to_del=files_to_del['Before Upload'])
     
     except Exception as e:
-        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
+        return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
     
-    else:
-        try:
-            if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
-                pass
-            else:
-                shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
-            
-        except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
-        # If errors happen from now on, delete the file from the UPLOAD_FOLDER
-            
+    try:
+        if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
+            pass
         else:
-            try:        
-                # Test that uploaded data equals data in file:
-              
-                if '--no_upload_test' in sys.argv:
-                    pass
-                else:
-                    integrity_test(database_table_name, file_name, clean_sheet)
+            shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
+        
+    except Exception as e:
+        return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
                 
-            except Exception as e:
-                return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['After Upload'])
-                        
-            else:
-                return redirect(url_for("success")) 
+    return redirect(url_for("success")) 
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/cancel_upload', methods=['POST'])
@@ -228,21 +249,19 @@ def cancel_upload():
 @decorators.log_info(app)
 def success():
     try:
-        
         if session['error'] == True:
             return redirect(url_for("index"))
         
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        # uploaded_data = session.get('uploaded data')
-        # uploaded_data = pd.read_json(uploaded_data)
-        uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
-        uploaded_data = uploaded_data.iloc[:, :-3] # To not display the auto generated columns
-        uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
-        # uploaded_data = build_table(uploaded_data, 'blue_light')
-        # uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE).iloc[:, :-3]
-        #message = request.args.get('message', 'Success.')
-        return render_template('results.html', uploaded_data=uploaded_data, admin_emails=ADMIN_EMAIL)
+
+        all_tables = []
+        for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
+            uploaded_data = uploaded_data.iloc[:, :-3] # To not display the auto generated columns
+            uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
+            all_tables.append(uploaded_data)
+        return render_template('results.html', uploaded_data=all_tables, admin_emails=ADMIN_EMAIL)
 
     except Exception as e:
         return general_error_handling(message=e, delete_db_entries=True, 
@@ -257,7 +276,7 @@ def error():
     #error_message = request.args.get('error_message', 'An error occurred.')
     return render_template('error.html', email_send=session.get('email_send'), error_message=error_message, admin=ADMIN_EMAIL)
 
-def integrity_test(database_table_name, file_name, clean_sheet):
+def integrity_test(database_table_name, file_name, clean_sheet):    
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
 
     uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
@@ -268,16 +287,21 @@ def integrity_test(database_table_name, file_name, clean_sheet):
             
     clean_sheet = clean_sheet.replace("NaT", "nan")
     uploaded_data = uploaded_data.replace("NaT", "nan")
+
+    if database_table_name in constants.DB_GENERATED_COLUMNS:
+        for db_generated_col in constants.DB_GENERATED_COLUMNS.get(database_table_name):
+            if db_generated_col in list(uploaded_data.columns):
+                uploaded_data.drop(db_generated_col, axis=1, inplace=True)
             
-            # for i in range(len(clean_sheet.dtypes)):
-            #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
-          
-             # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
-             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
+    # for i in range(len(clean_sheet.dtypes)):
+    #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
+        
+            # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
+            # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
 
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
-            # print(len(clean_sheet.columns))
-            # print(len(uploaded_data.columns))
+    print(clean_sheet.columns)
+    print(uploaded_data.columns)
             
     testing.assert_frame_equal(uploaded_data, clean_sheet)
 
@@ -294,9 +318,8 @@ def download_manual():
 
 @app.route('/download/<path:filename>')
 @decorators.log_info(app)
-def download_file(filename):
-    example_sheets_directory = os.path.join(os.getcwd(), 'static', 'example_sheets')
-    return send_from_directory(example_sheets_directory, filename, as_attachment=True)
+def download_file(filename): 
+    return send_from_directory(constants.PATH_TO_STANDARD_SHEETS, filename, as_attachment=True)
 
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name
@@ -316,7 +339,8 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         user_error, admin_error = generate_html_message(message)
         if revert_db:
                 database_table_name = session.get('database_table_name')
-                delete_db_entries(database_table_name, file_name=file_name)
+                for table in constants.TABLE_SPLITTER.get(database_table_name):
+                    delete_db_entries(table, file_name=file_name)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message_user'] = user_error

@@ -1,7 +1,9 @@
-import pandas as pd
-from utils import queries
-from constants import postgres_types
+def match_data(data: str, has_dates: bool) -> str:
+    match (data, has_dates):
+        case ("My data doesn't contain dates", True):
+            print("Hej")
+        case (_, False):
+            print("He2")
 
-df = queries.get_table_dtypes('field_sample_internal', 'test')
-
-
+# Example usage:
+match_data("My data doesn't contain dates", False)
