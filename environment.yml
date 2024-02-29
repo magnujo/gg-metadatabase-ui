@@ -17,6 +17,7 @@ dependencies:
   - openpyxl
   - lxml
   - Flask-WTF
+  - html5lib
   - pip
   - pip:
     - pretty_html_table
