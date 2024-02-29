@@ -105,13 +105,12 @@ TABLE_SPLITTER = {
     'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']
 }
 
-FILE_TO_TABLES = {}
 
 # Sheets that are split into multiple tables:
 # Value: Tables in the database that the sheet is split into
 MULTI_TABLE_SHEETS = {'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']}
 
-ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD']
+ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'My data doesn\'t contain dates']
 
 COLUMNS = {'field_sample_internal':
                {'float_columns':

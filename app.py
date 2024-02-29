@@ -186,23 +186,10 @@ def confirmation_request():
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
             clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-            clean_sheets.append(clean_sheet)
-            
-        
-        # clean_sheets = []
-        # if database_table_name in constants.MULTI_TABLE_SHEETS:
-        #     for i in range(constants.MULTI_TABLE_SHEETS[database_table_name]):
-        #         clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
-        #         clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
-        #         clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-        #         clean_sheets.append(clean_sheet)
-        # else:
-        #     clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, file_name), encoding='utf_16', sep='\t')
-        #     clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
-        #     clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-        #     clean_sheets.append(clean_sheet)
+            html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
+            clean_sheets.append(html_table_with_caption)
     
-        return render_template('confirmation_request.html', clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        return render_template('confirmation_request.html', table_names=constants.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])

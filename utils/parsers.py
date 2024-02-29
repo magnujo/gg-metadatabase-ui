@@ -85,6 +85,13 @@ def parse(sheet,
             raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
     
     # Parse dates, throws error if formatting is wrong in the sheet
+    
+    date_format_required = len(date_columns)>0
+    if date_format == "My data doesn't contain dates" and date_format_required == True:
+        raise Exception("The table you are trying to upload to expects one or more date columns, but no date format was chosen. Please double check that you chose the correct upload option.")
+    elif date_format != "My data doesn't contain dates" and date_format_required == False:
+        raise Exception("You chose a date format, however the table you are trying to upload to does not expect dates. Please double check that you chose the correct upload option.")
+    
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)       
     sheet = parse_floats(sheet, float_columns, decimal_point, thousands_seperator)
     sheet = validate_integers(sheet, int_columns, thousands_seperator)
@@ -141,6 +148,7 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
     # date1 = pd.to_datetime(col_dtypes_non_auto['date'], errors='coerce', format='%Y-%m-%d')
     # date2 = pd.to_datetime(col_dtypes_non_auto['date'], errors='coerce', format='%d.%m.%Y')
     # sheet['date'] = date1.fillna(date2)
+    print(date_columns)
     try:
         if soft:
             if date_format == 'YYYY-MM-DD':
@@ -171,6 +179,8 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
                 for ele in date_columns:
                     sheet[ele] = pd.to_datetime(sheet[ele], format='%Y/%m/%d')
                     sheet[ele] = sheet[ele].astype('datetime64[ns]')
+            elif date_format == "My data doesn't contain dates":
+                pass
             else: 
                 raise Exception('No date format chosen, try again.')
     except Exception:

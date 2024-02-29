@@ -1,6 +1,9 @@
+def match_data(data: str, has_dates: bool) -> str:
+    match (data, has_dates):
+        case ("My data doesn't contain dates", True):
+            print("Hej")
+        case (_, False):
+            print("He2")
 
-import os
-example_sheets_path = os.path.join(os.getcwd(), 'static', 'example_sheets_online')
-example_sheets = os.listdir(example_sheets_path)
-
-print(example_sheets)
+# Example usage:
+match_data("My data doesn't contain dates", False)
