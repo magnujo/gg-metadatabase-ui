@@ -53,7 +53,10 @@ def index():
     if 'error_message_admin' not in session:
         session['error_message_admin'] = None
     
-    return render_template('index.html', SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
+    example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
+    
+    
+    return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
     
 
 @app.route('/upload', methods=['POST'])
@@ -328,9 +331,8 @@ def download_manual():
 
 @app.route('/download/<path:filename>')
 @decorators.log_info(app)
-def download_file(filename):
-    example_sheets_directory = os.path.join(os.getcwd(), 'static', 'example_sheets')
-    return send_from_directory(example_sheets_directory, filename, as_attachment=True)
+def download_file(filename): 
+    return send_from_directory(constants.PATH_TO_STANDARD_SHEETS, filename, as_attachment=True)
 
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name

@@ -1,7 +1,6 @@
-import pandas as pd
-from utils import queries
-from constants import postgres_types
 
-df = queries.get_table_dtypes('field_sample_internal', 'test')
+import os
+example_sheets_path = os.path.join(os.getcwd(), 'static', 'example_sheets_online')
+example_sheets = os.listdir(example_sheets_path)
 
-
+print(example_sheets)
