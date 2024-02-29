@@ -124,10 +124,6 @@ pip-selfcheck.json
 .idea/**/dictionaries
 .idea/**/shelf
 
-uploaded_sheets/*
-parsed_sheets/*
-original_sheets/*
-
 .idea/*
 
 # AWS User-specific
@@ -423,3 +419,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+/original_sheets/*
+/parsed_sheets/*
+/uploaded_sheets/*
