@@ -419,6 +419,3 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-/original_sheets/*
-/parsed_sheets/*
-/uploaded_sheets/*
