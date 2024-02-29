@@ -42,7 +42,7 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
-        'database': 'aedna_metadata',
+        'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
         'password': os.environ.get('DB_PASSWORD'),
