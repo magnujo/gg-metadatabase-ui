@@ -3,13 +3,41 @@
     <link rel="shortcut icon" href="#">
 </head>
 <h2>Error</h2>
-<p>An error has occured while trying to process your request and no data was uploaded to the database. Try to 
-    resolve it by reading the error message below. If you can't resolve it, send the Traceback to to {{ admin }} if you need help resolving the error</p>
+<p>An error has occured while trying to process your request and no data was uploaded to the database. 
+    <br>
+    Try to resolve it by reading the error message below. 
+    If you can't resolve it, enter your email and press the "Report Error" below.
+    <br>
+    This will send an email to the the admin, with details of the error</p>
+
+<h3>Error Message:</h3>
+    <p>{{ error_message|safe }}</p>
+<br>
+<h4>Report error:</h4>
+<p>Only do this if you cannot resolve the error yourself. 
+    Be patient when pressing the button, it might take a little while to send the email.
+    
+</p>
+{% if email_send %}
+Error reported. Thanks!
+{% else %}
+<form action="/send_error_details" method="post" enctype="multipart/form-data">
+    <label for="text">Enter your email:</label>
+    <input type="text" id="text" name="text">
+    <button type="submit">Report Error</button>
+</form>
+<!-- <p>Press button below to report the error to admin:</p>
+<form action="/send_error_details" method="post" enctype="multipart/form-data">
+    <div class="centered">
+        <button type="submit">Report Error</button>
+    </div>
+</form> -->
+{% endif %}
+<br>
 <br>
 <form action="/" method="post" enctype="multipart/form-data">
     <div class="centered">
         <button type="submit">To Homepage</button>
     </div>
 </form>
-<br>
-{{ error_message|safe }}
+

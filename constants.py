@@ -3,15 +3,24 @@ from sqlalchemy import create_engine
 from flask import Flask
 
 
-ADMIN_EMAILS = "magnus.johannsen@sund.ku.dk"
+ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOAD_FOLDER = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt', 'html'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'orignal_sheets'
+RUN_MODE = 'development'
+RUN_MODE_OPTIONS = ['production', 'development']
+
+if os.environ.get('RUN_MODE'):
+        RUN_MODE = os.environ.get('RUN_MODE').lower()
+        if not RUN_MODE in RUN_MODE_OPTIONS:
+            raise Exception(f'Unknown value for RUN_MODE')
+
 
 MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
 
+EMAIL_SENDER = 'cgg.metadb.ui.website@gmail.com'
 
 '''
 Arguments you can use when starting the app
@@ -30,14 +39,25 @@ skips the dropping of null values. if used, the two others are not allowed.
 ALLOWED_COMMAND_LINE_ARGS = {'development': [],
                              'production': []}
 
-DATABASE_CONFIG = {
-    'host': 'dandyweb01fl',
-    'database': 'aedna_metadata',
-    'port': '5432',
-    'user': 'upload_user',
-    'password': 'Ce65r-l+!D04',
-    'schema_name': 'test'
-}
+if RUN_MODE == 'production':
+    DATABASE_CONFIG = {
+        'host': 'dandyweb01fl',
+        'database': 'aedna_metadata',
+        'port': '5432',
+        'user': 'upload_user',
+        'password': os.environ.get('DB_PASSWORD'),
+        'schema_name': 'test'
+    }
+
+elif RUN_MODE == 'development':
+    DATABASE_CONFIG = {
+        'host': 'dandyweb01fl',
+        'database': 'aedna_metadata_test',
+        'port': '5432',
+        'user': 'upload_user',
+        'password': 'Ce65r-l+!D04',
+        'schema_name': 'test'
+    }
 
 DATABASE_CONFIG_2 = {
     'host': DATABASE_CONFIG['host'],
@@ -59,6 +79,8 @@ SHEET_TYPES = {
     'cgg_animal_plant': 'CGG Animal Plant',
     'lane_barcode_html': 'Lane Barcode HTML'
 }
+
+DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
 
 TABLE_SPLITTER = {
     'field_sample_internal': ['field_sample_internal'],
@@ -87,8 +109,5 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                   'int_range': ['int4range', 'int8range']}
 
 
-auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc']
+auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid']
 
-RUN_MODE = 'development'
-
-RUN_MODE_OPTIONS = ['production', 'development']

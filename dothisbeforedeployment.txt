@@ -7,3 +7,4 @@ update manual
 Remove all sql statements that delete data. It is too dangerous. Instead upload the sheet to a duplicate database and if the tests gets approved, only then upload to the actual db.
 Turn of debug in main function.
 Delete log file
+Empty uploaded_sheets, parsed_sheets and original_sheets

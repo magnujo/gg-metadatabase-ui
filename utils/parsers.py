@@ -38,37 +38,51 @@ def parse(sheet,
     expected_columns = pd.read_sql(sql=f"SELECT * from {schema_name}.{database_table_name}", con=constants.ENGINE).columns
     expected_columns = list(expected_columns)
     
-    if 'uid' in expected_columns:
-        expected_columns.remove('uid')
-        
-    expected_columns = expected_columns[:-3]
-   
+    # if 'uid' in expected_columns:
+    #     expected_columns.remove('uid')
+    # expected_columns = expected_columns[:-3]
+    # columns = list(sheet.columns)
+    # expected_columns = sorted(expected_columns)
+    # columns = sorted(columns)
+
+    j = 0
+
+    # for i in range(len(columns)):
+    #     print(expected_columns[j] + "  " + columns[j])
+    #     j += 1
+    # for i in range(j, len(expected_columns)):
+    #     print(expected_columns[i])
+    
+
+    expected_columns = [element for element in expected_columns if element not in constants.auto_generated_columns]
+
+
     # TODO: Make unit test with mock data.
     assert expected_columns == list(sheet.columns), ("Column names and/or positions not as expected")
     
     
     
     for i, ele in enumerate(primary_key):
-        if ele == 'uid':
+        if ele in constants.auto_generated_columns:
             pass
         
-        if not ele in sheet.columns:
+        elif not ele in sheet.columns:
             raise Exception (f"Upload failed. Expected column {primary_key[i]} not found. Are you sure you uploaded the correct spreadsheet?")
 
-    if not constants.RUN_MODE == 'production' and not primary_key == 'uid':
+    if not constants.RUN_MODE == 'production' and 'uid' not in primary_key:
         # For drop testing. Counts the number of rows where primary key is not null.
         num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
 
         # TODO: Delete after deployment and ask make uploader responsible.
-        for ele in primary_key:
-            if ele in list(sheet.columns):
-                sheet = sheet.dropna(axis='index', how='all', subset=[ele])
-            else:
-                raise Exception (f"Upload failed. Expected column {ele} not found. Contact {constants.ADMIN_EMAILS} if you think this is a mistake")
+        
+        if set(primary_key).issubset(set(list(sheet.columns))):
+            sheet = sheet.dropna(axis='index', how='all', subset=primary_key)
+        else:
+            raise Exception (f"Upload failed. Expected columns {primary_key} not found in sheet columns {sheet.columns}. Contact {constants.ADMIN_EMAIL} if you think this is a mistake")
         
         # Drop test:
         if len(sheet) != num_of_not_null_rows:
-            raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAILS} for help.')
+            raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
     
     # Parse dates, throws error if formatting is wrong in the sheet
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)       
@@ -260,7 +274,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             raise Exception(f"Did not find expected numeric column {ele} in input. \
                                 Please make sure the format of your spreadsheet matches \
                                 the the example sheet found on the upload website.\
-                                Contact admin at {constants.ADMIN_EMAILS}")
+                                Contact admin at {constants.ADMIN_EMAIL}")
 
     return sheet
 
@@ -282,5 +296,5 @@ def validate_integers(sheet, integer_columns, thousands_seperator):
             raise Exception(f"Did not find expected numeric column {ele} in input. \
                                 Please make sure the format of your spreadsheet matches \
                                 the the example sheet found on the upload website.\
-                                Contact admin at {constants.ADMIN_EMAILS}")
+                                Contact admin at {constants.ADMIN_EMAIL}")
     return sheet
