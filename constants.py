@@ -122,4 +122,4 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                            'timestamp without timezone'],
                   'int_range': ['int4range', 'int8range']}
 
-auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid']
+auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc']
