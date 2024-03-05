@@ -20,17 +20,6 @@ data_types = {'integer': None,
               'double precision': None}
 
 
-type_descriptions = {'integer': {None}, 
-                    'text': None, 
-                    'smallint': None, 
-                    'int4range': None, 
-                    'timestamp with time zone': None, 
-                    'real': None, 
-                    'date': {'format': constants.ALLOWED_DATE_FORMATS}}, 
-                    'timestamp without time zone': None, 
-                    'double precision': None}
-}
-
 def generate_excel(output_folder, get_dtypes=False):
     f'''
     Generates and overwrites example sheets in {path} from table information in postgres

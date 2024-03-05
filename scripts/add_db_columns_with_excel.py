@@ -9,6 +9,10 @@ from sqlalchemy import create_engine
 
 
 def add_cols_to_db(excel_file, database, user, table_name, schema):
+    '''
+    Updates the columns of a database to match the columns of a excel sheet.
+    '''
+    
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
         'database': database,
