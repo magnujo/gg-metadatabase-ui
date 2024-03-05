@@ -7,6 +7,5 @@ df  = df.drop(df.columns[0], axis=1)
 # Convert the DataFrame into a dictionary
 excel_dict = df.to_dict()
 
-
 with open("output.json", "w") as json_file:
     json.dump(excel_dict, json_file, indent=4)

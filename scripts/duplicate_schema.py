@@ -45,8 +45,8 @@ DATABASE_CONFIG = {
     'host':'dandyweb01fl',
     'dbname': 'aedna_metadata',
     'port': 5432,
-    'user': 'glj523',
-    'password': 'Wtcantfw36c!',
+    'user': '',
+    'password': '',
 }
 
 # Connect to your PostgreSQL database

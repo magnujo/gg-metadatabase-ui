@@ -1,0 +1,240 @@
+{
+    "Sample label (sticker)": {
+        "Example data 1": "jkl223_hollerup_20230914_1",
+        "Example data 2": "jkl223_hollerup_20230914_2",
+        "Example data 3": "jkl223_hollerup_20230914_3",
+        "Accepted format": "<ku-id>_<sampling_site>_<sampling_date>_<no>",
+        "Description": "A standardized unique ID for the physical label. Consist of ku ID of field trip representative/leader/PI + sampling site (as local as possible) + collection date + incrementing integer."
+    },
+    "QR Code": {
+        "Example data 1": NaN,
+        "Example data 2": NaN,
+        "Example data 3": NaN,
+        "Accepted format": NaN,
+        "Description": "An id for the physical QR code on the sample"
+    },
+    "Country/Ocean": {
+        "Example data 1": "Denmark",
+        "Example data 2": "Denmark",
+        "Example data 3": "Denmark",
+        "Accepted format": "text",
+        "Description": NaN
+    },
+    "City/Town/Location": {
+        "Example data 1": "Hollerup",
+        "Example data 2": "Hollerup",
+        "Example data 3": "Hollerup",
+        "Accepted format": "text",
+        "Description": "If relevant. Otherwise leave blank."
+    },
+    "Sampling site": {
+        "Example data 1": "Hollerup",
+        "Example data 2": "Hollerup",
+        "Example data 3": "Hollerup",
+        "Accepted format": "text and/or numbers",
+        "Description": "If relevant. Otherwise leave blank."
+    },
+    "Latitude": {
+        "Example data 1": 61.1399,
+        "Example data 2": 61.1399,
+        "Example data 3": 61.1399,
+        "Accepted format": "decimal degrees, max 2 digits, max 8 decimal points (-90 to 90)",
+        "Description": "The geographical origin of the sample as defined by latitude. The values should be reported in decimal degrees as precise as possible (max. 8 decimal points)."
+    },
+    "Longitude": {
+        "Example data 1": -45.5347,
+        "Example data 2": -45.5347,
+        "Example data 3": -45.5347,
+        "Accepted format": "decimal degrees, max 2 digits, max 8 decimal points (-180 to 180)",
+        "Description": "The geographical origin of the sample as defined by longitude. The values should be reported in decimal degrees as precise as possible (max. 8 decimal points)."
+    },
+    "Sampling Date": {
+        "Example data 1": "2023-10-22",
+        "Example data 2": "2023-10-22",
+        "Example data 3": "2023-10-22",
+        "Accepted format": "YYYY-MM-DD or DD-MM-YYYY (choose one)",
+        "Description": "Date when the sampling occured."
+    },
+    "Sample provider(s)": {
+        "Example data 1": "hlj234",
+        "Example data 2": "hlj234",
+        "Example data 3": "hlj234; glj523",
+        "Accepted format": "KU Ids",
+        "Description": "Unique KU id(s) of the person(s) responsible for the sample extraction, seperated by semicolon if multiple."
+    },
+    "PI (KU ID)": {
+        "Example data 1": "hlj234",
+        "Example data 2": "hlj234",
+        "Example data 3": "hlj234",
+        "Accepted format": "KU Id",
+        "Description": "KU id of the principal investigator responsible for the project."
+    },
+    "Grant": {
+        "Example data 1": "NOVO",
+        "Example data 2": "NOVO",
+        "Example data 3": "NOVO",
+        "Accepted format": "text and/or numbers",
+        "Description": "Specify the grant that funds the project."
+    },
+    "Running Project Title": {
+        "Example data 1": "Traversing European Coastlines",
+        "Example data 2": "Arctic Canada",
+        "Example data 3": "Arctic Canada",
+        "Accepted format": "text and/or numbers",
+        "Description": "Referencing this google sheet: https://docs.google.com/spreadsheets/d/10TWDtKMug4yzOQUP7Q4APIoPNHQXCFX_RasijIgyCAA/edit?usp=sharing"
+    },
+    "Sampling depth (discrete, cm)": {
+        "Example data 1": 10,
+        "Example data 2": 200,
+        "Example data 3": "300.3",
+        "Accepted format": "Numbers (decimals allowed)",
+        "Description": "Depth measurement for discrete type samples (such as tube)"
+    },
+    "Sampling depth (interval, cm)": {
+        "Example data 1": "[10, 50)",
+        "Example data 2": "[10, 20)",
+        "Example data 3": "[-10, -5)",
+        "Accepted format": "Restricted mathematical notation of the form [<no>, <no>). Meaning only use \"[\" as the opening bracket and \")\" as the closing bracket (decimals not allowed).",
+        "Description": "Depth measurement for interval type samples (such as core) "
+    },
+    "Sampling depth reference": {
+        "Example data 1": "msl",
+        "Example data 2": "local surface",
+        "Example data 3": "CGG_3_000002",
+        "Accepted format": "text and/or numbers",
+        "Description": "Point from where the depth measurement was taken"
+    },
+    "Correlation depth (bottom, cm)": {
+        "Example data 1": 10,
+        "Example data 2": 200,
+        "Example data 3": "300.3",
+        "Accepted format": "Numbers (decimals allowed)",
+        "Description": "The local core depth that correlates with the  correlation depth (top) of the core immediately above."
+    },
+    "Correlation depth (top, cm)": {
+        "Example data 1": 10,
+        "Example data 2": 200,
+        "Example data 3": "300.3",
+        "Accepted format": "Numbers (decimals allowed)",
+        "Description": "The local core depth  that correlates with the  correlation depth (bottom) of the core immediately below."
+    },
+    "Sample container": {
+        "Example data 1": "Core",
+        "Example data 2": "Monolith",
+        "Example data 3": "OSL",
+        "Accepted format": "Mathematical notation: Numbers, \"()\", \"[]\" and \",\" (decimal allowed only if \".\" is used as decimal point).",
+        "Description": "Container used for sample collection/extraction/excavation"
+    },
+    "Sediment type": {
+        "Example data 1": "Lacustrine",
+        "Example data 2": "Glaciofluvial",
+        "Example data 3": "Glaciofluvial",
+        "Accepted format": "text and/or numbers",
+        "Description": "Eg. Glacial, Lacustrine\nFluvial, Aeolian,Peat\nSoil"
+    },
+    "Setting": {
+        "Example data 1": "Outcrop",
+        "Example data 2": "Cave",
+        "Example data 3": "Lake",
+        "Accepted format": "text and/or numbers",
+        "Description": "Outcrop, cave, lake, bog etc."
+    },
+    "Marine isotope stage estimate": {
+        "Example data 1": "5e",
+        "Example data 2": "5e",
+        "Example data 3": "5e",
+        "Accepted format": "text and/or numbers",
+        "Description": NaN
+    },
+    "Period Estimate": {
+        "Example data 1": "Holocene",
+        "Example data 2": "Holocene",
+        "Example data 3": "Pleistocene",
+        "Accepted format": "Full names seperated by comma",
+        "Description": NaN
+    },
+    "Age Estimate (ka)": {
+        "Example data 1": "[1, 105)",
+        "Example data 2": "[1, 105)",
+        "Example data 3": "[1, 105)",
+        "Accepted format": "Restricted mathematical notation of the form [<no>, <no>). Meaning only use \"[\" as the opening bracket and \")\" as the closing bracket (decimals not allowed).",
+        "Description": "Not c14, just an estimate"
+    },
+    "Height above mean sea level (meters)": {
+        "Example data 1": 37,
+        "Example data 2": 37,
+        "Example data 3": "37.5",
+        "Accepted format": "Number (decimal allowed)",
+        "Description": "Specify as negative number if below mean sea level."
+    },
+    "Sample storage address": {
+        "Example data 1": "GM",
+        "Example data 2": "GM",
+        "Example data 3": "GM",
+        "Accepted format": "Address ",
+        "Description": "The exact address where the sample. If it's stored at geological museum then you can just write \"GM\"."
+    },
+    "Sample storage setting": {
+        "Example data 1": "Cold room",
+        "Example data 2": "Walk-in Freezer",
+        "Example data 3": "Cold room",
+        "Accepted format": "text and/or numbers",
+        "Description": "Specify the storage setting "
+    },
+    "Sample storage location": {
+        "Example data 1": "A: shelf 4.5; W: shelf 4.6",
+        "Example data 2": "A: shelf 4.5; W: shelf 4.6",
+        "Example data 3": "A: shelf 4.5; W: shelf 4.6",
+        "Accepted format": "text and/or numbers",
+        "Description": "If working half and archive half are stored different places, report two locations seperated by semi-colon and preceded by either A: or W: "
+    },
+    "Storing date": {
+        "Example data 1": "2023-10-22",
+        "Example data 2": "2023-10-22",
+        "Example data 3": "2023-10-22",
+        "Accepted format": "YYYY-MM-DD or DD-MM-YYYY (choose one)",
+        "Description": "Report when the sample was stored in the specified storage location."
+    },
+    "Disposal date": {
+        "Example data 1": "2023-10-22",
+        "Example data 2": "2023-10-22",
+        "Example data 3": "2023-10-22",
+        "Accepted format": "YYYY-MM-DD or DD-MM-YYYY (choose one)",
+        "Description": "Report when the sample was disposed."
+    },
+    "Miscellaneous Sample Measurements or Observations": {
+        "Example data 1": "water content: 10 %; ",
+        "Example data 2": "water content: 10 %;",
+        "Example data 3": "water content: 10 %; porosity: 5 %",
+        "Accepted format": "<measurement/observation type>: <measurement/observation> <unit (optional)>",
+        "Description": "Any relevant measurements/observations taken of the field sample. If multiple: seperate by semi-colon."
+    },
+    "Miscellaneous Environmental Measurements or Observations": {
+        "Example data 1": "temperature: 7 celcius; ",
+        "Example data 2": "temperature: 7 celcius; ",
+        "Example data 3": "temperature: 7 celcius; cloud cover: overcast;",
+        "Accepted format": "<measurement/observation type>: <measurement/observation> <unit (optional)>",
+        "Description": "Any other relevant environmental measurements/observations. If multiple: seperate by semi-colon."
+    },
+    "Link to images": {
+        "Example data 1": NaN,
+        "Example data 2": NaN,
+        "Example data 3": NaN,
+        "Accepted format": "text and/or numbers",
+        "Description": "Link to any relevant images of the sample."
+    },
+    "Link to other relevant data": {
+        "Example data 1": NaN,
+        "Example data 2": NaN,
+        "Example data 3": NaN,
+        "Accepted format": "text and/or numbers",
+        "Description": "Link to other relevant data."
+    },
+    "Comment": {
+        "Example data 1": NaN,
+        "Example data 2": NaN,
+        "Example data 3": NaN,
+        "Accepted format": "text and/or numbers",
+        "Description": NaN
+    }
+}

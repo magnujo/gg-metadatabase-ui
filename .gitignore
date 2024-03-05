@@ -372,6 +372,9 @@ cython_debug/
 .AppleDouble
 .LSOverride
 
+!scripts
+
+
 # Icon must end with two \r
 Icon
 
