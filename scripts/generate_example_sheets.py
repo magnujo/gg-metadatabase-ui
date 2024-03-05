@@ -31,6 +31,10 @@ data_types = {'integer': None,
 
 
 def generate_excel_from_table(output_file, database_config, table_name, schema_name):
+    '''
+    Generates spreaddsheet with a tables column names and corresponding data types and comments.
+    '''
+    
     # Connect to your PostgreSQL database
     conn = psycopg2.connect(**database_config)    
 
@@ -74,12 +78,14 @@ def generate_excel_from_table(output_file, database_config, table_name, schema_n
     conn.close()
 
 def generate_excels_from_schema(output_folder, schema, database_config):
+    '''
+    Generates multiple excel sheets from all tables in a schema using generate_excel_from_table function.
+    '''
+    
     
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(**database_config)
     
-    engine = create_engine(f"postgresql://{database_config['user']}:{database_config['password']}@{database_config['host']}:{database_config['port']}/{database_config['database']}")
-
     # Get a cursor
     cur = conn.cursor()
 
