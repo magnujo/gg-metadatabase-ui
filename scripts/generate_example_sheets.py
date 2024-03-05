@@ -30,7 +30,7 @@ data_types = {'integer': None,
               'double precision': None}
 
 
-def generate_excel_from_db(output_file, database_config, table_name, schema_name):
+def generate_excel_from_table(output_file, database_config, table_name, schema_name):
     # Connect to your PostgreSQL database
     conn = psycopg2.connect(**database_config)    
 
@@ -62,6 +62,9 @@ def generate_excel_from_db(output_file, database_config, table_name, schema_name
 
     # Create a DataFrame from the fetched data
     df = pd.DataFrame(rows, columns=['Column Name', 'Data Type', 'Description'])
+    # auto_generated_cols_in_df = [col for col in constants.auto_generated_columns if col in df.columns]
+    df = df[~df['Column Name'].isin(constants.auto_generated_columns)]
+
 
     # Export the DataFrame to an Excel file
     df.to_excel(output_file, index=False)
@@ -70,11 +73,7 @@ def generate_excel_from_db(output_file, database_config, table_name, schema_name
     cursor.close()
     conn.close()
 
-    
-generate_excel_from_db(database_config=constants.DATABASE_CONFIG_2, schema_name='test', table_name='field_sample_internal')
-
-
-def generate_excels(output_folder, schema, database_config):
+def generate_excels_from_schema(output_folder, schema, database_config):
     
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(**database_config)
@@ -98,10 +97,10 @@ def generate_excels(output_folder, schema, database_config):
         
         table_name = table[0]
         output_file = os.path.join(output_folder, f'{table_name}.xlsx')
-        generate_excel_from_db(database_config, table_name, schema_name)
+        generate_excel_from_table(output_file=output_file, database_config=database_config, table_name=table_name, schema_name=schema)
 
     # Close the cursor and database connection
     cur.close()
     conn.close()   
     
-generate_excel("test.xlsx", 'test', table='field_sample_internal', database_config=constants.DATABASE_CONFIG)
+generate_excel_from_table(output_file="test.xlsx", database_config=constants.DATABASE_CONFIG_2, table_name='field_sample_internal', schema_name='test')
