@@ -419,3 +419,5 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+*.ipynb
+

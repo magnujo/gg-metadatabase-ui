@@ -19,7 +19,7 @@
     <h3>Spreadsheet types:</h3>
     To help you upload correctly formatted meta data sheets that the database will accept, here are some 
     example/template sheets to help you.
-    <br> NOTE: The files you upload needs to be saved as “Unicode Text (.txt)” (windows) or “UTF-16 unicode text” (mac) and not .xlsx or .xls.    
+    <br> NOTE: The database only accepts “Unicode Text (.txt)” (windows) or “UTF-16 unicode text” (mac), except if you upload laneBarcodes (then you should upload as .html).    
     <br>
     {% for sheet in example_sheets %} 
     <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
