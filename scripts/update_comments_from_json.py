@@ -5,7 +5,10 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 import constants 
 
-
+'''
+Loads a json file were the keys are equal to column names in table_name of schema_name. 
+Then updates the comments of schema_name.table_name.column_x with the value of column_x in the json file.
+'''
 
 def insert_column_comments(conn, table_name, schema_name, column_comments):
     with conn.cursor() as cursor:
