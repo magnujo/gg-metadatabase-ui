@@ -2,21 +2,25 @@ import pandas as pd
 import ast
 import numpy as np
 import sys, os
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-import constants
 import pandas as pd
 import psycopg2
 import os, sys
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # Add parent directory to sys.path
 import constants
 import psycopg2
 import pandas as pd
+import getpass
 
 '''
-Generates a sheet with table information about column name, datatype nua
+Automatically generates a compatible excel sheet template for a given table.
 '''
+
+output_file=r'static\auto_sheets\field_sample_internal.xlsx' 
+table_name='field_sample_internal' 
+schema_name='test_1'
+user = input("Enter your database username: ")
+password = getpass.getpass("Enter your password: ")
+database_name='aedna_metadata_test'
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join('static', 'auto_sheets')
@@ -104,12 +108,12 @@ full outer join information_schema.columns c on (
     result_df = result_df.drop(columns=['Description'])
     result_df.to_excel(output_file, index=False)
 
-generate_excel_from_table(output_file='test.xlsx', 
-                          table_name='edna_archive_sample', 
-                          schema_name='test_1',
-                          user='',
-                          password='!',
-                          database_name='aedna_metadata_test')
+generate_excel_from_table(output_file=output_file, 
+                          table_name=table_name, 
+                          schema_name=schema_name,
+                          user=user,
+                          password=password,
+                          database_name=database_name)
 
 def generate_excels_from_schema(output_folder, schema, database_config):
     '''

@@ -1,26 +1,29 @@
 import json
 import psycopg2
-import sys, os
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-import constants 
+import getpass
+
+
 
 '''
 Loads a json file were the keys are equal to column names in table_name of schema_name. 
 Then updates the comments of schema_name.table_name.column_x with the value of column_x in the json file.
 '''
 
+username = input("Enter your database username: ")
+password = getpass.getpass("Enter your password: ")
+
 # Specify the table name
-table_name = 'edna_archive_sample'
+table_name = 'field_sample_internal'
 schema_name = 'test_1'
-file = r'static\example_sheets_online\json_dumps\eDNA archive sampling.json'
+file = r'static\example_sheets_online\json_dumps\Field sampling (internal).json'
+
 
 DATABASE_CONFIG_2 = {
         'host': 'dandyweb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
-        'user': 'glj523',
-        'password': 'Wtcantfw36c!',
+        'user': username,
+        'password': password,
     }
 
 

@@ -14,7 +14,7 @@
         "Description": "An id for the physical QR code on the sample"
     },
     "Country/Ocean": {
-        "Example data 1": "Denmark",
+        "Example data 1": "Greenland",
         "Example data 2": "Denmark",
         "Example data 3": "Denmark",
         "Accepted format": "text",

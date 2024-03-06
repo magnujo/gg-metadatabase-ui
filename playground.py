@@ -1,4 +1,4 @@
-from scripts import generate_sheet_from_table
+from scripts.update_compatible_sheets import generate_sheet_from_table
 import constants
 
 df = generate_sheet_from_table.query(database_config=constants.DATABASE_CONFIG_2, 
