@@ -41,11 +41,20 @@ def si(value):
         return None
 
 
-def generate_excel_from_table(output_file, database_config, table_name, database_name, schema_name):
+def generate_excel_from_table(output_file, table_name, database_name, schema_name, user, password):
     '''
     Generates spreaddsheet with a tables column names and corresponding data types and comments.
     '''
     # Connect to your PostgreSQL database
+    
+    database_config = {
+    'host': 'dandyweb01fl',
+    'dbname': database_name,
+    'port': 5432,
+    'user': user,
+    'password': password,
+}
+    
     conn = psycopg2.connect(**database_config)    
 
     # SQL query to retrieve column comments and data types
@@ -95,9 +104,12 @@ full outer join information_schema.columns c on (
     result_df = result_df.drop(columns=['Description'])
     result_df.to_excel(output_file, index=False)
 
-generate_excel_from_table(output_file='test.xlsx', database_config=constants.DATABASE_CONFIG_2, 
-                          table_name='field_sample_internal', schema_name='test',
-                          database_name='aedna_metadata')
+generate_excel_from_table(output_file='test.xlsx', 
+                          table_name='edna_archive_sample', 
+                          schema_name='test_1',
+                          user='',
+                          password='!',
+                          database_name='aedna_metadata_test')
 
 def generate_excels_from_schema(output_folder, schema, database_config):
     '''

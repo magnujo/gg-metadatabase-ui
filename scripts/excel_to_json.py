@@ -18,7 +18,7 @@ def run(input_file, output_file):
         json.dump(excel_dict, json_file, indent=4)
 
 
-input_file = r'static\example_sheets_online\Field sampling (internal).xlsx'
-output_file = r'static\example_sheets_online\json_dumps\Field sampling (internal).json'
+input_file = r'static\example_sheets_online\eDNA archive sampling.xlsx'
+output_file = r'static\example_sheets_online\json_dumps\eDNA archive sampling.json'
 
 run(input_file=input_file, output_file=output_file)

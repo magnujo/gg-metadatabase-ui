@@ -46,7 +46,7 @@ if RUN_MODE == 'production':
         'port': '5432',
         'user': 'upload_user',
         'password': os.environ.get('DB_PASSWORD'),
-        'schema_name': 'test'
+        'schema_name': 'test_1'
     }
 
 elif RUN_MODE == 'development':
@@ -56,7 +56,7 @@ elif RUN_MODE == 'development':
         'port': '5432',
         'user': 'upload_user',
         'password': 'Ce65r-l+!D04',
-        'schema_name': 'test'
+        'schema_name': 'test_1'
     }
 
 DATABASE_CONFIG_2 = {

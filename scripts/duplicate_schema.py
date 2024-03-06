@@ -1,59 +1,68 @@
-import sys, os
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-import constants 
 import psycopg2
 
-def duplicate_schema(conn, original_schema, new_schema):
-    '''
-    Duplicates all tables from original_shcmea and pastes them into new_schema
-    '''
-    
-    # Create a new schema
-    with conn.cursor() as cursor:
-        cursor.execute(f"CREATE SCHEMA {new_schema}")
+# Replace these values with your database connection details
+DATABASE = "aedna_metadata_test"
+USER = "glj523"
+PASSWORD = "!"
+HOST = "dandyweb01fl"
+PORT = ""
 
-    # Get all tables in the original schema
-    with conn.cursor() as cursor:
-        cursor.execute("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = %s;
-        """, (original_schema,))
+# Replace these values with the schema names you want to create and copy tables to
+NEW_SCHEMA = "test_1"
+SOURCE_SCHEMA = "test"
+
+# Function to create a new schema
+def create_schema(conn, schema_name):
+    try:
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
+        conn.commit()
+        print(f"Schema '{schema_name}' created successfully.")
+    except Exception as e:
+        print(f"Error creating schema: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+
+# Function to copy tables from one schema to another
+def copy_tables(conn, source_schema, destination_schema):
+    try:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{source_schema}'")
         tables = cursor.fetchall()
+        for table in tables:
+            table_name = table[0]
+            cursor.execute(f"CREATE TABLE {destination_schema}.{table_name} (LIKE {source_schema}.{table_name} INCLUDING ALL);")
+        conn.commit()
+        print(f"Tables copied from schema '{source_schema}' to schema '{destination_schema}' successfully.")
+    except Exception as e:
+        print(f"Error copying tables: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
 
-    # Iterate through each table and copy its structure and data
-    for table in tables:
-        table_name = table[0]
-        # Copy table structure
-        with conn.cursor() as cursor:
-            cursor.execute(f"""
-                CREATE TABLE {new_schema}.{table_name} AS 
-                SELECT * FROM {original_schema}.{table_name} WHERE 1=0;
-            """)
+try:
+    # Connect to the database
+    conn = psycopg2.connect(
+        dbname=DATABASE,
+        user=USER,
+        password=PASSWORD,
+        host=HOST,
+        port=PORT
+    )
 
-        # Copy table data
-        with conn.cursor() as cursor:
-            cursor.execute(f"""
-                INSERT INTO {new_schema}.{table_name}
-                SELECT * FROM {original_schema}.{table_name};
-            """)
+    # Create a new schema
+    create_schema(conn, NEW_SCHEMA)
 
-    conn.commit()
+    # Copy tables from source schema to the new schema
+    copy_tables(conn, SOURCE_SCHEMA, NEW_SCHEMA)
 
-DATABASE_CONFIG = {
-    'host':'dandyweb01fl',
-    'dbname': 'aedna_metadata',
-    'port': 5432,
-    'user': '',
-    'password': '',
-}
+except Exception as e:
+    print(f"Error: {e}")
 
-# Connect to your PostgreSQL database
-conn = psycopg2.connect(**DATABASE_CONFIG)
+finally:
+    if conn is not None:
+        conn.close()
 
-# Duplicate schema "original_schema" as "new_schema"
-duplicate_schema(conn, "test", "example_sheets_generator")
 
-# Close the connection
-conn.close()
+
