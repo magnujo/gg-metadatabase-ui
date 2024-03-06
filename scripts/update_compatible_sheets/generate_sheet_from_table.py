@@ -28,16 +28,6 @@ path = os.path.relpath(data_dir, current_dir)
 
 special_formats = {}
 
-data_types = {'integer': None, 
-              'text': None, 
-              'smallint': None, 
-              'int4range': None, 
-              'timestamp with time zone': None, 
-              'real': None, 
-              'date': None, 
-              'timestamp without time zone': None, 
-              'double precision': None}
-
 def si(value):
     if value is not None:
         return ast.literal_eval(value)

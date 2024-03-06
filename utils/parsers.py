@@ -11,7 +11,10 @@ def parse(sheet,
     
     database_name = constants.DATABASE_CONFIG["database"]
     schema_name = constants.DATABASE_CONFIG["schema_name"]
+    print(database_name)
+    print(schema_name)
     tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
+    print(tables)
     print(list(tables['table_name']))
     
     if not database_table_name in list(tables['table_name']):

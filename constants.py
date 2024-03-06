@@ -42,7 +42,7 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
-        'database': 'aedna_metadata',
+        'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
         'password': os.environ.get('DB_PASSWORD'),
@@ -52,7 +52,7 @@ if RUN_MODE == 'production':
 elif RUN_MODE == 'development':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
-        'database': 'aedna_metadata',
+        'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
         'password': 'Ce65r-l+!D04',
@@ -123,3 +123,5 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                   'int_range': ['int4range', 'int8range']}
 
 auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid', 'database_insert_date_utc']
+
+db_character_encoding = 'UTF-8'
