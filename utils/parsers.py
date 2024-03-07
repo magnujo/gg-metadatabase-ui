@@ -191,7 +191,7 @@ def parse_dates(sheet, date_columns, date_format, soft=False):
             else: 
                 raise Exception('No date format chosen, try again.')
     except Exception:
-        raise Exception(f"Found time data in column {ele} that does not match chosen date format {date_format}.")
+        raise Exception(f"Found date in column {ele} that does not match chosen date format {date_format} or are invalid (for example if year > current year).")
      
     return sheet
 

@@ -15,8 +15,8 @@ import getpass
 Automatically generates a compatible excel sheet template for a given table.
 '''
 
-output_file=r'static\auto_sheets\field_sample_internal.xlsx' 
-table_name='field_sample_internal' 
+output_file=r'static\auto_sheets\adna_wetlab_report.xlsx' 
+table_name='adna_wetlab_report' 
 schema_name='test_1'
 user = input("Enter your database username: ")
 password = getpass.getpass("Enter your password: ")
