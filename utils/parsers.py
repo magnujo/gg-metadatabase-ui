@@ -60,12 +60,14 @@ def parse(sheet,
     
 
     expected_columns = [element for element in expected_columns if element not in constants.auto_generated_columns]
+    print(sheet.columns)
 
+    sheet = sheet[expected_columns]
+    
+    print(sheet.columns)
 
     # TODO: Make unit test with mock data.
     assert expected_columns == list(sheet.columns), ("Column names and/or positions not as expected")
-    
-    
     
     for i, ele in enumerate(primary_key):
         if ele in constants.auto_generated_columns:
@@ -74,20 +76,20 @@ def parse(sheet,
         elif not ele in sheet.columns:
             raise Exception (f"Upload failed. Expected column {primary_key[i]} not found. Are you sure you uploaded the correct spreadsheet?")
 
-    if not constants.RUN_MODE == 'production' and 'uid' not in primary_key:
-        # For drop testing. Counts the number of rows where primary key is not null.
-        num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
+    # if not constants.RUN_MODE == 'production' and 'uid' not in primary_key:
+    #     # For drop testing. Counts the number of rows where primary key is not null.
+    #     num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
 
-        # TODO: Delete after deployment and ask make uploader responsible.
+    #     # TODO: Delete after deployment and ask make uploader responsible.
         
-        if set(primary_key).issubset(set(list(sheet.columns))):
-            sheet = sheet.dropna(axis='index', how='all', subset=primary_key)
-        else:
-            raise Exception (f"Upload failed. Expected columns {primary_key} not found in sheet columns {sheet.columns}. Contact {constants.ADMIN_EMAIL} if you think this is a mistake")
+    #     if set(primary_key).issubset(set(list(sheet.columns))):
+    #         sheet = sheet.dropna(axis='index', how='all', subset=primary_key)
+    #     else:
+    #         raise Exception (f"Upload failed. Expected columns {primary_key} not found in sheet columns {sheet.columns}. Contact {constants.ADMIN_EMAIL} if you think this is a mistake")
         
-        # Drop test:
-        if len(sheet) != num_of_not_null_rows:
-            raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
+    #     # Drop test:
+    #     if len(sheet) != num_of_not_null_rows:
+    #         raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
     
     # Parse dates, throws error if formatting is wrong in the sheet
     print("date_columns:" + str(date_columns))
