@@ -18,6 +18,7 @@ dependencies:
   - lxml
   - Flask-WTF
   - html5lib
+  - xlrd
   - pip
   - pip:
     - pretty_html_table

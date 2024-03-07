@@ -6,19 +6,27 @@ import pandas as pd
 import psycopg2
 import constants
 from sqlalchemy import create_engine
+import getpass
 
+excel_file = r'static\example_sheets_offline\SS0077_Sediment Soil Done Summary Table_240216.xls'
+database = 'aedna_metadata_test'
+schema = 'test_1'
+table_name = 'edna_wetlab_report'
 
-def add_cols_to_db(excel_file, database, user, table_name, schema):
+def add_cols_to_db(excel_file, database, table_name, schema):
     '''
     Updates the columns of a database to match the columns of a excel sheet.
     '''
+    
+    user = input("Enter your database username: ")
+    password = getpass.getpass("Enter your password: ")
     
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
         'database': database,
         'port': '5432',
         'user': user,
-        'password': os.environ.get('DB_PASSWORD'),
+        'password': password,
     }
    
     # Read the Excel spreadsheet to get column names
@@ -49,3 +57,4 @@ def add_cols_to_db(excel_file, database, user, table_name, schema):
 
 
 
+add_cols_to_db(excel_file=excel_file, database=database, table_name=table_name, schema=schema)
