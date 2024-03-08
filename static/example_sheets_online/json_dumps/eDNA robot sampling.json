@@ -1,0 +1,62 @@
+{
+    "SubSampleID": {
+        "Example of accepted data:": "LV7005368197",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "RackName": {
+        "Example of accepted data:": "Rack161",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "RackID": {
+        "Example of accepted data:": "LVL900117571\t",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "PositionInRack": {
+        "Example of accepted data:": "A01",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "Mass": {
+        "Example of accepted data:": 111.0,
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "SampledBy": {
+        "Example of accepted data:": "jkl123; lpk234\t",
+        "Prefered format:": "KU-ID, seperated by semicolon if multiple",
+        "Accepted format:": NaN
+    },
+    "SamplingDate": {
+        "Example of accepted data:": "2023-06-11",
+        "Prefered format:": NaN,
+        "Accepted format:": "YYYY-MM-DD or DD-MM-YYYY"
+    },
+    "RemarksSubSampling": {
+        "Example of accepted data:": "negative control",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "ArchiveSampleID": {
+        "Example of accepted data:": "LV3005887763",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    },
+    "Submitter": {
+        "Example of accepted data:": "gko001",
+        "Prefered format:": "KU-ID, seperated by semicolon if multiple",
+        "Accepted format:": NaN
+    },
+    "SubmissionDate": {
+        "Example of accepted data:": "2023-09-27",
+        "Prefered format:": NaN,
+        "Accepted format:": "YYYY-MM-DD or DD-MM-YYYY"
+    },
+    "RemarksSubmission": {
+        "Example of accepted data:": "Tj\u00f8rnin pilot study",
+        "Prefered format:": NaN,
+        "Accepted format:": NaN
+    }
+}
