@@ -46,7 +46,7 @@ if RUN_MODE == 'production':
         'port': '5432',
         'user': 'upload_user',
         'password': os.environ.get('DB_PASSWORD'),
-        'schema_name': 'test'
+        'schema_name': 'test_1'
     }
 
 elif RUN_MODE == 'development':
@@ -56,7 +56,7 @@ elif RUN_MODE == 'development':
         'port': '5432',
         'user': 'upload_user',
         'password': 'Ce65r-l+!D04',
-        'schema_name': 'test'
+        'schema_name': 'test_1'
     }
 
 DATABASE_CONFIG_2 = {
@@ -122,4 +122,6 @@ postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                            'timestamp without time zone'],
                   'int_range': ['int4range', 'int8range']}
 
-auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid']
+auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid', 'database_insert_date_utc']
+
+db_character_encoding = 'UTF-8'
