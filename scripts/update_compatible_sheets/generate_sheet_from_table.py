@@ -15,8 +15,8 @@ import getpass
 Automatically generates a compatible excel sheet template for a given table.
 '''
 
-output_file=r'static\auto_sheets\adna_wetlab_report.xlsx' 
-table_name='adna_wetlab_report' 
+output_file=r'static\auto_sheets\field_sample.xlsx' 
+table_name='field_sample_internal' 
 schema_name='test_1'
 user = input("Enter your database username: ")
 password = getpass.getpass("Enter your password: ")
@@ -87,15 +87,17 @@ full outer join information_schema.columns c on (
     cursor.close()
     conn.close()
 
-    df['Description'] = df['Description'].str.replace("nan", 'None')
+    df = df.rename(columns={'Description': 'Comment'})
+    df['Comment'] = df['Comment'].str.replace("nan", 'None')
 
-    df['Description'] = df['Description'].apply(si)
-
-    expanded_df = pd.json_normalize(df['Description'])
+    df['Comment'] = df['Comment'].apply(si)
+    expanded_df = pd.json_normalize(df['Comment'])
+    
     result_df = pd.concat([df, expanded_df], axis=1)
     result_df = result_df.fillna(np.nan)
     result_df = result_df.dropna(axis='rows', how='all')
-    result_df = result_df.drop(columns=['Description'])
+    result_df = result_df.dropna(axis='columns', how='all')
+    result_df = result_df.drop(columns=['Comment'])
     result_df.to_excel(output_file, index=False)
 
 generate_excel_from_table(output_file=output_file, 
