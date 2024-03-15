@@ -15,12 +15,14 @@ import getpass
 Automatically generates a compatible excel sheet template for a given table.
 '''
 
-output_file=r'static\auto_sheets\field_sample.xlsx' 
-table_name='field_sample_internal' 
+output_folder=r'static\auto_sheets'
+table_name='Field Samples' 
 schema_name='test_1'
 user = input("Enter your database username: ")
 password = getpass.getpass("Enter your password: ")
 database_name='aedna_metadata_test'
+sort_on_null = True
+transpose = False
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join('static', 'auto_sheets')
@@ -35,7 +37,7 @@ def si(value):
         return None
 
 
-def generate_excel_from_table(output_file, table_name, database_name, schema_name, user, password):
+def generate_excel_from_table(output_folder, table_name, database_name, schema_name, user, password):
     '''
     Generates spreaddsheet with a tables column names and corresponding data types and comments.
     '''
@@ -98,9 +100,19 @@ full outer join information_schema.columns c on (
     result_df = result_df.dropna(axis='rows', how='all')
     result_df = result_df.dropna(axis='columns', how='all')
     result_df = result_df.drop(columns=['Comment'])
-    result_df.to_excel(output_file, index=False)
+    if sort_on_null:
+        result_df = result_df.sort_values(by="Is Nullable")
+        
+    result_df_T = result_df[["Column Name"]]
+    result_df_T = result_df_T.set_index("Column Name")
+    result_df_T = result_df_T.T
+    result_df_T.to_excel(f'{os.path.join(output_folder, table_name)} Template.xlsx', index=False)
+    
+    result_df.to_excel(f'{os.path.join(output_folder, table_name)} Requirements.xlsx', index=False)
+    
+    
 
-generate_excel_from_table(output_file=output_file, 
+generate_excel_from_table(output_folder=output_folder, 
                           table_name=table_name, 
                           schema_name=schema_name,
                           user=user,
