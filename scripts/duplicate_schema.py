@@ -1,15 +1,20 @@
 import psycopg2
+import getpass
 
 # Replace these values with your database connection details
 DATABASE = "aedna_metadata_test"
-USER = "glj523"
-PASSWORD = "!"
+USER = input("Enter your database username: ")
+PASSWORD = getpass.getpass("Enter your password: ")
 HOST = "dandyweb01fl"
-PORT = ""
+PORT = "5432"
 
 # Replace these values with the schema names you want to create and copy tables to
-NEW_SCHEMA = "test_1"
-SOURCE_SCHEMA = "test"
+NEW_SCHEMA = "test_2"
+SOURCE_SCHEMA = "test_1"
+
+#TODO: Remove upload_user and all its privileges
+# Query to give privileges to upload_user 
+priv_q = f"GRANT SELECT, INSERT, DELETE ON ALL TABLES IN SCHEMA {NEW_SCHEMA} TO upload_user;"
 
 # Function to create a new schema
 def create_schema(conn, schema_name):
@@ -32,7 +37,7 @@ def copy_tables(conn, source_schema, destination_schema):
         tables = cursor.fetchall()
         for table in tables:
             table_name = table[0]
-            cursor.execute(f"CREATE TABLE {destination_schema}.{table_name} (LIKE {source_schema}.{table_name} INCLUDING ALL);")
+            cursor.execute(f'CREATE TABLE {destination_schema}.\"{table_name}\" (LIKE {source_schema}.\"{table_name}\" INCLUDING ALL);')
         conn.commit()
         print(f"Tables copied from schema '{source_schema}' to schema '{destination_schema}' successfully.")
     except Exception as e:
@@ -56,7 +61,18 @@ try:
 
     # Copy tables from source schema to the new schema
     copy_tables(conn, SOURCE_SCHEMA, NEW_SCHEMA)
-
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute(priv_q)
+        conn.commit()
+        print(f"Privileges given to upload_user succesfully")
+    except Exception as e:
+        print(f"Error copying tables: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+    
 except Exception as e:
     print(f"Error: {e}")
 
