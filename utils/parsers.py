@@ -15,10 +15,9 @@ def parse(sheet,
     print(schema_name)
     tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
     print(tables)
-    print(tables)
     
     if not database_table_name in tables:
-        raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}. \n {}')
+        raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}. \n {tables}')
     
     col_dtypes = queries.get_table_dtypes(database_table_name, schema_name)
     print(f"col_dtypes {col_dtypes}")

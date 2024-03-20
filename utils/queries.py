@@ -11,7 +11,7 @@ def get_table_names(schema_name, database_name):
     WHERE table_schema = '{schema_name}' and table_catalog = '{database_name}'
     '''
     df = pd.read_sql(sql=q, con=ENGINE)
-    return df['table_name']
+    return list(df['table_name'])
 
 def get_primary_key(table_name, schema_name, database_name):
     q = f'''
