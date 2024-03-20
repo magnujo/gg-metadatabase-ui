@@ -105,7 +105,7 @@ def upload_file():
             if '--no_file_test' in sys.argv:
                 pass
             else:
-                if os.path.exists(os.path.join(UPLOAD_FOLDER, file.filename)):
+                if os.path.exists(os.path.join(UPLOAD_FOLDER, file.filename)) and file_name != "laneBarcode.html":
                     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
             
             # else:
@@ -300,14 +300,16 @@ def integrity_test(database_table_name, file_name, clean_sheet):
             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
 
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
-    print(clean_sheet.columns)
-    print(uploaded_data.columns)
             
+    print('Running integrity test')       
     testing.assert_frame_equal(uploaded_data, clean_sheet)
-
+    print('Integrity test passed')
+    
+    print('Running extra integrity test')
     if not clean_sheet.equals(uploaded_data):
         raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
-
+    print('Extra integrity test passed')
+    
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
