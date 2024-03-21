@@ -1,8 +1,18 @@
+Everyone:
 1: Assign yourself to a task in GitHub issues
+2: Switch to development branch
 2: pull from origin main 
-3: make new task/feature branch and switch to it; call it "issue<issue_number>" if its related to an issue.
+Pull from origin development
+3: make new task/feature branch off the development branch and switch to it; call it "issue<issue_number>" if its related to an issue.
 4: make changes (whenever possible; make new functions/classes instead of adding to existing ones)
 5: commit changes to feature branch 
 6: repeat 4 and 5 until feature is done.
-7: when feature is done and all tests pass, push the branch to origin 
-8: Create pull request
+7: when feature is done and all tests pass, push the branch to origin <branch_name> 
+8: Create pull request to merge feture branch into development branch 
+
+Admin only:
+9: switch to development locally and pull from origin development
+10: test everything works on development, if not make feature branch to fix it 
+11: switch to main locally and pull from origin main
+12: merge development into main and locally and test everything works as expected
+13: push main to origin main
