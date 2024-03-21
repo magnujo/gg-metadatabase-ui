@@ -55,7 +55,7 @@ elif RUN_MODE == 'development':
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
-        'password': 'Ce65r-l+!D04',
+        'password': os.environ.get('DB_PASSWORD'),
         'schema_name': 'test_1'
     }
 
