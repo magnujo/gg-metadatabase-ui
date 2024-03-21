@@ -229,7 +229,7 @@ def confirmed():
         return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
     
     try:
-        if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
+        if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
             pass
         else:
             shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
