@@ -55,7 +55,7 @@ elif RUN_MODE == 'development':
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
-        'password': 'Ce65r-l+!D04',
+        'password': os.environ.get('DB_PASSWORD'),
         'schema_name': 'test_1'
     }
 
@@ -116,12 +116,13 @@ COLUMNS = {'field_sample_internal':
                {'float_columns':
                     []}}
 
-postgres_types = {'floating_point': ['double precision', 'numeric', 'real', 'decimal', 'float4', 'float8', 'float'],
+POSTGRES_TYPES = {'floating_point': ['double precision', 'numeric', 'real', 'decimal', 'float4', 'float8', 'float'],
                   'integer': ['smallint', 'integer', 'bigint', 'int', 'int2', 'int4', 'int8'],
                   'date': ['date', 'timestamptz', 'timestamp', 'time_stamp', 'timestamp with time zone',
                            'timestamp without time zone'],
                   'int_range': ['int4range', 'int8range']}
 
-auto_generated_columns = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid', 'database_insert_date_utc']
+AUTO_GENERATED_COLUMNS = ['database_insert_by', 'from_spreadsheet', 'database_insert_datetime_utc', 'uid', 'database_insert_date_utc', 'upload_uuid']
 
-db_character_encoding = 'UTF-8'
+
+DB_CHARACTER_ENCODING = 'UTF-8'
