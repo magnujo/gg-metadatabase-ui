@@ -66,8 +66,9 @@ def index():
 def upload_file():
     # logger.info('Running: ' + str(index.__name__))
     
-    upload_uuid = uuid.uuid4()
     session.clear()
+    upload_uuid = uuid.uuid4()
+    session['upload_id'] = upload_uuid
     session['email'] = None
     session['error'] = False
     session['error_message_user'] = None
@@ -346,12 +347,13 @@ def generate_html_message(message):
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
+        upload_id = session.get('upload_id')
         file_name = session.get('file_name')
         user_error, admin_error = generate_html_message(message)
         if revert_db:
                 database_table_name = session.get('database_table_name')
                 for table in constants.TABLE_SPLITTER.get(database_table_name):
-                    delete_db_entries(table, file_name=file_name)
+                    delete_db_entries(table, upload_id=upload_id)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message_user'] = user_error
