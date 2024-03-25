@@ -1,3 +1,4 @@
+from utils import misc
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import Email, DataRequired
@@ -28,6 +29,7 @@ import decorators
 from datetime import datetime
 import logging
 from logging.handlers import RotatingFileHandler
+import uuid
 
 env_vars = {'PRODUCTION': None}
 
@@ -63,7 +65,10 @@ def index():
 @decorators.log_info(app)
 def upload_file():
     # logger.info('Running: ' + str(index.__name__))
+    
     session.clear()
+    upload_uuid = uuid.uuid4()
+    session['upload_id'] = upload_uuid
     session['email'] = None
     session['error'] = False
     session['error_message_user'] = None
@@ -147,6 +152,7 @@ def upload_file():
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
                 
+                clean_sheet['upload_uuid'] = uuid.uuid4()
 
                 # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
                 clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
@@ -184,7 +190,7 @@ def confirmation_request():
         clean_sheets = []
         for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
-            clean_sheet = clean_sheet.iloc[:, :-3] # To not display the auto generated columns
+            clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
             clean_sheets.append(html_table_with_caption)
@@ -200,6 +206,8 @@ def confirmation_request():
 @decorators.log_info(app)
 def confirmed():
     try:
+        if session['error'] == True:
+            return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
     except Exception as e:
@@ -229,7 +237,7 @@ def confirmed():
         return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
     
     try:
-        if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
+        if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
             pass
         else:
             shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
@@ -258,7 +266,7 @@ def success():
         all_tables = []
         for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
             uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
-            uploaded_data = uploaded_data.iloc[:, :-3] # To not display the auto generated columns
+            uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
             all_tables.append(uploaded_data)
         return render_template('results.html', uploaded_data=all_tables, admin_emails=ADMIN_EMAIL)
@@ -292,7 +300,9 @@ def integrity_test(database_table_name, file_name, clean_sheet):
         for db_generated_col in constants.DB_GENERATED_COLUMNS.get(database_table_name):
             if db_generated_col in list(uploaded_data.columns):
                 uploaded_data.drop(db_generated_col, axis=1, inplace=True)
-            
+    
+    clean_sheet = misc.match_column_positions(clean_sheet, uploaded_data)
+    
     # for i in range(len(clean_sheet.dtypes)):
     #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
         
@@ -337,12 +347,13 @@ def generate_html_message(message):
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
+        upload_id = session.get('upload_id')
         file_name = session.get('file_name')
         user_error, admin_error = generate_html_message(message)
         if revert_db:
                 database_table_name = session.get('database_table_name')
                 for table in constants.TABLE_SPLITTER.get(database_table_name):
-                    delete_db_entries(table, file_name=file_name)
+                    delete_db_entries(table, upload_id=upload_id)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message_user'] = user_error

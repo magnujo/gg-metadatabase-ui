@@ -18,10 +18,10 @@ def delete_files(file_name, original=False, parsed=False, uploaded=False):
                 os.remove(os.path.join(PARSED_SHEETS_FOLDER, file_name))
     
 # TODO: Make more secure: implement time check for example.
-def delete_db_entries(database_table_name, file_name):
+def delete_db_entries(database_table_name, upload_id):
     connection = psycopg2.connect(**DATABASE_CONFIG_2)
     cursor = connection.cursor()
-    cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';")
+    cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{upload_id}\';")
     connection.commit()
     cursor.close()
     connection.close()
