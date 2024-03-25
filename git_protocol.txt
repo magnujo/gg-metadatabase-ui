@@ -1,22 +1,30 @@
+Read this:
+https://nvie.com/posts/a-successful-git-branching-model/
+
 Everyone:
-1: Assign yourself to a task in GitHub issues
-2: Switch to development branch
-2: pull from origin main 
+Assign yourself to a task in GitHub issues
+Switch to development branch
+Pull from origin development
 3: make new task/feature branch off the development branch and switch to it; call it "issue<issue_number>" if its related to an issue.
 4: make changes (whenever possible; make new functions/classes instead of adding to existing ones)
-5: commit changes to feature branch (do atomic commits)
+5: commit changes to feature branch (do as small commits as possible)
 6: repeat 4 and 5 until feature is done. 
-7: when feature is done and all tests pass push to origin <branch_name> (pull first if more people are working on the same feature) 
+7: when feature is done tested push to origin <feature_branch_name> (pull first if more people are working on the same feature) 
 8: Create pull request to merge feture branch into development branch 
 
 Admin only:
 9: Review pull request
 If Code is good merge it into development
-9: switch to development locally and pull from origin main and then pull from origin development
-10: test everything works on development, if not make feature branch to fix it at merge back into development
-11: switch to main locally and pull from origin main
-12: merge development into main and locally and test everything works as expected in a correct environment, if not make hotfix branch to fix it and merge back into main locally
-13: merge main into development locally 
-push main to origin main
-push development to origin development
+9: switch to development locally and pull from origin development
+Make a release-* branch (where * is the realease version) off of development
+test the release in the correct environment, and fix any bugs
+when everything is tested merge into origin main and origin development
 pull from origin main on the webserver
+make sure everything works as expected otherwise make a bug fix branch
+
+Bugfixing:
+Switch to main and pull form origin main
+Branch off into hotfix branch
+Fix the bug
+Merge into origin main and origin development
+Pull from origin main on the webserver
