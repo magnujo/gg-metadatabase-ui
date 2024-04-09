@@ -78,7 +78,8 @@ SHEET_TYPES = {
     'adna_wetlab_report': 'aDNA Wet lab final report',
     'cgg_sediment_water': 'CGG Sediment Water',
     'cgg_animal_plant': 'CGG Animal Plant',
-    'lane_barcode_html': 'Lane Barcode HTML'
+    'lane_barcode_html': 'Lane Barcode HTML',
+    'seq_sample_sheet': 'Sequencing Center Sample Sheet'
 }
 
 FILE_EXTENSIONS = {
@@ -89,7 +90,8 @@ FILE_EXTENSIONS = {
     'adna_wetlab_report': '.xlsx',
     'cgg_sediment_water': '.xlsx',
     'cgg_animal_plant': '.xlsx',
-    'lane_barcode_html': '.xlsx'
+    'lane_barcode_html': '.html',
+    'seq_sample_sheet': '.xlsx'
 }
 
 DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
@@ -102,7 +104,8 @@ TABLE_SPLITTER = {
     'adna_wetlab_report': ['adna_wetlab_report'],
     'cgg_sediment_water': ['cgg_sediment_water'],
     'cgg_animal_plant': ['cgg_animal_plant'],
-    'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']
+    'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes'],
+    'seq_sample_sheet': ['seq_sample_sheet']
 }
 
 

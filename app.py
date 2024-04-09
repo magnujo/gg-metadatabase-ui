@@ -1,3 +1,4 @@
+import seq_center_sample_sheet_parser
 from utils import misc
 from flask_wtf import FlaskForm
 from wtforms import StringField
@@ -127,13 +128,15 @@ def upload_file():
             
             sheets_to_parse = []
             if database_table_name in constants.MULTI_TABLE_SHEETS:
-                
+                # TODO: Make more general:
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
             else:
                 sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+                if database_table_name == "seq_sample_sheet":
+                    sheet = seq_center_sample_sheet_parser.parse(sheet)
                 sheets_to_parse.append(sheet)
             
             clean_sheets = []
