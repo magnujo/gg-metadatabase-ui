@@ -17,13 +17,13 @@
 <body>
     <div class="container-fluid">
         <h1>Parsed data</h1>
-        <p>You date is now parsed and ready for upload to the following tables in the database:   
+        <p>Your data is now parsed and ready for upload to the following tables in the database:   
             {% for table in table_names %}
                 <li><a href="#{{ table }}">{{ table }}</a></li>
             {% endfor %}
             <br>
             Click the links above to see what data goes into what table, and confirm that you want to upload it all, by pressing the confirm button on the buttom of the page. 
-            If it looks wrong, press cancel and make sure you chose the correct format settings on the previous page.
+            It might help to zoom out, too see all the data. If it looks wrong, press cancel and make sure you chose the correct format settings on the previous page.
             Otherwise contact admin for help.
         </p>
         <!-- Embedded DataFrame HTML -->
