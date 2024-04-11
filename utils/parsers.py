@@ -53,14 +53,14 @@ def parse(sheet,
     # for i in range(j, len(expected_columns)):
     #     print(expected_columns[i])
     
-
-    expected_columns = [element for element in expected_columns if element not in constants.AUTO_GENERATED_COLUMNS]
-
-    sheet = sheet[expected_columns]
     
+    expected_columns = [element for element in expected_columns if element not in constants.AUTO_GENERATED_COLUMNS]
+   
+    # sheet = sheet[expected_columns]
+
 
     # TODO: Make unit test with mock data.
-    assert expected_columns == list(sheet.columns), ("Column names and/or positions not as expected")
+    # assert expected_columns == list(sheet.columns), ("Column names and/or positions not as expected")
     
     for i, ele in enumerate(primary_key):
         if ele in constants.AUTO_GENERATED_COLUMNS:
