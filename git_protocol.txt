@@ -18,7 +18,7 @@ If Code is good merge it into development
 9: switch to development locally and pull from origin development
 Make a release-* branch (where * is the realease version) off of development
 test the release in the correct environment, and fix any bugs
-when everything is tested merge into origin main and origin development
+when everything is tested merge release branch into origin main and origin development
 pull from origin main on the webserver
 make sure everything works as expected otherwise make a bug fix branch
 
