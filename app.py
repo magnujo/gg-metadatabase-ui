@@ -70,6 +70,7 @@ def upload_file():
     session.clear()
     upload_uuid = uuid.uuid4()
     session['upload_id'] = upload_uuid
+    print(session.get('upload_id'))
     session['email'] = None
     session['error'] = False
     session['error_message_user'] = None
@@ -155,7 +156,7 @@ def upload_file():
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
                 
-                clean_sheet['upload_uuid'] = uuid.uuid4()
+                clean_sheet['upload_uuid'] = session.get('upload_id')
 
                 # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
                 clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
@@ -189,7 +190,8 @@ def confirmation_request():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        
+        print(session.get('upload_id'))
+
         clean_sheets = []
         for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
@@ -213,6 +215,7 @@ def confirmed():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
+        print(session.get('upload_id'))
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
     
@@ -262,6 +265,7 @@ def success():
     try:
         if session['error'] == True:
             return redirect(url_for("index"))
+        
         
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
@@ -313,7 +317,7 @@ def integrity_test(database_table_name, file_name, clean_sheet):
             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
 
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
-            
+    
     print('Running integrity test')       
     testing.assert_frame_equal(uploaded_data, clean_sheet)
     print('Integrity test passed')
@@ -350,6 +354,7 @@ def generate_html_message(message):
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
+        print("\n General error handling... \n")
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
         user_error, admin_error = generate_html_message(message)
