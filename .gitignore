@@ -374,6 +374,7 @@ cython_debug/
 
 !scripts
 
+playground.py
 
 # Icon must end with two \r
 Icon
