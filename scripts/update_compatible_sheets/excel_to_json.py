@@ -1,3 +1,14 @@
+'''
+The scripts should be used with caution.
+
+Only edit compatible sheets by updating the table in the database and run generate_sheet_from_table.py.
+Not the other way around. This is to prevent inconsistency between db tables and compatible sheets.
+
+excel_to_json and update_comments_from_json should only be used for special cases.
+'''
+
+
+
 import pandas as pd
 import json
 
@@ -6,6 +17,8 @@ output_file = r'static\example_sheets_online\json_dumps\Field sampling (internal
 
 def run(input_file, output_file):
     '''
+    
+    
     Makes or updates a json file from excel sheet. Use together with update_comments_from_json.py for example 
     to add/update comments of a table with a spreadsheet.
     '''

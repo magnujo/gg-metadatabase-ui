@@ -91,8 +91,15 @@ full outer join information_schema.columns c on (
 
     df = df.rename(columns={'Description': 'Comment'})
     df['Comment'] = df['Comment'].str.replace("nan", 'None')
-
     df['Comment'] = df['Comment'].apply(si)
+    # for i, comment in enumerate(df['Comment']):
+    #     print(df['Column Name'][i])
+    #     if type(comment) is not dict:
+    #         raise Exception(f"Commment on row {i} is not dictionary as expected")
+    #     print(comment)
+    #     print("\n")
+    
+    # Error happens around here. May be related to auto generated columns?
     expanded_df = pd.json_normalize(df['Comment'])
     
     result_df = pd.concat([df, expanded_df], axis=1)
@@ -106,9 +113,14 @@ full outer join information_schema.columns c on (
     result_df_T = result_df[["Column Name"]]
     result_df_T = result_df_T.set_index("Column Name")
     result_df_T = result_df_T.T
-    result_df_T.to_excel(f'{os.path.join(output_folder, table_name)} Template.xlsx', index=False)
+    # result_df_T.to_excel(f'{os.path.join(output_folder, table_name)} Template.xlsx', index=False)
     
-    result_df.to_excel(f'{os.path.join(output_folder, table_name)} Requirements.xlsx', index=False)
+    # result_df.to_excel(f'{os.path.join(output_folder, table_name)} Requirements.xlsx', index=False)
+    
+    with pd.ExcelWriter(f'{os.path.join(output_folder, table_name)} Meta Data Requirements and Template.xlsx') as writer:
+    # Write each dataframe to a separate sheet
+        result_df.to_excel(writer, sheet_name='Requirements', index=False)
+        result_df_T.to_excel(writer, sheet_name='Template', index=False)
     
     
 
