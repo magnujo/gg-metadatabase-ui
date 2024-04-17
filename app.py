@@ -49,6 +49,7 @@ app.logger.setLevel(logging.DEBUG)
 @decorators.log_info(app)
 def index():
     app.logger.info("Index")
+    
     if os.environ.get('MAINTAINANCE') and os.environ.get('MAINTAINANCE').lower() == "yes":
         return render_template('maintainance.html')
     else:
@@ -62,7 +63,7 @@ def index():
         example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
     
         return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
-    
+ 
 
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
@@ -137,6 +138,8 @@ def upload_file():
                 sheets_to_parse.append(top_unknown_barcodes)
             else:
                 sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{constants.TABLE_SPLITTER[database_table_name][0]};", con=ENGINE)
+        
                 if database_table_name == "seq_sample_sheet":
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
                 sheets_to_parse.append(sheet)
@@ -157,18 +160,28 @@ def upload_file():
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
                 
-                clean_sheet['upload_uuid'] = uuid.uuid4()
+                clean_sheet['upload_uuid'] = session.get('upload_id')
 
                 # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
                 clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
                 # Convert to ns to enable testing (postgres converts to ns, when uploading)
                 clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                print(clean_sheet.columns)
+                
+                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{constants.TABLE_SPLITTER[database_table_name][i]};", con=ENGINE)
+                clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
+                assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
+
+
                 clean_sheets.append(clean_sheet)
 
         else:
             raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
 
+        
+        
         for i, clean_sheet in enumerate(clean_sheets):
+            
             clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file.filename}_{i}'), index=False, encoding='utf_16', sep="\t")
 
         return redirect(url_for("confirmation_request"))
@@ -191,7 +204,7 @@ def confirmation_request():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-        
+
         clean_sheets = []
         for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
@@ -210,6 +223,7 @@ def confirmation_request():
 @app.route('/confirmed', methods=['POST'])
 @decorators.log_info(app)
 def confirmed():
+    print("Confirmed")
     try:
         if session['error'] == True:
             return redirect(url_for("index"))
@@ -232,7 +246,7 @@ def confirmed():
             if '--no_upload_test' in sys.argv:
                 pass
             else:
-                integrity_test(table_name, file_name, clean_sheet)
+                integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
     
     except SQLAlchemyError as e:
         # Catch any SQLAlchemy-related errors
@@ -265,6 +279,7 @@ def success():
         if session['error'] == True:
             return redirect(url_for("index"))
         
+        
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
 
@@ -289,17 +304,21 @@ def error():
     #error_message = request.args.get('error_message', 'An error occurred.')
     return render_template('error.html', email_send=session.get('email_send'), error_message=error_message, admin=ADMIN_EMAIL)
 
-def integrity_test(database_table_name, file_name, clean_sheet):    
-    uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
+def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
+    uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
 
     uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
     clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
             
     clean_sheet = clean_sheet.astype(str)
     uploaded_data = uploaded_data.astype(str)
-            
+    
     clean_sheet = clean_sheet.replace("NaT", "nan")
     uploaded_data = uploaded_data.replace("NaT", "nan")
+    
+    # Converts everything to lowercase
+    uploaded_data = uploaded_data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+    clean_sheet = clean_sheet.applymap(lambda x: x.lower() if isinstance(x, str) else x)
 
     if database_table_name in constants.DB_GENERATED_COLUMNS:
         for db_generated_col in constants.DB_GENERATED_COLUMNS.get(database_table_name):
@@ -308,6 +327,14 @@ def integrity_test(database_table_name, file_name, clean_sheet):
     
     clean_sheet = misc.match_column_positions(clean_sheet, uploaded_data)
     
+    clean_sheet = clean_sheet.sort_values(by=clean_sheet.columns.tolist()).reset_index(drop=True)
+    uploaded_data = uploaded_data.sort_values(by=uploaded_data.columns.tolist()).reset_index(drop=True)
+    
+    print(clean_sheet.shape)
+    print(uploaded_data.shape)
+    
+    assert clean_sheet.shape == uploaded_data.shape, "Shape input file does not match shape of uploaded data."
+    
     # for i in range(len(clean_sheet.dtypes)):
     #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
         
@@ -315,7 +342,7 @@ def integrity_test(database_table_name, file_name, clean_sheet):
             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
 
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
-            
+    
     print('Running integrity test')       
     testing.assert_frame_equal(uploaded_data, clean_sheet)
     print('Integrity test passed')
@@ -352,6 +379,7 @@ def generate_html_message(message):
 
 def general_error_handling(message, revert_db=False, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
+        print("\n General error handling... \n")
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
         user_error, admin_error = generate_html_message(message)
@@ -392,7 +420,7 @@ if __name__ == '__main__':
         constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    
+    print(f"RUNMODE:{constants.RUN_MODE}")
     if constants.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)
     elif constants.RUN_MODE == 'development':

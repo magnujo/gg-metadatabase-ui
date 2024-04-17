@@ -1,7 +1,18 @@
+'''
+The scripts should be used with caution.
+
+Only edit compatible sheets by updating the table in the database and run generate_sheet_from_table.py.
+Not the other way around. This is to prevent inconsistency between db tables and compatible sheets.
+
+excel_to_json and update_comments_from_json should only be used for special cases.
+'''
+
+
+
+
 import json
 import psycopg2
 import getpass
-
 
 
 '''
