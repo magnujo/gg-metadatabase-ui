@@ -98,8 +98,9 @@ full outer join information_schema.columns c on (
     #         raise Exception(f"Commment on row {i} is not dictionary as expected")
     #     print(comment)
     #     print("\n")
-    
     # Error happens around here. May be related to auto generated columns?
+    df = df.reset_index(drop=True)
+    print(df[df["Column Name"] == "Environmental Medium"])
     expanded_df = pd.json_normalize(df['Comment'])
     
     result_df = pd.concat([df, expanded_df], axis=1)
