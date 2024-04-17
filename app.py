@@ -49,17 +49,21 @@ app.logger.setLevel(logging.DEBUG)
 @decorators.log_info(app)
 def index():
     app.logger.info("Index")
-    if 'error' not in session:
-        session['error'] = False 
-    if 'error_message_user' not in session:  
-        session['error_message_user'] = None
-    if 'error_message_admin' not in session:
-        session['error_message_admin'] = None
     
-    example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
+    if os.environ.get('MAINTAINANCE') and os.environ.get('MAINTAINANCE').lower() == "yes":
+        return render_template('maintainance.html')
+    else:
+        if 'error' not in session:
+            session['error'] = False 
+        if 'error_message_user' not in session:  
+            session['error_message_user'] = None
+        if 'error_message_admin' not in session:
+            session['error_message_admin'] = None
+        
+        example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
     
-    return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
-    
+        return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
+ 
 
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
