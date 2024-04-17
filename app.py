@@ -300,7 +300,7 @@ def error():
     #error_message = request.args.get('error_message', 'An error occurred.')
     return render_template('error.html', email_send=session.get('email_send'), error_message=error_message, admin=ADMIN_EMAIL)
 
-def integrity_test(database_table_name, file_name, clean_sheet, upload_id):    
+def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
 
     uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
@@ -309,15 +309,12 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     clean_sheet = clean_sheet.astype(str)
     uploaded_data = uploaded_data.astype(str)
     
-    # Converts everything to lowercase
-    uploaded_data = uploaded_data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
-    clean_sheet = clean_sheet.applymap(lambda x: x.lower() if isinstance(x, str) else x)
-            
     clean_sheet = clean_sheet.replace("NaT", "nan")
     uploaded_data = uploaded_data.replace("NaT", "nan")
     
-
-    
+    # Converts everything to lowercase
+    uploaded_data = uploaded_data.applymap(lambda x: x.lower() if isinstance(x, str) else x)
+    clean_sheet = clean_sheet.applymap(lambda x: x.lower() if isinstance(x, str) else x)
 
     if database_table_name in constants.DB_GENERATED_COLUMNS:
         for db_generated_col in constants.DB_GENERATED_COLUMNS.get(database_table_name):
@@ -325,6 +322,14 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
                 uploaded_data.drop(db_generated_col, axis=1, inplace=True)
     
     clean_sheet = misc.match_column_positions(clean_sheet, uploaded_data)
+    
+    clean_sheet = clean_sheet.sort_values(by=clean_sheet.columns.tolist()).reset_index(drop=True)
+    uploaded_data = uploaded_data.sort_values(by=uploaded_data.columns.tolist()).reset_index(drop=True)
+    
+    print(clean_sheet.shape)
+    print(uploaded_data.shape)
+    
+    assert clean_sheet.shape == uploaded_data.shape, "Shape input file does not match shape of uploaded data."
     
     # for i in range(len(clean_sheet.dtypes)):
     #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
