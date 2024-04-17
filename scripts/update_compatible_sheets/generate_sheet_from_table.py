@@ -102,8 +102,8 @@ full outer join information_schema.columns c on (
     df = df.reset_index(drop=True)
     print(df[df["Column Name"] == "Environmental Medium"])
     expanded_df = pd.json_normalize(df['Comment'])
-    
     result_df = pd.concat([df, expanded_df], axis=1)
+    
     result_df = result_df.fillna(np.nan)
     result_df = result_df.dropna(axis='rows', how='all')
     result_df = result_df.dropna(axis='columns', how='all')

@@ -1,2 +1,5 @@
 To Run on Windows:
 $env:RUN_MODE = "development"; $env:EMAIL_PASSWORD = ""; $env:DB_PASSWORD = ""; c:/Users/glj523/AppData/Local/miniconda3/envs/db_web_app/python.exe "c:/Users/glj523/Documents/github repoes/upload_web_app/app.py"
+
+To Debug using Windows:
+$env:RUN_MODE = "development"; $env:EMAIL_PASSWORD = ""; $env:DB_PASSWORD = ""; c:; cd 'c:\Users\glj523\Documents\github repoes\upload_web_app'; & 'c:\Users\glj523\AppData\Local\miniconda3\envs\db_web_app\python.exe' 'c:\Users\glj523\.vscode\extensions\ms-python.debugpy-2024.4.0-win32-x64\bundled\libs\debugpy\adapter/../..\debugpy\launcher' '51856' '--' 'c:\Users\glj523\Documents\github repoes\upload_web_app\app.py' 

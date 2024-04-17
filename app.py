@@ -58,7 +58,6 @@ def index():
     
     example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
     
-    
     return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
     
 
@@ -220,6 +219,7 @@ def confirmation_request():
 @app.route('/confirmed', methods=['POST'])
 @decorators.log_info(app)
 def confirmed():
+    print("Confirmed")
     try:
         if session['error'] == True:
             return redirect(url_for("index"))
@@ -411,7 +411,7 @@ if __name__ == '__main__':
         constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    
+    print(f"RUNMODE:{constants.RUN_MODE}")
     if constants.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)
     elif constants.RUN_MODE == 'development':
