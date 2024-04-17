@@ -241,7 +241,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-*.ipynb
 
 
 # Translations
@@ -423,5 +422,5 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-*.ipynb
+playground.ipynb
 

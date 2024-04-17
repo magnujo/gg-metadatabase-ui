@@ -26,6 +26,7 @@ def get_primary_key(table_name, schema_name, database_name):
         tc.constraint_type = 'PRIMARY KEY' 
         and tc.table_name = '{table_name}'
         and tc.table_schema = '{schema_name}'
+        and kcu.constraint_schema = '{schema_name}'
         and tc.table_catalog = '{database_name}'
     '''
     df = pd.read_sql_query(q, ENGINE)

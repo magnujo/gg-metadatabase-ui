@@ -19,10 +19,11 @@ def delete_files(file_name, original=False, parsed=False, uploaded=False):
     
 # TODO: Make more secure: implement time check for example.
 def delete_db_entries(database_table_name, upload_id):
-    connection = psycopg2.connect(**DATABASE_CONFIG_2)
-    cursor = connection.cursor()
-    cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where from_spreadsheet = \'{upload_id}\';")
-    connection.commit()
-    cursor.close()
-    connection.close()
+        print(f"\n DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\'; \n")
+        connection = psycopg2.connect(**DATABASE_CONFIG_2)
+        cursor = connection.cursor()
+        cursor.execute(f"DELETE FROM {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';")
+        connection.commit()
+        cursor.close()
+        connection.close()
 
