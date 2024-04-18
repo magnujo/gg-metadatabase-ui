@@ -13,6 +13,7 @@ import inspect
 import shutil
 import constants
 import log_util
+from utils import queries
 from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
@@ -72,7 +73,14 @@ def upload_file():
     
     session.clear()
     upload_uuid = uuid.uuid4()
+    
     session['upload_id'] = upload_uuid
+    
+    tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=DATABASE_CONFIG['database'], schema=DATABASE_CONFIG['schema_name'], upload_id=session.get('upload_id'))
+                
+    if len(tables_with_uid) != 0:
+        raise Exception(f"Found upload_id already in {tables_with_uid}")
+    
     session['email'] = None
     session['error'] = False
     session['error_message_user'] = None
@@ -81,6 +89,7 @@ def upload_file():
     session['email_send'] = False
     file = request.files['file']
     file_name = file.filename
+    
     try:
         if file.filename == '':
             raise DontTriggerFileDeletion('No selected file')
@@ -114,6 +123,7 @@ def upload_file():
             if '--no_file_test' in sys.argv:
                 pass
             else:
+                # TODO Make more general
                 if os.path.exists(os.path.join(UPLOAD_FOLDER, file.filename)) and file_name != "laneBarcode.html":
                     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
             
@@ -130,35 +140,43 @@ def upload_file():
             #                        thousands_seperator=thousands_seperator)
             
             sheets_to_parse = []
+            print(database_table_name)
             if database_table_name in constants.MULTI_TABLE_SHEETS:
                 # TODO: Make more general:
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
-            else:
-                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
-                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{constants.TABLE_SPLITTER[database_table_name][0]};", con=ENGINE)
-        
+            else:       
                 if database_table_name == "seq_sample_sheet":
+                    l = []
+                    for i in range(10):
+                        l.append(f"Column{i+1}")
+                    sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
+                else:
+                    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
                 sheets_to_parse.append(sheet)
             
             clean_sheets = []
             
             for i, sheet in enumerate(sheets_to_parse):
+                split_database_table_name = constants.TABLE_SPLITTER[database_table_name][i]
                 clean_sheet = parsers.parse(sheet=sheet,
-                                            database_table_name=constants.TABLE_SPLITTER[database_table_name][i],
+                                            database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
                                             thousands_seperator=thousands_seperator)
                 
-            
+
                 # Adds rows about which user was responsible for the upload:
                 clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
+                
+                if queries.check_if_upload_id_exists_in_table(schema=DATABASE_CONFIG['schema_name'], table=split_database_table_name, upload_id=session.get('upload_id')):
+                    raise Exception(f"Found upload_id in {split_database_table_name} already")
                 
                 clean_sheet['upload_uuid'] = session.get('upload_id')
 
@@ -168,10 +186,23 @@ def upload_file():
                 clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
                 print(clean_sheet.columns)
                 
-                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{constants.TABLE_SPLITTER[database_table_name][i]};", con=ENGINE)
+                
+                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
+                
+                # Removing db auto generated columns to make comparisons possible because this column will never be in the clean_sheet
+                table_info_df = queries.get_table_information(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
+                db_generated_uuid = table_info_df[table_info_df["column_default"] == 'gen_random_uuid()']["column_name"]
+
+                if len(db_generated_uuid) < 0 or len(db_generated_uuid) > 1:
+                    raise Exception(f"Found {len(db_generated_uuid)} db generated uuid in {split_database_table_name}, but expects 0 or 1") 
+                elif len(db_generated_uuid) == 1:
+                    db_generated_uuid = db_generated_uuid.iloc[0]
+                    db_table_data = db_table_data.drop(columns=db_generated_uuid)
+                else:
+                    pass
+                
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
-
 
                 clean_sheets.append(clean_sheet)
 
@@ -229,12 +260,25 @@ def confirmed():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
+        
+        for i, table_name in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+            upload_id = list(clean_sheet["upload_uuid"].unique())
+            if len(upload_id) !=1:
+                raise Exception(f"Found multiple upload_ids in the data you are trying to upload")
+            else:
+                upload_id = upload_id[0]
+                tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=DATABASE_CONFIG["database"], schema=DATABASE_CONFIG["schema_name"], upload_id=upload_id)
+                if len(tables_with_uid) != 0:
+                    raise Exception(f"Found upload id already in {tables_with_uid}")
+        
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
     
     try:
         for i, table_name in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+              
             clean_sheet.to_sql(name=table_name, 
                                 schema=DATABASE_CONFIG['schema_name'], 
                                 con=ENGINE, 
@@ -246,6 +290,7 @@ def confirmed():
             if '--no_upload_test' in sys.argv:
                 pass
             else:
+                
                 integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
     
     except SQLAlchemyError as e:
@@ -285,7 +330,7 @@ def success():
 
         all_tables = []
         for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
-            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where from_spreadsheet = \'{file_name}\';", con=ENGINE)
+            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
             all_tables.append(uploaded_data)

@@ -1,4 +1,5 @@
 import constants
+import utils.queries as q
 
 def drop_auto_generated_columns(dataframe):
     '''
@@ -13,7 +14,7 @@ def match_column_positions(upload_file_df, db_data_df):
     Tries to rearrange the column positions of upload_file to match db_data. 
     If number of columns or column names differ an exception gets raised.
     '''
-
+  
     if len(upload_file_df.columns) == len(db_data_df.columns):
         try:
             upload_file_df = upload_file_df[db_data_df.columns]

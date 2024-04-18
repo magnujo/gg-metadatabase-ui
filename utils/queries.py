@@ -2,7 +2,32 @@ from constants import DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import pandas as pd
 import psycopg2
 
- 
+
+def upload_id_filter(schema, table, upload_id):
+    q = f'''
+    select * from "{schema}"."{table}" where upload_uuid = '{upload_id}'
+    '''
+    return q
+
+def check_if_upload_id_exists_in_table(schema, table, upload_id):
+    '''
+    Returns true if upload_id exists in the upload_uuid column of schema.table
+    '''
+    q = upload_id_filter(schema, table, upload_id)
+    df = pd.read_sql(sql=q, con=ENGINE)
+    if len(df) != 0:
+        return True
+    else:
+        return False
+    
+def check_if_upload_id_exists_in_schema(database, schema, upload_id):
+    cases = []
+    table_names = get_table_names(schema, database)
+    for table in table_names:
+        if check_if_upload_id_exists_in_table(schema, table, upload_id):
+            cases.append(table)
+    return cases
+    
  
 def get_table_names(schema_name, database_name):
     q = f'''    
