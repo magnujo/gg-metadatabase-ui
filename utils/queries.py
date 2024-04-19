@@ -113,3 +113,35 @@ def get_possible_datatypes(category):
     df = pd.read_sql_query(q, ENGINE)
     return list(df['typname'])
 
+def count_rows(database, schema, table_name):
+    # Connect to PostgreSQL database
+    conn = psycopg2.connect(
+        host=DATABASE_CONFIG['host'],
+        database=database,
+        user=DATABASE_CONFIG['user'],
+        password=DATABASE_CONFIG['password']
+    )
+    
+    # Create a cursor object
+    cursor = conn.cursor()
+    
+    try:
+        # Execute SQL query to count rows of the table
+        query = f'SELECT COUNT(*) FROM \"{database}\".\"{schema}\".\"{table_name}\";'
+        cursor.execute(query)
+        
+        # Fetch the result
+        row_count = cursor.fetchone()[0]
+        
+        return row_count
+    except (Exception, psycopg2.Error) as error:
+        print("Error counting rows:", error)
+    finally:
+        # Close the cursor and connection
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+
