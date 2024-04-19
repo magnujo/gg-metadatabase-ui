@@ -278,7 +278,6 @@ def confirmed():
     try:
         for i, table_name in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
-              
             clean_sheet.to_sql(name=table_name, 
                                 schema=DATABASE_CONFIG['schema_name'], 
                                 con=ENGINE, 
@@ -290,12 +289,12 @@ def confirmed():
             if '--no_upload_test' in sys.argv:
                 pass
             else:
-                
                 integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
+                raise Exception("Test")
     
     except SQLAlchemyError as e:
         # Catch any SQLAlchemy-related errors
-        return general_error_handling(message=e.orig, revert_db=True, files_to_del=files_to_del['Before Upload'])
+        return general_error_handling(message=e.orig, revert_db=False, files_to_del=files_to_del['Before Upload'])
     
     except Exception as e:
         return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
@@ -430,8 +429,10 @@ def general_error_handling(message, revert_db=False, files_to_del={'original': F
         user_error, admin_error = generate_html_message(message)
         if revert_db:
                 database_table_name = session.get('database_table_name')
-                for table in constants.TABLE_SPLITTER.get(database_table_name):
-                    delete_db_entries(table, upload_id=upload_id)
+                for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+                    clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                    num_of_rows_to_del = len(clean_sheet)
+                    delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=num_of_rows_to_del)
         delete_files(file_name=file_name, **files_to_del)
         # session.clear()
         session['error_message_user'] = user_error
