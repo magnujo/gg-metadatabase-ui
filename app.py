@@ -297,15 +297,16 @@ def confirmed():
                                     index=False)
                 tran.commit()
         
+        
         except SQLAlchemyError as e:
             try:
                 tran.rollback()
                 row_count_after = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
                 if row_count_after != row_count_before:
-                    raise Exception("IMPORTANT ERROR OCCURED: Click report below to notify admin.")
+                     # TODO: What if another person uploaded to the same table in the meantime? Then this exception will happen?
+                    raise Exception(f"!!!VERY IMPORTANT!!!: There was an unexpected error rolling back while trying to upload file {file_name} with upload_id {upload_id} at {pd.Timestamp.now()}. CLICK BELOW TO NOTIFY ADMIN.")
             except Exception as e:
-                message = f"IMPORTANT ERROR OCCURED: Click report below to notify admin. Error message: {e}"
-                return general_error_handling(message=message, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+                return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload']) 
             else:    
             # Catch any SQLAlchemy-related errors
                 return general_error_handling(message=e.orig, revert_db=False, files_to_del=files_to_del['Before Upload']) 
@@ -331,14 +332,14 @@ def confirmed():
         except Exception as e:
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
-        try:
-                if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
-                    pass
-                else:
-                    shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
+    try:
+        if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
+            pass
+        else:
+            shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
                 
-        except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+    except Exception as e:
+        return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
                     
     return redirect(url_for("success")) 
 
@@ -354,8 +355,7 @@ def success():
     try:
         if session['error'] == True:
             return redirect(url_for("index"))
-        
-        
+              
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
 
