@@ -260,10 +260,13 @@ def confirmed():
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
         table_splits = constants.TABLE_SPLITTER.get(database_table_name)
+        uploaded_rows = {}
+        tables_uploaded_to = []
         
     except Exception as e:
         return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])
     
+    # UPLOADING
     for i, table_name in enumerate(table_splits):
         try:
             parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
@@ -310,21 +313,22 @@ def confirmed():
             else:    
             # Catch any SQLAlchemy-related errors
                 return general_error_handling(message=e.orig, revert_db=False, files_to_del=files_to_del['Before Upload']) 
-        
-    
-        try:
-                row_count_after = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
-                num_of_uploaded_rows = row_count_after-row_count_before
-                
-                if num_of_uploaded_rows != len(clean_sheet):
-                    raise ValueError(f"All rows were not uploaded. Expected {len(clean_sheet)} got {num_of_uploaded_rows}. Upload was aborted and no data was uploaded.")
 
-                # Test that uploaded data equals data in file:
-                
-                if '--no_upload_test' in sys.argv:
-                    pass
-                else:
-                    integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
+
+        try:
+            row_count_after = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+            num_of_uploaded_rows = row_count_after-row_count_before
+            uploaded_rows[table_name] = num_of_uploaded_rows
+            
+            
+
+            # Test that uploaded data equals data in file:
+            
+            if '--no_upload_test' in sys.argv:
+                pass
+            else:
+                integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
+            raise Exception("test")
         
         except ValueError as e:
             return general_error_handling(message=e, revert_db=True, num_of_uploaded_rows=num_of_uploaded_rows, files_to_del=files_to_del['Before Upload'])
@@ -465,8 +469,8 @@ def general_error_handling(message, revert_db=False, num_of_uploaded_rows=-1, fi
                     clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
                     
                     # To make sure to delete the correct number of rows
-                    if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
                         num_of_rows_to_del = len(clean_sheet)
+                    if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
                     else:
                         num_of_rows_to_del = num_of_uploaded_rows
                    
@@ -494,7 +498,8 @@ def handle_uncaught_exception(e):
     current_time = datetime.now()
     app.logger.exception('Unhandled Exception: %s', traceback.format_exc())
     app.logger.exception('Unhandled Exception: %s', e)
-    return f'Internal Server Error {current_time}', 500
+    message = "Unhandled error occured. IMPORTANT: REPORT TO ADMIN BELOW"
+    return general_error_handling(f"{message} + ' ' + {str(e)}")
 
 if __name__ == '__main__':
     print("Start")

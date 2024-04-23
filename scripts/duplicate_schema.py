@@ -9,7 +9,7 @@ HOST = "dandyweb01fl"
 PORT = "5432"
 
 # Replace these values with the schema names you want to create and copy tables to
-NEW_SCHEMA = "test_2"
+NEW_SCHEMA = "test_1_deleted"
 SOURCE_SCHEMA = "test_1"
 
 #TODO: Remove upload_user and all its privileges

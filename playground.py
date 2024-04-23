@@ -1,9 +1,23 @@
-import pandas as pd
-from utils import queries
-import os
-import constants
+import psycopg2
+from constants import DATABASE_CONFIG_2, DATABASE_CONFIG
+schema = DATABASE_CONFIG['schema_name']
+deleted_schema = f"{schema} deleted"
+database_table_name = "flowcell"
+upload_id = "asdasdsaadvsvs2231321assd"
+q = f'''
+BEGIN;
 
+-- Delete data from the source table and return the deleted rows
+WITH deleted_rows AS (
+DELETE FROM "{schema}"."{database_table_name}" f 
+WHERE upload_uuid = \'{upload_id}\'
+RETURNING *
+)
+-- Insert the deleted rows into the destination table
+INSERT INTO "{deleted_schema}"."{database_table_name}"  
+SELECT *
+FROM deleted_rows;
 
-
-print(queries.check_if_upload_id_exists_in_schema("aedna_metadata_test", "test_1", "e91cdbad-3d8f-4147-b83a-48640e9618dc"))
-
+COMMIT;
+'''
+print(q)
