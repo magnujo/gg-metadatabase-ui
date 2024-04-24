@@ -262,6 +262,10 @@ def confirmed():
         table_splits = constants.TABLE_SPLITTER.get(database_table_name)
         uploaded_rows = {}
         tables_uploaded_to = []
+        clean_sheets = {}
+        row_counts_before_upload = {}
+        row_counts_after_upload = {}
+        num_of_uploaded_rows = {}
         
     except Exception as e:
         return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])
@@ -271,6 +275,7 @@ def confirmed():
         try:
             parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
             clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
+            clean_sheets[table_name] = clean_sheet
             
             upload_id = list(clean_sheet["upload_uuid"].unique())
             
@@ -284,57 +289,65 @@ def confirmed():
                 if uid_exists:
                     raise Exception(f"Found upload id already in {table_name}")
     
-            print(f"Uploading {parsed_file_to_upload} to {table_name}")
-            row_count_before = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+            
+            row_count_before_upload = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+            row_counts_before_upload[table_name] = row_count_before_upload
         
         except Exception as e:
             return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])
-            
-        try:
-            with ENGINE.connect() as conn:
-                tran = conn.begin()
-                clean_sheet.to_sql(name=table_name, 
-                                    schema=DATABASE_CONFIG['schema_name'], 
-                                    con=conn, 
-                                    if_exists='append', 
-                                    index=False)
-                tran.commit()
-        
-        
-        except SQLAlchemyError as e:
+    
+    with ENGINE.connect() as conn:
+        with conn.begin() as trans:
             try:
-                tran.rollback()
-                row_count_after = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
-                if row_count_after != row_count_before:
-                     # TODO: What if another person uploaded to the same table in the meantime? Then this exception will happen?
-                    raise Exception(f"!!!VERY IMPORTANT!!!: There was an unexpected error rolling back while trying to upload file {file_name} with upload_id {upload_id} at {pd.Timestamp.now()}. CLICK BELOW TO NOTIFY ADMIN.")
+                for i, table_name in enumerate(table_splits):    
+                    clean_sheets[table_name].to_sql(name=table_name, 
+                                        schema=DATABASE_CONFIG['schema_name'], 
+                                        con=conn, 
+                                        if_exists='append', 
+                                        index=False)
+                    tables_uploaded_to.append(table_name)
+                    queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table)
+
             except Exception as e:
-                return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload']) 
-            else:    
-            # Catch any SQLAlchemy-related errors
-                return general_error_handling(message=e.orig, revert_db=False, files_to_del=files_to_del['Before Upload']) 
-
-
-        try:
-            row_count_after = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
-            num_of_uploaded_rows = row_count_after-row_count_before
-            uploaded_rows[table_name] = num_of_uploaded_rows
-            
-            
-
-            # Test that uploaded data equals data in file:
-            
-            if '--no_upload_test' in sys.argv:
-                pass
+                try:
+                    # Rolling back to conn.begin()
+                    trans.rollback()
+                    for table in tables_uploaded_to:
+                        row_count_after_rollback = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table)
+                        if row_count_after_rollback != row_counts_before_upload[table]:
+                            # TODO: Remove only rows that were not rolled back?
+                            raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. CLICK BELOW TO NOTIFY ADMIN.")
+                except Exception as e:
+                    return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+                else:
+                    if isinstance(e, SQLAlchemyError):
+                        return general_error_handling(message=e.orig, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+                    else:
+                        return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])        
+            # Commit if no exception happened
             else:
-                integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
-            raise Exception("test")
-        
-        except ValueError as e:
-            return general_error_handling(message=e, revert_db=True, num_of_uploaded_rows=num_of_uploaded_rows, files_to_del=files_to_del['Before Upload'])
-        
-        except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+                trans.commit()  
+            
+    try:
+        for i, table_name in enumerate(table_splits):
+                # What to do here
+                row_count_after_upload = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+                row_counts_after_upload[table_name] = row_count_after_upload
+                num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
+                expected_rows = len(clean_sheets[table_name])
+                
+                    
+                if '--no_upload_test' in sys.argv:
+                    pass
+                else:
+                    integrity_test(table_name, file_name, clean_sheet, upload_id=session.get('upload_id'))
+                raise Exception("test")
+            
+    except ValueError as e:
+        return general_error_handling(message=e, revert_db=True, num_of_uploaded_rows=num_of_uploaded_rows, files_to_del=files_to_del['Before Upload'])
+    
+    except Exception as e:
+        return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
     try:
         if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
@@ -457,20 +470,32 @@ def generate_html_message(message):
 <p>{message}</p>
 ''', traceback_
 
-def general_error_handling(message, revert_db=False, num_of_uploaded_rows=-1, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
+def general_error_handling(message, tables_uploaded_to=None, revert_db=False, num_of_uploaded_rows=-1, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
         print("\n General error handling... \n")
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
         user_error, admin_error = generate_html_message(message)
         if revert_db:
+            if tables_uploaded_to:
+                for i, table in enumerate(tables_uploaded_to):
+                    clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                    
+                    # To make sure to delete the correct number of rows
+                    if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
+                        num_of_rows_to_del = len(clean_sheet)
+                    else:
+                        num_of_rows_to_del = num_of_uploaded_rows
+                   
+                    delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=num_of_rows_to_del)
+            else:   
                 database_table_name = session.get('database_table_name')
                 for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
                     clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
                     
                     # To make sure to delete the correct number of rows
-                        num_of_rows_to_del = len(clean_sheet)
                     if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
+                        num_of_rows_to_del = len(clean_sheet)
                     else:
                         num_of_rows_to_del = num_of_uploaded_rows
                    
