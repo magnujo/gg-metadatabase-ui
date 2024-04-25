@@ -75,13 +75,7 @@ def upload_file():
     # logger.info('Running: ' + str(index.__name__))
     
     session.clear()
-    upload_uuid = uuid.uuid4()
-    
-    session['upload_id'] = upload_uuid
-    
-    tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=DATABASE_CONFIG['database'], schema=DATABASE_CONFIG['schema_name'], upload_id=session.get('upload_id'))
-    if len(tables_with_uid) != 0:
-        raise Exception(f"Found upload_id already in {tables_with_uid}")
+
     
     session['email'] = None
     session['error'] = False
@@ -176,32 +170,20 @@ def upload_file():
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
-                
-                if queries.check_if_upload_id_exists_in_table(schema=DATABASE_CONFIG['schema_name'], table=split_database_table_name, upload_id=session.get('upload_id')):
-                    raise Exception(f"Found upload_id in {split_database_table_name} already")
-                
-                clean_sheet['upload_uuid'] = session.get('upload_id')
 
                 # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
                 clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
                 # Convert to ns to enable testing (postgres converts to ns, when uploading)
                 clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                
+                clean_sheet['upload_uuid'] = 'not_uploaded'
                 print(clean_sheet.columns)
                 
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
-                
-                # Removing db auto generated columns to make comparisons possible because this column will never be in the clean_sheet
-                table_info_df = queries.get_table_information(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
-                db_generated_uuid = table_info_df[table_info_df["column_default"] == 'gen_random_uuid()']["column_name"]
 
-                if len(db_generated_uuid) < 0 or len(db_generated_uuid) > 1:
-                    raise Exception(f"Found {len(db_generated_uuid)} db generated uuid in {split_database_table_name}, but expects 0 or 1") 
-                elif len(db_generated_uuid) == 1:
-                    db_generated_uuid = db_generated_uuid.iloc[0]
-                    db_table_data = db_table_data.drop(columns=db_generated_uuid)
-                else:
-                    pass
+                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
+                db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
@@ -270,6 +252,13 @@ def confirmed():
             row_count_errors = {}
             num_of_uploaded_rows = {}
             num_of_upload_ids_in_db = {}
+            upload_id = uuid.uuid4()
+            session['upload_id'] = upload_id
+            upload_time = pd.Timestamp.now(tz='UTC')
+
+            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=DATABASE_CONFIG['database'], schema=DATABASE_CONFIG['schema_name'], upload_id=session.get('upload_id'))
+            if len(tables_with_uid) != 0:
+                raise Exception(f"Found upload_id already in {tables_with_uid}")            
             
         except Exception as e:
             return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])
@@ -279,6 +268,11 @@ def confirmed():
             try:
                 parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
+                clean_sheet['upload_uuid'] = session.get('upload_id')
+                clean_sheet['database_insert_datetime_utc'] = upload_time
+                # Convert to ns to enable testing (postgres converts to ns, when uploading)
+                clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+
                 clean_sheets[table_name] = clean_sheet
                 row_count_errors[table_name] = []
                                     
@@ -290,6 +284,9 @@ def confirmed():
                 # Test that the upload id doesnt exist already in table
                 # TODO: Should this operation be thread locked?
                 else:
+                    print("\n Test \n")
+                    print(upload_id)
+                    print(session.get("upload_id"))
                     upload_id = upload_id[0]
                     if str(session.get("upload_id")) != str(upload_id):
                         raise Exception("Upload ID discreprancy accross parsed sheet and session variable")
@@ -393,6 +390,8 @@ def confirmed():
                     
         except Exception as e:
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+        
+        
                         
         return redirect(url_for("success")) 
 
