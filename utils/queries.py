@@ -113,8 +113,8 @@ def get_possible_datatypes(category):
     df = pd.read_sql_query(q, ENGINE)
     return list(df['typname'])
 
-def count_rows(database, schema, table_name):
     # Connect to PostgreSQL database
+def count_rows(database, schema, table_name):
     conn = psycopg2.connect(
         host=DATABASE_CONFIG['host'],
         database=database,

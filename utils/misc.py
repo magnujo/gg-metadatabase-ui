@@ -21,5 +21,5 @@ def match_column_positions(upload_file_df, db_data_df):
         except KeyError as e:
             raise Exception(f"The following columns where found in the database base table but not in the upload file: {e.args[0]}")
     else:
-        raise Exception("Number of columns in database table does match number of columns in upload file")
+        raise Exception(f"Number of columns in database table does match number of columns in upload file. Columns found database: {db_data_df.columns}. Columns found in upload file: {upload_file_df.columns}")
     return upload_file_df
