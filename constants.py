@@ -3,8 +3,8 @@ from sqlalchemy import create_engine
 from flask import Flask
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
-UPLOAD_FOLDER = 'uploaded_sheets'
-ALLOWED_EXTENSIONS = {'txt', 'html'}
+UPLOADED_FILES = 'uploaded_sheets'
+ALLOWED_EXTENSIONS = {'txt', 'html', 'csv'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'original_sheets'
