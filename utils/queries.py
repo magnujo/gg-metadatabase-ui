@@ -2,7 +2,33 @@ from constants import DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import pandas as pd
 import psycopg2
 
- 
+
+def upload_id_filter(schema, table, upload_id):
+    q = f'''
+    select * from "{schema}"."{table}" where upload_uuid = '{upload_id}'
+    '''
+    print(q)
+    return q
+
+def check_if_upload_id_exists_in_table(schema, table, upload_id):
+    '''
+    Returns true if upload_id exists in the upload_uuid column of schema.table
+    '''
+    q = upload_id_filter(schema, table, upload_id)
+    df = pd.read_sql(sql=q, con=ENGINE)
+    if len(df) != 0:
+        return True
+    else:
+        return False
+    
+def check_if_upload_id_exists_in_schema(database, schema, upload_id):
+    cases = []
+    table_names = get_table_names(schema, database)
+    for table in table_names:
+        if check_if_upload_id_exists_in_table(schema, table, upload_id):
+            cases.append(table)
+    return cases
+    
  
 def get_table_names(schema_name, database_name):
     q = f'''    
@@ -86,4 +112,36 @@ def get_possible_datatypes(category):
 
     df = pd.read_sql_query(q, ENGINE)
     return list(df['typname'])
+
+    # Connect to PostgreSQL database
+def count_rows(database, schema, table_name):
+    conn = psycopg2.connect(
+        host=DATABASE_CONFIG['host'],
+        database=database,
+        user=DATABASE_CONFIG['user'],
+        password=DATABASE_CONFIG['password']
+    )
+    
+    # Create a cursor object
+    cursor = conn.cursor()
+    
+    try:
+        # Execute SQL query to count rows of the table
+        query = f'SELECT COUNT(*) FROM \"{database}\".\"{schema}\".\"{table_name}\";'
+        cursor.execute(query)
+        
+        # Fetch the result
+        row_count = cursor.fetchone()[0]
+        
+        return row_count
+    except (Exception, psycopg2.Error) as error:
+        print("Error counting rows:", error)
+    finally:
+        # Close the cursor and connection
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 

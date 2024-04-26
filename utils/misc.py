@@ -1,4 +1,6 @@
+from utils import queries
 import constants
+import utils.queries as q
 
 def drop_auto_generated_columns(dataframe):
     '''
@@ -13,12 +15,24 @@ def match_column_positions(upload_file_df, db_data_df):
     Tries to rearrange the column positions of upload_file to match db_data. 
     If number of columns or column names differ an exception gets raised.
     '''
-
+  
     if len(upload_file_df.columns) == len(db_data_df.columns):
         try:
             upload_file_df = upload_file_df[db_data_df.columns]
         except KeyError as e:
             raise Exception(f"The following columns where found in the database base table but not in the upload file: {e.args[0]}")
     else:
-        raise Exception("Number of columns in database table does match number of columns in upload file")
+        raise Exception(f"Number of columns in database table does match number of columns in upload file. Columns found database: {db_data_df.columns}. Columns found in upload file: {upload_file_df.columns}")
     return upload_file_df
+
+def get_db_generated_uuid_col(table_name, schema_name):
+    table_info_df = queries.get_table_information(table_name, schema_name=schema_name)
+    db_generated_uuid = table_info_df[table_info_df["column_default"] == 'gen_random_uuid()']["column_name"]
+
+    if len(db_generated_uuid) < 0 or len(db_generated_uuid) > 1:
+        raise Exception(f"Found {len(db_generated_uuid)} db generated uuid in {table_name}, but expects 0 or 1") 
+    elif len(db_generated_uuid) == 1:
+        db_generated_uuid = db_generated_uuid.iloc[0]
+    else:
+        pass
+    return db_generated_uuid

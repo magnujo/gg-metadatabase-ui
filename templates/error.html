@@ -12,7 +12,13 @@
     This will send an email to the the admin, with details of the error</p>
 
 <h3>Error Message:</h3>
-    <p>{{ error_message|safe }}</p>
+<p>During upload the following errors occured:</p>
+<br>
+{% for error_message in error_messages %} 
+<p>{{ error_message|safe }}</p>
+<br>
+{% endfor %}
+    
 <br>
 <h4>Report error:</h4>
 <p>Only do this if you cannot resolve the error yourself. 

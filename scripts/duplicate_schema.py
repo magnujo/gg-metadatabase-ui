@@ -7,9 +7,10 @@ USER = input("Enter your database username: ")
 PASSWORD = getpass.getpass("Enter your password: ")
 HOST = "dandyweb01fl"
 PORT = "5432"
+INCLUDE_CONSTRAINTS = True
 
 # Replace these values with the schema names you want to create and copy tables to
-NEW_SCHEMA = "test_2"
+NEW_SCHEMA = "test_1_deleted"
 SOURCE_SCHEMA = "test_1"
 
 #TODO: Remove upload_user and all its privileges
@@ -37,7 +38,10 @@ def copy_tables(conn, source_schema, destination_schema):
         tables = cursor.fetchall()
         for table in tables:
             table_name = table[0]
-            cursor.execute(f'CREATE TABLE {destination_schema}.\"{table_name}\" (LIKE {source_schema}.\"{table_name}\" INCLUDING ALL);')
+            if INCLUDE_CONSTRAINTS:
+                cursor.execute(f'CREATE TABLE {destination_schema}.\"{table_name}\" (LIKE {source_schema}.\"{table_name}\" INCLUDING ALL);')
+            else:
+                cursor.execute(f'CREATE TABLE {destination_schema}.\"{table_name}\" (LIKE {source_schema}.\"{table_name}\");')
         conn.commit()
         print(f"Tables copied from schema '{source_schema}' to schema '{destination_schema}' successfully.")
     except Exception as e:
