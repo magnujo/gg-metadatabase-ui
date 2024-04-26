@@ -5,15 +5,15 @@ from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
-from constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOAD_FOLDER, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
+from constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import psycopg2
 
 def delete_files(file_name, original=False, parsed=False, uploaded=False):
         if original and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
                 os.remove(os.path.join(ORIGINAL_FILES, file_name))
                 
-        if uploaded and os.path.exists(os.path.join(UPLOAD_FOLDER, file_name)):
-                os.remove(os.path.join(UPLOAD_FOLDER, file_name))
+        if uploaded and os.path.exists(os.path.join(UPLOADED_FILES, file_name)):
+                os.remove(os.path.join(UPLOADED_FILES, file_name))
     
         if parsed and os.path.exists(os.path.join(PARSED_SHEETS_FOLDER, file_name)):
                 os.remove(os.path.join(PARSED_SHEETS_FOLDER, file_name))
