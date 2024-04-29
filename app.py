@@ -1,6 +1,7 @@
 import time
 from threading import Lock
 lock = Lock()
+lock2 = Lock()
 import seq_center_sample_sheet_parser
 from utils import misc
 from flask_wtf import FlaskForm
@@ -20,7 +21,7 @@ from utils import queries
 from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
+from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
@@ -568,6 +569,30 @@ def handle_uncaught_exception(e):
     app.logger.exception('Unhandled Exception: %s', e)
     message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. REPORT TO ADMIN BELOW"
     return general_error_handling(f"{message} + ' ' + {str(e)}")
+
+
+@app.route('/search')
+def search():
+    return render_template('search.html')
+
+@app.route('/execute_query', methods=['POST'])
+def execute_query():
+    with lock2:
+        query = request.form['query']
+        # Execute the SQL query
+        with ENGINE_READ_ONLY.connect() as conn:  
+            results = pd.read_sql(query, con=conn)
+            
+        path = os.path.join('query_files', 'query_result.csv')
+        results.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+    
+        # Offer the CSV file for download
+        return send_file(
+            path,
+            mimetype='text/csv',
+            download_name='query_result.csv',
+            as_attachment=True
+        )
 
 if __name__ == '__main__':
     print("Start")

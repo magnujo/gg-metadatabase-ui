@@ -39,13 +39,15 @@ skips the dropping of null values. if used, the two others are not allowed.
 ALLOWED_COMMAND_LINE_ARGS = {'development': [],
                              'production': []}
 
+pw = os.environ.get('DB_PASSWORD')
+
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
-        'password': os.environ.get('DB_PASSWORD'),
+        'password': pw,
         'schema_name': 'test_1'
     }
 
@@ -55,7 +57,7 @@ elif RUN_MODE == 'development':
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
-        'password': os.environ.get('DB_PASSWORD'),
+        'password': pw,
         'schema_name': 'test_1'
     }
 
@@ -67,8 +69,19 @@ DATABASE_CONFIG_2 = {
     'password': DATABASE_CONFIG['password'],
 }
 
+DATABASE_CONFIG_READ_ONLY = {
+    'host': DATABASE_CONFIG['host'],
+    'dbname': DATABASE_CONFIG['database'],
+    'port': DATABASE_CONFIG['port'],
+    'user': 'read_user',
+    'password': DATABASE_CONFIG['password'],
+}
+
 ENGINE = create_engine(
     f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
+
+ENGINE_READ_ONLY = create_engine(
+    f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
 
 SHEET_TYPES = {
     'field_sample_internal': 'Field sampling (internal)',
