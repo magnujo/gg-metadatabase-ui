@@ -1,6 +1,8 @@
+from scripts import fid_query
 import time
 from threading import Lock
 lock = Lock()
+lock2 = Lock()
 import seq_center_sample_sheet_parser
 from utils import misc
 from flask_wtf import FlaskForm
@@ -20,7 +22,7 @@ from utils import queries
 from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
+from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
@@ -181,7 +183,8 @@ def upload_file():
 
             db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
             db_table_data = db_table_data.drop(columns=db_generated_uuid)
-            
+            print("TEST \n")
+            print(set(db_table_data.columns) - set(clean_sheet.columns))
             clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
             assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -569,6 +572,59 @@ def handle_uncaught_exception(e):
     message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. REPORT TO ADMIN BELOW"
     return general_error_handling(f"{message} + ' ' + {str(e)}")
 
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        with lock2:
+            input_values = request.form['input_values']
+        
+            # Remove trailing newline characters
+            input_values = input_values.rstrip('\r\n')
+            
+            # Split the input values into a list
+            values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
+            
+            session["search_values"] = values_list
+            
+            values_list_repr = list(map(lambda x: repr(x), values_list))
+            
+            
+            # TODO: Save the dataframes somehow and load again when downloading instead of doing the whole parsing again 
+            (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
+            # Render the template again with the parsed values
+            return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df)
+    
+    # Render the template for GET requests
+    return render_template('search.html')
+
+@app.route('/download_all')
+def download_all():
+    # Retrieve parsed values from session or database
+    parsed_values = session.get("search_values")  # Replace [...] with your actual parsed values
+    
+    (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(parsed_values))
+    
+    path = os.path.join('query_files', 'query_result.csv')
+    full_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+
+    # Send the text file as a download to the user
+    return send_file(path, as_attachment=True)
+
+@app.route('/download_essential')
+def download_essential():
+    # Retrieve parsed values from session or database
+    parsed_values = session.get("search_values")  # Replace [...] with your actual parsed values
+    print(parsed_values)
+    (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(parsed_values))
+    
+    path = os.path.join('query_files', 'query_result.csv')
+    essential_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+
+    # Send the text file as a download to the user
+    return send_file(path, as_attachment=True)
+    
+        
 if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']

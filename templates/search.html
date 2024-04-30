@@ -1,0 +1,106 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Input Form</title>
+    <link rel="shortcut icon" href="#">
+</head>
+<body>
+    <h1>Input Form</h1>
+    <form method="post" action="/search">
+        <label for="input_values">Paste your list of values:</label><br>
+        <textarea id="input_values" name="input_values" rows="5" cols="50"></textarea><br>
+        <input type="submit" value="Submit">
+    </form>
+    
+    {% if parsed_values %}
+    <h2>Parsed Values:</h2>
+    <ul>
+        {% for value in parsed_values %}
+        <li>{{ value }}</li>
+        {% endfor %}
+    </ul>
+    <form method="post" action="/send_search_results">
+        <input type="submit" value="Confirm">
+    </form>
+    {% endif %}
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input Form</title>
+    <link rel="shortcut icon" href="#">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Form</h1>
+    <form method="post" action="/search">
+        <label for="input_values">Insert the field sample ID(s) (Core ID or Discrete Sample ID or similar) that you want meta data about:</label><br>
+        <textarea id="input_values" name="input_values" rows="5" cols="50", placeholder="Enter values separated by newline"></textarea><br>
+        <input type="submit" value="Submit">
+    </form>
+    <br>
+    {% if parsed_values %}
+    <h4>Parsed Values:</h2>
+    <p>
+        {% for value in parsed_values %}
+        {{ value }},
+        {% endfor %}
+    </p>
+    
+    <!-- Add a link/button to download the text file -->
+    Download data as csv:
+    <a href="/download_essential">data.csv</a>.
+    You can also download the data with all the columns from all the tables: 
+    <a href="/download_all">all_columns.csv</a>
+
+    <table>
+        <thead>
+            <tr>
+                {% for col in results.columns %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for (index, row) in results.iterrows() %}
+            <tr>
+                {% for value in row %}
+                <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% endif %}
+</body>
+</html>
