@@ -573,29 +573,57 @@ def handle_uncaught_exception(e):
     return general_error_handling(f"{message} + ' ' + {str(e)}")
 
 
-@app.route('/search')
+@app.route('/search', methods=['GET', 'POST'])
 def search():
+    if request.method == 'POST':
+        with lock2:
+            input_values = request.form['input_values']
+        
+            # Remove trailing newline characters
+            input_values = input_values.rstrip('\r\n')
+            
+            # Split the input values into a list
+            values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
+            
+            session["search_values"] = values_list
+            
+            values_list_repr = list(map(lambda x: repr(x), values_list))
+            
+            
+            # TODO: Save the dataframes somehow and load again when downloading instead of doing the whole parsing again 
+            (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
+            # Render the template again with the parsed values
+            return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df)
+    
+    # Render the template for GET requests
     return render_template('search.html')
 
-@app.route('/process', methods=['POST'])
-def execute_query():
-    with lock2:
-        input_values = request.form['input_values']
+@app.route('/download_all')
+def download_all():
+    # Retrieve parsed values from session or database
+    parsed_values = session.get("search_values")  # Replace [...] with your actual parsed values
     
-        # Remove trailing newline characters
-        input_values = input_values.rstrip('\r\n')
-        
-        # Split the input values into a list
-        values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
-        
-        values_list = list(map(lambda x: repr(x), values_list))
-        
-        # Now you can do something with the list of values
-        # For example, you can print them
-        print(values_list)
-        
-        # Render the template again with the parsed values
-        return render_template('search.html', parsed_values=values_list)
+    (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(parsed_values))
+    
+    path = os.path.join('query_files', 'query_result.csv')
+    full_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+
+    # Send the text file as a download to the user
+    return send_file(path, as_attachment=True)
+
+@app.route('/download_essential')
+def download_essential():
+    # Retrieve parsed values from session or database
+    parsed_values = session.get("search_values")  # Replace [...] with your actual parsed values
+    print(parsed_values)
+    (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(parsed_values))
+    
+    path = os.path.join('query_files', 'query_result.csv')
+    essential_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+
+    # Send the text file as a download to the user
+    return send_file(path, as_attachment=True)
+    
         
 if __name__ == '__main__':
     print("Start")

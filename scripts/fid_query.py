@@ -1,6 +1,6 @@
-import pandas as pd
 from sqlalchemy import create_engine
-from constants import ENGINE
+import pandas as pd
+from constants import ENGINE_READ_ONLY as ENGINE
 
 def get_meta_data(fIDs):
     '''
