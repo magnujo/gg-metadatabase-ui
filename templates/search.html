@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SQL Query Executor</title>
+    <title>Input Form</title>
+    <link rel="shortcut icon" href="#">
 </head>
 <body>
-    <h2>Enter your SQL query:</h2>
-    <form action="/execute_query" method="post">
-        <textarea name="query" rows="10" cols="50"></textarea><br><br>
-        <input type="submit" value="Execute Query and Download CSV">
+    <h1>Input Form</h1>
+    <form method="post" action="/process">
+        <label for="input_values">Paste your list of values:</label><br>
+        <textarea id="input_values" name="input_values" rows="5" cols="50"></textarea><br>
+        <input type="submit" value="Submit">
     </form>
+    
+    {% if parsed_values %}
+    <h2>Parsed Values:</h2>
+    <ul>
+        {% for value in parsed_values %}
+        <li>{{ value }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </body>
 </html>

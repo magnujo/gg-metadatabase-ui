@@ -1,3 +1,4 @@
+from scripts import fid_query
 import time
 from threading import Lock
 lock = Lock()
@@ -182,7 +183,8 @@ def upload_file():
 
             db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
             db_table_data = db_table_data.drop(columns=db_generated_uuid)
-            
+            print("TEST \n")
+            print(set(db_table_data.columns) - set(clean_sheet.columns))
             clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
             assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -575,25 +577,26 @@ def handle_uncaught_exception(e):
 def search():
     return render_template('search.html')
 
-@app.route('/execute_query', methods=['POST'])
+@app.route('/process', methods=['POST'])
 def execute_query():
     with lock2:
-        query = request.form['query']
-        # Execute the SQL query
-        with ENGINE_READ_ONLY.connect() as conn:  
-            results = pd.read_sql(query, con=conn)
-            
-        path = os.path.join('query_files', 'query_result.csv')
-        results.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+        input_values = request.form['input_values']
     
-        # Offer the CSV file for download
-        return send_file(
-            path,
-            mimetype='text/csv',
-            download_name='query_result.csv',
-            as_attachment=True
-        )
-
+        # Remove trailing newline characters
+        input_values = input_values.rstrip('\r\n')
+        
+        # Split the input values into a list
+        values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
+        
+        values_list = list(map(lambda x: repr(x), values_list))
+        
+        # Now you can do something with the list of values
+        # For example, you can print them
+        print(values_list)
+        
+        # Render the template again with the parsed values
+        return render_template('search.html', parsed_values=values_list)
+        
 if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
