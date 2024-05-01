@@ -142,3 +142,6 @@ AUTO_GENERATED_COLUMNS = ['database_insert_by', 'from_spreadsheet', 'database_in
 
 
 DB_CHARACTER_ENCODING = 'UTF-8'
+
+
+COLUMN_TRANSLATER = {'ArchiveSampleID': 'Archive Sample ID'}

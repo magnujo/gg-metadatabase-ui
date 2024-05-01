@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 from constants import ENGINE_READ_ONLY as ENGINE
 
-def get_meta_data(libraryID):
+def get_meta_data(input_data):
     '''
     Gets all meta data connected to fIDs across WetLab, Archive and CGG sediment table
     '''
@@ -10,72 +10,37 @@ def get_meta_data(libraryID):
     wldf_q = "select * from test_1.edna_wetlab_report;"
     asdf_q = "select * from test_1.edna_archive_sample;"
     cgg_q = "select * from test_1.cgg_sediment_water;"
-    wldf = pd.read_sql(wldf_q, dtype=str, con=ENGINE)
-    asdf = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
-    cgg = pd.read_sql(cgg_q, dtype=str, con=ENGINE)
+    flowcell_q = "select * from test_1.flowcell;"
+    
+    wldf = pd.read_sql(wldf_q, dtype=str, con=ENGINE).applymap(lambda x: x.upper() if isinstance(x, str) else x)
+    asdf = pd.read_sql(asdf_q, dtype=str, con=ENGINE).applymap(lambda x: x.upper() if isinstance(x, str) else x)
+    cgg = pd.read_sql(cgg_q, dtype=str, con=ENGINE).applymap(lambda x: x.upper() if isinstance(x, str) else x)
+    flowcell = pd.read_sql(flowcell_q, dtype=str, con=ENGINE).applymap(lambda x: x.upper() if isinstance(x, str) else x)
+
 
 
     # TODO: check that replacemants doesnt result in duplicate data
-    fIDs = list(map(lambda x: x.upper(), fIDs))
-    fIDs = list(map(lambda x: x.replace(" ", ""), fIDs))
-    fIDs = list(map(lambda x: x.replace("," , "."), fIDs))
-    fIDs = list(map(lambda x: x.replace("-" , "_"), fIDs))
-    asdf["BulkSampleID"] = asdf["BulkSampleID"].str.strip()
-    asdf["BulkSampleID"] = asdf["BulkSampleID"].str.replace("-", "_")
-    asdf["BulkSampleID"] = asdf["BulkSampleID"].str.replace(",", ".")
-    asdf["BulkSampleID"] = asdf["BulkSampleID"].str.upper()
-    asdf["BulkSampleID"] = asdf["BulkSampleID"].str.replace(" ", "")
-    cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.strip()
-    cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.replace("," , ".")
-    cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.replace("-" , "_")
-    cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.upper()
-    cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.replace(" ", "")
-    cgg["CGG ID"] = cgg["CGG ID"].str.strip()
-    cgg["CGG ID"] = cgg["CGG ID"].str.replace("-" , "_")
-    cgg["CGG ID"] = cgg["CGG ID"].str.upper()
-    cgg["CGG ID"] = cgg["CGG ID"].str.replace(" ", "")
-    wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.strip()
-    wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace("-", "_")
-    wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace("," , ".")
-    wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace(" ", "")
-    wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.upper()
+    input_data = list(map(lambda x: x.upper(), input_data))
+    input_data = list(map(lambda x: x.replace(" ", ""), input_data))
+    input_data = list(map(lambda x: x.replace("," , "."), input_data))
+    input_data = list(map(lambda x: x.replace("-" , "_"), input_data))
 
     cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
     # Get all the rows where the fID matches 
-    cores_kurt_cgg = cgg[cgg["Museum ID/sample ID"].isin(fIDs)]
-    cores_kurt_asdf = asdf[asdf["BulkSampleID"].isin(fIDs)]
-
-    # Finding duplicates in Jespers data that is also in the CGG database
-    def find_duplicates(lst):
-        seen = {}
-        duplicates = []
-
-        for item in lst:
-            if item in seen:
-                duplicates.append(item)
-            else:
-                seen[item] = 1
-
-        return duplicates
-
-    my_list = list(cores_kurt_asdf["BulkSampleID"].unique()) + list(cores_kurt_cgg["Museum ID/sample ID"].unique())
-
+    input_data_filter = wldf[wldf["Library ID"].isin(input_data)]
 
     # Merging
 
-    merged_on_aID = pd.merge(cores_kurt_asdf, wldf, left_on='ArchiveSampleID', right_on='Archive Sample ID', how='left')
+    merged_on_aID = pd.merge(input_data_filter, asdf, left_on='Archive Sample ID', right_on='ArchiveSampleID', how='left')
     merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "ArchiveSampleID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
-    merged_on_CGG_ID = pd.merge(cores_kurt_cgg, wldf, left_on='CGG ID', right_on='Archive Sample ID', how='left')
-    merged_on_CGG_ID_essentials = merged_on_CGG_ID[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
+    merged_on_CGG_ID = pd.merge(input_data_filter, cgg, left_on='CGG ID', right_on='Archive Sample ID', how='left')
+    merged_on_CGG_ID_essentials = merged_on_CGG_ID[["Museum ID/sample ID", 'CGG ID', "Robot Sample ID", "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
-    merged_on_museum_id = pd.merge(cores_kurt_cgg, wldf, left_on='Museum ID/sample ID', right_on='Archive Sample ID', how='left')
-    merged_on_museum_id_essentials = merged_on_museum_id[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
-
-    merged_on_bulksampleid = pd.merge(cores_kurt_asdf, wldf, left_on='BulkSampleID', right_on='Archive Sample ID', how='left')
-    merged_on_bulksampleid_essentials = merged_on_bulksampleid[['BulkSampleID', "ArchiveSampleID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
-
+    merged_bulk_with_cgg = pd.merge(merged_on_aID, cgg, left_on='BulkSampleID', right_on='CGG ID', how='left')
+    merged_flowcell = pd.merge(input_data_filter, flowcell, left_on='FastQ File ID', right_on='Sample')
+    
     pd.set_option('future.no_silent_downcasting', True)
 
     # Making one big table with all the merges comined: 

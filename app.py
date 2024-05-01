@@ -163,7 +163,12 @@ def upload_file():
                                         decimal_point=decimal_point,
                                         thousands_seperator=thousands_seperator)
             
+            # Rename columns
+            for old_name, new_name in constants.COLUMN_TRANSLATER.items():
+                if old_name in clean_sheet.columns:
+                    clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
 
+            
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
             
@@ -593,7 +598,7 @@ def search():
             # TODO: Save the dataframes somehow and load again when downloading instead of doing the whole parsing again 
             (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
             # Render the template again with the parsed values
-            return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df)
+            return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df, table=essential_merged_df.to_html(classes='data', header=True))
     
     # Render the template for GET requests
     return render_template('search.html')
