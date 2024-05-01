@@ -1,31 +1,3 @@
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Input Form</title>
-    <link rel="shortcut icon" href="#">
-</head>
-<body>
-    <h1>Input Form</h1>
-    <form method="post" action="/search">
-        <label for="input_values">Paste your list of values:</label><br>
-        <textarea id="input_values" name="input_values" rows="5" cols="50"></textarea><br>
-        <input type="submit" value="Submit">
-    </form>
-    
-    {% if parsed_values %}
-    <h2>Parsed Values:</h2>
-    <ul>
-        {% for value in parsed_values %}
-        <li>{{ value }}</li>
-        {% endfor %}
-    </ul>
-    <form method="post" action="/send_search_results">
-        <input type="submit" value="Confirm">
-    </form>
-    {% endif %}
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -63,9 +35,9 @@
 <body>
     <h1>Search Form</h1>
     <form method="post" action="/search">
-        <label for="input_values">Insert the field sample ID(s) (Core ID or Discrete Sample ID or similar) that you want meta data about:</label><br>
-        <textarea id="input_values" name="input_values" rows="5" cols="50", placeholder="Enter values separated by newline"></textarea><br>
-        <input type="submit" value="Submit">
+        <label for="input_values">Insert the field sample ID(s) (Core Field Sample ID, Discrete Field Sample ID or similar) that you want meta data about:</label><br>
+        <textarea id="input_values" name="input_values" rows="5" cols="50", placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N"></textarea><br>
+        <input type="submit" value="Submit">&#10;
     </form>
     <br>
     {% if parsed_values %}
