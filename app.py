@@ -1,3 +1,5 @@
+
+import zipfile
 from scripts import fid_query, library_id_query, get_all_query
 import time
 from threading import Lock
@@ -616,15 +618,26 @@ def search():
     # Render the template for GET requests
     return render_template('search.html')
 
+def create_zip(files, zip_path):
+    with zipfile.ZipFile(zip_path, 'w') as zipf:
+        for file in files:
+            zipf.write(file)
 
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
     essential, full = get_all_query.get_all_meta_data_using_fids()
-    path = os.path.join('query_files', 'query_result.csv')
-    full_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+    
+    path_essential = os.path.join('query_files', 'query_result_essential.csv')
+    path_full = os.path.join('query_files', 'query_result_full.csv')
+    path_zip = os.path.join('query_files', 'query_all.zip')
+    
+    full.to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
+    essential.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+    
+    create_zip([str(path_essential), str(path_full)], path_zip)
 
     # Send the text file as a download to the user
-    return send_file(path, as_attachment=True)
+    return send_file(path_zip, as_attachment=True)
 
 @app.route('/download_all')
 def download_all():
