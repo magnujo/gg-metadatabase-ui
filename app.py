@@ -1,4 +1,4 @@
-from scripts import fid_query
+from scripts import fid_query, library_id_query, get_all_query
 import time
 from threading import Lock
 lock = Lock()
@@ -580,10 +580,12 @@ def handle_uncaught_exception(e):
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    error = ""
     if request.method == 'POST':
         with lock2:
-            input_values = request.form['input_values']
-        
+            input_values = request.form['input_values']                
+            input_dropdown = request.form['search_type']
+
             # Remove trailing newline characters
             input_values = input_values.rstrip('\r\n')
             
@@ -594,14 +596,35 @@ def search():
             
             values_list_repr = list(map(lambda x: repr(x), values_list))
             
+            try:
+                match input_dropdown:
+                    case "no_choice":
+                        raise Exception("You need to choose a search type in the dropdown menu")
+                    case "fID":
+                        (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
+                    case "lID":
+                        (essential_merged_df, full_merged_df) = library_id_query.get_meta_data(list(values_list))
+                    case _:
+                        raise Exception("You need to choose a search type in the dropdown menu")
+            except Exception as e:
+                return general_error_handling(message=e, revert_db=False)
             
             # TODO: Save the dataframes somehow and load again when downloading instead of doing the whole parsing again 
-            (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
             # Render the template again with the parsed values
             return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df, table=essential_merged_df.to_html(classes='data', header=True))
     
     # Render the template for GET requests
     return render_template('search.html')
+
+
+@app.route('/get_all_data', methods=['POST'])
+def get_all_data():
+    essential, full = get_all_query.get_all_meta_data_using_fids()
+    path = os.path.join('query_files', 'query_result.csv')
+    full_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+
+    # Send the text file as a download to the user
+    return send_file(path, as_attachment=True)
 
 @app.route('/download_all')
 def download_all():

@@ -35,11 +35,22 @@
 <body>
     <h1>Search Form</h1>
     <form method="post" action="/search">
-        <label for="input_values">Insert the field sample ID(s) (Core Field Sample ID, Discrete Field Sample ID or similar) that you want meta data about:</label><br>
-        <textarea id="input_values" name="input_values" rows="5" cols="50", placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N"></textarea><br>
-        <input type="submit" value="Submit">&#10;
+        <label for="search_type">What do you want to search for?</label>
+        <select name="search_type" id="search_type" required>
+            <option value="">Choose an option...</option> 
+            <option value="fID">Field Sample ID meta data</option>  
+            <option value="lID">Library ID meta data</option>  
+            </select>
+        <br>
+        <label for="input_values">Insert ID(s) that you want meta data about:</label><br>
+        <textarea id="input_values" name="input_values" rows="5" cols="50" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea><br>
+        <input type="submit" value="Submit">
     </form>
+
     <br>
+    <form method="post" action="/get_all_data">
+        <input type="submit" value="Submit">
+    </form>
     {% if parsed_values %}
     <h4>Parsed Values:</h2>
     <p>

@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 import pandas as pd
 from constants import ENGINE_READ_ONLY as ENGINE
+import numpy as np
 
 def get_meta_data(fIDs):
     '''
@@ -39,12 +40,19 @@ def get_meta_data(fIDs):
     wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace("," , ".")
     wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace(" ", "")
     wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.upper()
+    
+    wldf = wldf.fillna(np.nan)
+    wldf = wldf.replace("NONE", np.nan)
+    asdf = asdf.fillna(np.nan)
+    asdf = asdf.replace("NONE", np.nan)
+    cgg = cgg.fillna(np.nan)
+    cgg = cgg.replace("NONE", np.nan)
 
     cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
     # Get all the rows where the fID matches 
-    cores_kurt_cgg = cgg[cgg["Museum ID/sample ID"].isin(fIDs)]
-    cores_kurt_asdf = asdf[asdf["BulkSampleID"].isin(fIDs)]
+    input_filter_cgg = cgg[cgg["Museum ID/sample ID"].isin(fIDs)]
+    input_filter_asdf = asdf[asdf["BulkSampleID"].isin(fIDs)]
 
     # Finding duplicates in Jespers data that is also in the CGG database
     def find_duplicates(lst):
@@ -59,22 +67,22 @@ def get_meta_data(fIDs):
 
         return duplicates
 
-    my_list = list(cores_kurt_asdf["BulkSampleID"].unique()) + list(cores_kurt_cgg["Museum ID/sample ID"].unique())
+    my_list = list(input_filter_asdf["BulkSampleID"].unique()) + list(input_filter_cgg["Museum ID/sample ID"].unique())
 
 
     # Merging
 
-    merged_on_aID = pd.merge(cores_kurt_asdf, wldf, left_on='ArchiveSampleID', right_on='Archive Sample ID', how='left')
-    merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "ArchiveSampleID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
+    merged_on_aID = pd.merge(input_filter_asdf, wldf, left_on='Archive Sample ID', right_on='Archive Sample ID', how='left')
+    merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "Archive Sample ID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
-    merged_on_CGG_ID = pd.merge(cores_kurt_cgg, wldf, left_on='CGG ID', right_on='Archive Sample ID', how='left')
+    merged_on_CGG_ID = pd.merge(input_filter_cgg, wldf, left_on='CGG ID', right_on='Archive Sample ID', how='left')
     merged_on_CGG_ID_essentials = merged_on_CGG_ID[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
-    merged_on_museum_id = pd.merge(cores_kurt_cgg, wldf, left_on='Museum ID/sample ID', right_on='Archive Sample ID', how='left')
+    merged_on_museum_id = pd.merge(input_filter_cgg, wldf, left_on='Museum ID/sample ID', right_on='Archive Sample ID', how='left')
     merged_on_museum_id_essentials = merged_on_museum_id[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
-    merged_on_bulksampleid = pd.merge(cores_kurt_asdf, wldf, left_on='BulkSampleID', right_on='Archive Sample ID', how='left')
-    merged_on_bulksampleid_essentials = merged_on_bulksampleid[['BulkSampleID', "ArchiveSampleID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
+    merged_on_bulksampleid = pd.merge(input_filter_asdf, wldf, left_on='BulkSampleID', right_on='Archive Sample ID', how='left') 
+    merged_on_bulksampleid_essentials = merged_on_bulksampleid[['BulkSampleID', "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
     pd.set_option('future.no_silent_downcasting', True)
 

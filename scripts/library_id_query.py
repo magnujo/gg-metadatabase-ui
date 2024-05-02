@@ -16,7 +16,6 @@ def get_meta_data(input_data):
     flowcell = pd.read_sql(flowcell_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
 
 
-
     # TODO: check that replacemants doesnt result in duplicate data
     input_data = list(map(lambda x: x.upper(), input_data))
     input_data = list(map(lambda x: x.replace(" ", ""), input_data))
@@ -35,7 +34,6 @@ def get_meta_data(input_data):
 
     # Get all the rows where the fID matches 
     input_data_filter = wldf[wldf["Library ID"].isin(input_data)]
-
 
     # TODO: Check that Archive Sample ID is the same in both the input_data_filter and asdf
     aid_x_aid = pd.merge(input_data_filter, asdf, left_on='Archive Sample ID', right_on='Archive Sample ID', how='left')
@@ -57,11 +55,11 @@ def get_meta_data(input_data):
     bulksampleid_x_mID = pd.merge(aid_x_aid, cgg, left_on='BulkSampleID', right_on='Museum ID/sample ID', how='left')
     bulksampleid_x_mID_essentials = bulksampleid_x_mID[["Museum ID/sample ID", 'CGG ID', "Robot Sample ID", "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
-    m1 = pd.merge(aid_x_aid_essentials, fileid_x_sample_essentials, how='inner', on='Library ID')
-    m2 = pd.merge(aid_x_cggid_essentials, bulksampleid_x_cggid_essentials, how='inner', on='Library ID')
-    m3 = pd.merge(aID_x_mID_essentials, bulksampleid_x_mID_essentials, how='inner', on='Library ID')
-    m4 = pd.merge(m2, m3, how='inner', on='Library ID')
-    m5 = pd.merge(m4, m1, how='inner', on='Library ID')
+    # m1 = pd.merge(aid_x_aid_essentials, fileid_x_sample_essentials, how='inner', on='Library ID')
+    # m2 = pd.merge(aid_x_cggid_essentials, bulksampleid_x_cggid_essentials, how='inner', on='Library ID')
+    # m3 = pd.merge(aID_x_mID_essentials, bulksampleid_x_mID_essentials, how='inner', on='Library ID')
+    # m4 = pd.merge(m2, m3, how='inner', on='Library ID')
+    # m5 = pd.merge(m4, m1, how='inner', on='Library ID')
 
     combined_essential = (aid_x_aid_essentials
     .combine_first(fileid_x_sample_essentials)
@@ -76,3 +74,5 @@ def get_meta_data(input_data):
     .combine_first(bulksampleid_x_cggid)
     .combine_first(aID_x_mID)
     .combine_first(bulksampleid_x_mID))
+    
+    return combined_essential, combined
