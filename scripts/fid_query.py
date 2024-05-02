@@ -64,8 +64,8 @@ def get_meta_data(fIDs):
 
     # Merging
 
-    merged_on_aID = pd.merge(cores_kurt_asdf, wldf, left_on='ArchiveSampleID', right_on='Archive Sample ID', how='left')
-    merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "ArchiveSampleID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
+    merged_on_aID = pd.merge(cores_kurt_asdf, wldf, left_on='Archive Sample ID', right_on='Archive Sample ID', how='left')
+    merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "Archive Sample ID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
     merged_on_CGG_ID = pd.merge(cores_kurt_cgg, wldf, left_on='CGG ID', right_on='Archive Sample ID', how='left')
     merged_on_CGG_ID_essentials = merged_on_CGG_ID[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
@@ -74,7 +74,7 @@ def get_meta_data(fIDs):
     merged_on_museum_id_essentials = merged_on_museum_id[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
     merged_on_bulksampleid = pd.merge(cores_kurt_asdf, wldf, left_on='BulkSampleID', right_on='Archive Sample ID', how='left')
-    merged_on_bulksampleid_essentials = merged_on_bulksampleid[['BulkSampleID', "ArchiveSampleID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
+    merged_on_bulksampleid_essentials = merged_on_bulksampleid[['BulkSampleID', "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
     pd.set_option('future.no_silent_downcasting', True)
 
