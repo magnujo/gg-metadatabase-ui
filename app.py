@@ -169,6 +169,8 @@ def upload_file():
             for old_name, new_name in constants.COLUMN_TRANSLATER.items():
                 if old_name in clean_sheet.columns:
                     clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
+            
+            clean_sheet.columns = clean_sheet.columns.str.strip()
 
             
             # Adds rows about which user was responsible for the upload:

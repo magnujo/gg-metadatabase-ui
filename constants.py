@@ -84,7 +84,7 @@ ENGINE_READ_ONLY = create_engine(
     f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
 
 SHEET_TYPES = {
-    'field_sample_internal': 'Field sampling (internal)',
+    'field_sample': 'Field samples',
     'edna_archive_sample': 'eDNA archive sampling',
     'edna_robot_sample': 'eDNA robot sampling',
     'edna_wetlab_report': 'eDNA Wet lab final report',
@@ -96,7 +96,7 @@ SHEET_TYPES = {
 }
 
 FILE_EXTENSIONS = {
-    'field_sample_internal': '.xlsx',
+    'field_sample': '.xlsx',
     'edna_archive_sample': '.xlsx',
     'edna_robot_sample': '.xlsx',
     'edna_wetlab_report': '.xlsx',
@@ -110,7 +110,7 @@ FILE_EXTENSIONS = {
 DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
 
 TABLE_SPLITTER = {
-    'field_sample_internal': ['field_sample_internal'],
+    'field_sample': ['field_sample'],
     'edna_archive_sample': ['edna_archive_sample'],
     'edna_robot_sample': ['edna_robot_sample'],
     'edna_wetlab_report': ['edna_wetlab_report'],
@@ -128,7 +128,7 @@ MULTI_TABLE_SHEETS = {'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcode
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'My data doesn\'t contain dates']
 
-COLUMNS = {'field_sample_internal':
+COLUMNS = {'field_sample':
                {'float_columns':
                     []}}
 

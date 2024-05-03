@@ -293,12 +293,12 @@ def validate_integers(sheet, integer_columns, thousands_seperator):
         if ele in sheet.columns:
             if thousands_seperator == ',' or thousands_seperator == '.':
                 sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
-            bad_rows = sheet[ele].apply(str).str.contains("[^\d]", regex=True)
-            if bad_rows.any():
-                raise Exception(f"Found non integer in expected integer data in column {ele} and following rows\
-                                : \n \n {list(sheet[bad_rows].index + 2)}")
+            # bad_rows = sheet[ele].apply(str).str.contains("[^\d]", regex=True)
+            # if bad_rows.any():
+            #     raise Exception(f"Found non integer in expected integer data in column {ele} and following rows\
+            #                     : \n \n {list(sheet[bad_rows].index + 2)}")
             
-            sheet[ele] = sheet[ele].astype('int64')
+            sheet[ele] = sheet[ele].astype('Int64')
             
         else:
             raise Exception(f"Did not find expected numeric column {ele} in input. \
