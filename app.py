@@ -602,6 +602,8 @@ def search():
             
             try:
                 match input_dropdown:
+                    case "":
+                        raise Exception("You need to choose a search type in the dropdown menu")
                     case "no_choice":
                         raise Exception("You need to choose a search type in the dropdown menu")
                     case "fID":
