@@ -4,6 +4,10 @@ from constants import ENGINE_READ_ONLY as ENGINE
 import numpy as np
 
 def get_meta_data(input_data):
+    
+    '''
+    Gets all meta data associated with library ids, given a list of library ids 
+    '''
 
     wldf_q = "select * from test_1.edna_wetlab_report;"
     asdf_q = "select * from test_1.edna_archive_sample;"

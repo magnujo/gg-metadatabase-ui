@@ -1,4 +1,3 @@
-
 import zipfile
 from scripts import fid_query, library_id_query, get_all_query
 import time
@@ -40,6 +39,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 import uuid
 
+
+search_id = 0
 env_vars = {'PRODUCTION': None}
 
 app = Flask(__name__)
@@ -593,10 +594,22 @@ def search():
             
             # Split the input values into a list
             values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
-            
-            session["search_values"] = values_list
-            
+                        
             values_list_repr = list(map(lambda x: repr(x), values_list))
+            
+            global search_id 
+            search_id = search_id + 1
+            session["search_id"] = str(search_id)
+
+            # Creating directory path
+            directory_path = os.path.join("query_files", session.get("search_id"))
+
+            # Create directory if it doesn't exist
+            if not os.path.exists(directory_path):
+                os.makedirs(directory_path)
+            else:
+                raise Exception(f"Directory {session.get('search_id')} already exists")
+
             
             try:
                 match input_dropdown:
@@ -604,8 +617,16 @@ def search():
                         raise Exception("You need to choose a search type in the dropdown menu")
                     case "fID":
                         (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
+                        path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
+                        path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                        full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
+                        essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
                     case "lID":
                         (essential_merged_df, full_merged_df) = library_id_query.get_meta_data(list(values_list))
+                        path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
+                        path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                        full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
+                        essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
                     case _:
                         raise Exception("You need to choose a search type in the dropdown menu")
             except Exception as e:
@@ -641,26 +662,18 @@ def get_all_data():
 
 @app.route('/download_all')
 def download_all():
-    # Retrieve parsed values from session or database
-    parsed_values = session.get("search_values")  # Replace [...] with your actual parsed values
+    path = os.path.join('query_files', str(session.get("search_id")), 'all_meta_data.csv')
     
-    (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(parsed_values))
-    
-    path = os.path.join('query_files', 'query_result.csv')
-    full_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
-
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
+
+
+
 @app.route('/download_essential')
 def download_essential():
-    # Retrieve parsed values from session or database
-    parsed_values = session.get("search_values")  # Replace [...] with your actual parsed values
-    print(parsed_values)
-    (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(parsed_values))
-    
-    path = os.path.join('query_files', 'query_result.csv')
-    essential_merged_df.to_csv(path_or_buf=path, index=False, encoding='utf-16')
+    path = os.path.join('query_files', str(session.get("search_id")), 'essential_meta_data.csv')
+
 
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
@@ -670,6 +683,11 @@ if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
+    
+    # Example usage:
+    
+    misc.empty_folder("query_files")
+
 
     if os.environ.get('RUN_MODE'):
         constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
@@ -693,3 +711,4 @@ if __name__ == '__main__':
     #         if not arg in production_args + development_args:
     #                 raise Exception(f"Argument {arg} not allowed")
     #     app.run(debug=True)
+
