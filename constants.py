@@ -40,6 +40,7 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
                              'production': []}
 
 pw = os.environ.get('DB_PASSWORD')
+print(pw)
 
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {

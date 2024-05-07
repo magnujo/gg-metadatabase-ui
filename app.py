@@ -687,6 +687,7 @@ if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
+    current_date = datetime.now().strftime('%Y%m%d')
     
     # Example usage:
     
