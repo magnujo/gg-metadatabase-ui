@@ -1,6 +1,6 @@
 from utils import parsers
 from utils import cgg_animal_plant_parser, robot_sample_sheet_parser, archive_sample_sheet_parser, cgg_sediment_water_parser
-from utils import edna_wetlab_report_parser, adna_wetlab_report_parser, field_sample_internal_parser
+from utils import edna_wetlab_report_parser, adna_wetlab_report_parser, field_sample_parser
 from utils import queries
 import constants
 
@@ -45,8 +45,8 @@ def clean_up(tsv_file_path, database_table_name, date_format, decimal_point,
                                                         decimal_point=decimal_point,
                                                         thousands_seperator=thousands_seperator)
 
-    elif database_table_name == 'field_sample_internal':
-        sheet = field_sample_internal_parser.parse(file_path=tsv_file_path, 
+    elif database_table_name == 'field_sample':
+        sheet = field_sample_parser.parse(file_path=tsv_file_path, 
                                                         date_format=date_format, 
                                                         database_table_name=database_table_name,
                                                         decimal_point=decimal_point,
