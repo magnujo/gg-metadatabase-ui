@@ -24,7 +24,7 @@ username = input("Enter your database username: ")
 password = getpass.getpass("Enter your password: ")
 
 # Specify the table name
-table_name = 'field_sample_internal'
+table_name = 'field_sample'
 schema_name = 'test_1'
 file = r'static\example_sheets_online\json_dumps\Field sampling (internal).json'
 

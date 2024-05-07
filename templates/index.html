@@ -34,7 +34,7 @@
 
         <label for="database_table_name">Select spreadsheet type:</label>
         <select name="database_table_name" id="database_table_name" required>
-            <option value="no_choice">Select one...</option> 
+            <option value="">Choose an option...</option>
         {% for key in SHEET_TYPES %} 
             <option value="{{ key }}">{{ SHEET_TYPES[key] }}</option>
         {% endfor %} 
@@ -43,7 +43,7 @@
         
         <label for="date_format">Select date format:</label>
         <select name="date_format" id="date_format" required>
-            <option value="no_choice">Select one...</option> 
+            <option value="">Choose an option...</option> 
             {% for ele in ALLOWED_DATE_FORMATS %}
             <option value="{{ ele }}">{{ ele }}</option>  
             {% endfor %}         
@@ -52,7 +52,7 @@
         
         <label for="decimal_point">Select decimal point character used:</label>
         <select name="decimal_point" id="decimal_point" required>
-            <option value="no_choice">Select one...</option> 
+            <option value="">Choose an option...</option>
             <option value=",">, (comma)</option> 
             <option value=".">. (period)</option>
             <option value="not_relevant">My sheet does not contain decimals</option>
@@ -60,7 +60,7 @@
         <br>        
         <label for="thousands_seperator">Select thousands seperator used:</label>
         <select name="thousands_seperator" id="thousands_seperator" required>
-            <option value="no_choice">Select one...</option> 
+            <option value="">Choose an option...</option> 
             <option value=",">, (comma)</option>
             <option value=".">. (period)</option> 
             <option value="not_relevant">My sheet does not contain thousands seperators</option>
