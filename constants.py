@@ -1,6 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from flask import Flask
+import psycopg2
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
@@ -40,7 +41,6 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
                              'production': []}
 
 pw = os.environ.get('DB_PASSWORD')
-print(pw)
 
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {
@@ -83,6 +83,14 @@ ENGINE = create_engine(
 
 ENGINE_READ_ONLY = create_engine(
     f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
+
+PSY_CONN = psycopg2.connect(
+            dbname=DATABASE_CONFIG["database"],
+            user=DATABASE_CONFIG["user"],
+            password=DATABASE_CONFIG["password"],
+            host=DATABASE_CONFIG["host"],
+            port=DATABASE_CONFIG["port"]
+        )
 
 SHEET_TYPES = {
     'field_sample': 'Field samples',

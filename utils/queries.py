@@ -87,7 +87,6 @@ def get_table_information(table_name, schema_name):
     WHERE table_schema = '{schema_name}' AND table_name = '{table_name}' 
     ORDER BY ordinal_position;
     '''
-    print(os.environ.get('DB_PASSWORD'))
     df = pd.read_sql_query(column_query, ENGINE)
        
     return df
