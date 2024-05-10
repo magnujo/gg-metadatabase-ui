@@ -35,9 +35,9 @@
 <body>
     <h2>Get all data</h2>
     <form method="post" action="/get_all_data">
-        Press to get meta data about all (reported) field samples in a single csv: <input type="submit" value="Get all data...">
+        Press to get meta data about all (reported) field samples and associated subsamples in a single csv: <input type="submit" value="Get all data...">
     </form>
-    ...or search on specific IDs below:
+    ...or search for meta data of specific ID(s) below:
     <br>
     <br>
     <h2>Search for specific ID(s)</h2>
@@ -46,8 +46,8 @@
         <label for="search_type">Which id type do you want to search for?</label>
         <select name="search_type" id="search_type" required>
             <option value="">Choose an option...</option> 
-            <option value="fID">Field Sample ID meta data</option>  
-            <option value="lID">Library ID meta data</option>  
+            <option value="fID">Field Sample ID</option>  
+            <option value="lID">Library ID</option>  
             </select>
         <br>
         <label for="input_values">Insert ID(s) that you want meta data about (seperated by new line):</label><br>

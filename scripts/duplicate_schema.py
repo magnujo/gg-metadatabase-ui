@@ -28,7 +28,6 @@ def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include
         cursor.execute(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{source_schema}'")
         tables = cursor.fetchall()
         cursor.close()
-        print(tables)
         conn.commit()
         
         super_cursor = super_psy_conn.cursor()
@@ -40,7 +39,6 @@ def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include
                 super_cursor.execute(f'CREATE TABLE "{destination_schema}".\"{table_name}\" (LIKE "{source_schema}".\"{table_name}\");')
             if copy_dtypes == False:
                 column_names = queries.get_column_names(table_name=table_name, schema_name=source_schema)
-                print(column_names)
                 for column_name in column_names:
                     super_cursor.execute(f'ALTER TABLE "{destination_schema}"."{table_name}" ALTER COLUMN "{column_name}" TYPE text')
         
