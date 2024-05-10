@@ -7,6 +7,7 @@ import pandas as pd
 import os
 from constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import psycopg2
+from scripts import deleted_schema_management
 
 def delete_files(file_name, original=False, parsed=False, uploaded=False):
         if original and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
@@ -21,8 +22,8 @@ def delete_files(file_name, original=False, parsed=False, uploaded=False):
 # TODO: Make more secure: implement time check for example.
 def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):
         schema = DATABASE_CONFIG['schema_name']
-        deleted_schema = f"{schema}_deleted"
-        print(f'\n DELETE FROM "{schema}"."{database_table_name}" where upload_uuid = \'{upload_id}\'; \n')
+        deleted_schema = deleted_schema_management.get_active_deleted_schema(schema_name=schema, engine=ENGINE)
+        print(f'\n Moving FROM "{schema}"."{database_table_name}" where upload_uuid = \'{upload_id}\' to {deleted_schema}.{database_table_name} \n')
         in_db = pd.read_sql(queries.upload_id_filter(schema=DATABASE_CONFIG['schema_name'], table=database_table_name, upload_id=upload_id), con=ENGINE)
         if len(in_db) != num_of_rows_to_del:
                 raise Exception("Failed deleting data because of shape mismatch between uploaded data and file. Make sure to notify admin so we can fix this")

@@ -1,3 +1,4 @@
+from scripts import deleted_schema_management
 import zipfile
 from scripts import fid_query, library_id_query, get_all_query
 import time
@@ -687,17 +688,17 @@ if __name__ == '__main__':
     print("Start")
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
-    
-    # Example usage:
-    
-    misc.empty_folder("query_files")
-
+    current_date = datetime.now().strftime('%Y%m%d')
 
     if os.environ.get('RUN_MODE'):
         constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
     print(f"RUNMODE:{constants.RUN_MODE}")
+    
+    deleted_schema_management.copy_or_generate(constants.DATABASE_CONFIG["schema_name"], database_name=constants.DATABASE_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.PSY_CONN)
+    misc.empty_folder("query_files")
+    
     if constants.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)
     elif constants.RUN_MODE == 'development':

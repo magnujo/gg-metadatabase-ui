@@ -1,3 +1,4 @@
+import os
 from constants import DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import pandas as pd
 import psycopg2
@@ -86,7 +87,6 @@ def get_table_information(table_name, schema_name):
     WHERE table_schema = '{schema_name}' AND table_name = '{table_name}' 
     ORDER BY ordinal_position;
     '''
-
     df = pd.read_sql_query(column_query, ENGINE)
        
     return df
@@ -142,6 +142,20 @@ def count_rows(database, schema, table_name):
             cursor.close()
         if conn:
             conn.close()
+            
+def get_column_names(table_name, schema_name):
+    df = get_table_information(table_name=table_name, schema_name=schema_name)
+    return list(df["column_name"])
+
+
+def get_schema_names(database):
+    q = '''
+    SELECT schema_name
+    FROM information_schema.schemata;
+    '''
+    
+    df = pd.read_sql(q, con=ENGINE)
+    
 
 
 
