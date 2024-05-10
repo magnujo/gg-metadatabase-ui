@@ -580,8 +580,8 @@ def handle_uncaught_exception(e):
     current_time = datetime.now()
     app.logger.exception('Unhandled Exception: %s', traceback.format_exc())
     app.logger.exception('Unhandled Exception: %s', e)
-    message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. REPORT TO ADMIN BELOW"
-    return general_error_handling(f"{message} + ' ' + {str(e)}")
+    message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. THIS MIGHT BE CRUCIAL, SO REPORT TO ADMIN BELOW!"
+    return general_error_handling(f"{message}: \n Error message: \n {str(e)}")
 
 
 @app.route('/search', methods=['GET', 'POST'])
