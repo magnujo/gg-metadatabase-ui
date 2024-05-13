@@ -15,10 +15,14 @@ def check_if_upload_id_exists_in_table(schema, table, upload_id):
     '''
     Returns true if upload_id exists in the upload_uuid column of schema.table
     '''
-    q = upload_id_filter(schema, table, upload_id)
-    df = pd.read_sql(sql=q, con=ENGINE)
-    if len(df) != 0:
-        return True
+    if "upload_uuid" in get_column_names(table_name=table, schema_name=schema):
+    
+        q = upload_id_filter(schema, table, upload_id)
+        df = pd.read_sql(sql=q, con=ENGINE)
+        if len(df) != 0:
+            return True
+        else:
+            return False
     else:
         return False
     
