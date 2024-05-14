@@ -267,13 +267,28 @@ def confirmed():
                 raise Exception(f"Found upload_id already in {tables_with_uid}")            
             
         except Exception as e:
-            return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])
+            return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+        
+           
+                
         
         # UPLOADING
         for i, table_name in enumerate(table_splits):
             try:
                 parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
+                
+                if database_table_name == 'field_sample':
+                    project_names = list(clean_sheet["Running Project Title"].unique())
+                    if len(project_names) < 1:
+                        raise Exception("Please fill in Running Project Title")
+                    else:
+                        for project_name in project_names:
+                            path_to_dir = os.path.join(constants.GEO_DATA_NETWORK_DIR, str(project_name))
+                            make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir)
+                    
+                    
+                            
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
                 # Convert to ns to enable testing (postgres converts to ns, when uploading)
@@ -399,6 +414,7 @@ def confirmed():
         except Exception as e:
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
+       
         
                         
         return redirect(url_for("success")) 
@@ -682,7 +698,20 @@ def download_essential():
 
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
+
+def make_dir_on_network_mount(network_drive, path_to_dir):
+    path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)
+    path_on_network = os.path.join(f"{network_drive}:\\", path_to_dir)
+    print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
+    if not os.path.exists(path_on_server):
+        os.mkdir(path_on_server)
+        print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
+    else:
+        raise Exception(f"The server tried to make a directory on {path_on_network}, but the directory already exists.")
+       
+        
     
+        
         
 if __name__ == '__main__':
     print("Start")
