@@ -42,6 +42,10 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
 
 pw = os.environ.get('DB_PASSWORD')
 
+PATH_TO_MOUNT = os.path.join("/", "mnt")
+GEO_DATA_NETWORK_DIR = "SUN-GI-metadb-test"
+
+
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',

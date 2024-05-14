@@ -1,23 +1,29 @@
-import psycopg2
-from constants import DATABASE_CONFIG_2, DATABASE_CONFIG
-schema = DATABASE_CONFIG['schema_name']
-deleted_schema = f"{schema} deleted"
-database_table_name = "flowcell"
-upload_id = "asdasdsaadvsvs2231321assd"
-q = f'''
-BEGIN;
+import os
+PATH_TO_N_MOUNT = os.path.join("/", "mnt")
+GEO_DATA_NETWORK_DIR = "SUN-GI-metadb-test"
 
--- Delete data from the source table and return the deleted rows
-WITH deleted_rows AS (
-DELETE FROM "{schema}"."{database_table_name}" f 
-WHERE upload_uuid = \'{upload_id}\'
-RETURNING *
-)
--- Insert the deleted rows into the destination table
-INSERT INTO "{deleted_schema}"."{database_table_name}"  
-SELECT *
-FROM deleted_rows;
+path = os.path.join(PATH_TO_N_MOUNT, GEO_DATA_NETWORK_DIR)
+location_on_n_drive = f"N:\{str(path).split(str(os.path.sep))[-1]}"
 
-COMMIT;
-'''
-print(q)
+print(PATH_TO_N_MOUNT)
+
+print(os.path.sep)
+print(os.path.altsep)
+print(os.path.pardir)
+print(os.path.extsep)
+print(os.path.pathsep)
+print(path)
+print(location_on_n_drive)
+network_drive = "N"
+path_to_dir = os.path.join(GEO_DATA_NETWORK_DIR, "test")
+print(path_to_dir)
+
+path_on_network = os.path.join(f"{network_drive}:", str(path_to_dir))
+test = os.path.join(f"N:\\{GEO_DATA_NETWORK_DIR}","test")
+test2 = os.path.join("N",path_to_dir)
+
+print(path_on_network)
+print(test)
+print(test2)
+
+
