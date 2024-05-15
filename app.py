@@ -277,17 +277,6 @@ def confirmed():
             try:
                 parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
-                
-                if database_table_name == 'field_sample':
-                    project_names = list(clean_sheet["Running Project Title"].unique())
-                    if len(project_names) < 1:
-                        raise Exception("Please fill in Running Project Title")
-                    else:
-                        for project_name in project_names:
-                            path_to_dir = os.path.join(constants.GEO_DATA_NETWORK_DIR, str(project_name))
-                            make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir)
-                    
-                    
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
