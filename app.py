@@ -414,6 +414,22 @@ def confirmed():
         except Exception as e:
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
+        try:
+            if database_table_name == 'field_sample':
+                if len(table_splits) != 1:
+                    raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
+                else:
+                    for table_name in table_splits:
+                            clean_sheet = clean_sheets[table_name]
+                            project_names = list(clean_sheet["Running Project Title"].unique())
+                            if len(project_names) < 1:
+                                raise Exception("Please fill in Running Project Title")
+                            else:
+                                for project_name in project_names:
+                                    path_to_dir = os.path.join(constants.GEO_DATA_NETWORK_DIR, str(project_name))
+                                    make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir)
+        except Exception as e:
+            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
        
         
                         
@@ -701,7 +717,7 @@ def download_essential():
 
 def make_dir_on_network_mount(network_drive, path_to_dir):
     path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)
-    path_on_network = os.path.join(f"{network_drive}:\\", path_to_dir)
+    path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
     print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
     if not os.path.exists(path_on_server):
         os.mkdir(path_on_server)
