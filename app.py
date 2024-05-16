@@ -246,7 +246,6 @@ def confirmed():
     with lock:
         print("Confirmed")
         try:
-            created_dirs = []
             if session['error'] == True:
                 return redirect(url_for("index"))
             file_name = session.get('file_name')
@@ -423,21 +422,22 @@ def confirmed():
                                     created_dir = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
                                     created_dirs.append(created_dir)
         except FileExistsError as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])                       
+            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['After Upload'])                       
         
         except Exception as e:
             if created_dirs:
                 for dir_path in created_dirs:
                     # Check if dirpath exist and is not None (this is because make_dir_on_network_mount returns None if the folder already exists)
-                    if os.path.exists(dir_path) and dir_path:
-                        if str(dir_path)[-1] == str(os.path.sep):
-                            destination_path = os.path.join(constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
-                        else:
-                            destination_path = os.path.join(constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
-                        timestamp = time.strftime("%Y%m%d%H%M%S")
-                        destination_path = f"{destination_path}_{timestamp}"
-                        shutil.move(dir_path, destination_path)
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+                    if dir_path != None:
+                        if os.path.exists(dir_path):
+                            if str(dir_path)[-1] == str(os.path.sep):
+                                destination_path = os.path.join(constants.PATH_TO_MOUNT, constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
+                            else:
+                                destination_path = os.path.join(constants.PATH_TO_MOUNT, constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
+                            timestamp = time.strftime("%Y%m%d%H%M%S")
+                            destination_path = f"{destination_path}_{timestamp}"
+                            shutil.move(dir_path, destination_path)
+            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['After Upload'])
        
         
                         
