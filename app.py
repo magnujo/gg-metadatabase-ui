@@ -246,6 +246,7 @@ def confirmed():
     with lock:
         print("Confirmed")
         try:
+            created_dirs = []
             if session['error'] == True:
                 return redirect(url_for("index"))
             file_name = session.get('file_name')
@@ -403,7 +404,9 @@ def confirmed():
         except Exception as e:
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
+        
         try:
+            
             if database_table_name == 'field_sample':
                 if len(table_splits) != 1:
                     raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
@@ -414,10 +417,23 @@ def confirmed():
                             if len(project_names) < 1:
                                 raise Exception("Please fill in Running Project Title")
                             else:
-                                for project_name in project_names:
+                                for project_name in project_names:                      
                                     path_to_dir = os.path.join(constants.GEO_DATA_NETWORK_DIR, str(project_name))
-                                    make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir)
+                                    created_dirs = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
+        except FileExistsError as e:
+            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])                       
+        
         except Exception as e:
+            if created_dirs:
+                for dir_path in created_dirs:
+                    if os.path.exists(dir_path):
+                        if str(dir_path)[-1] == str(os.path.sep):
+                            destination_path = os.path.join(constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
+                        else:
+                            destination_path = os.path.join(constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
+                        timestamp = time.strftime("%Y%m%d%H%M%S")
+                        destination_path = f"{destination_path}_{timestamp}"
+                        shutil.move(dir_path, destination_path)
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
        
         
@@ -429,6 +445,9 @@ def confirmed():
 @decorators.log_info(app)
 def cancel_upload():
     return redirect(url_for("index"))
+
+
+    
 
 @app.route('/success', methods=['GET'])
 @decorators.log_info(app)
@@ -704,15 +723,36 @@ def download_essential():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
-def make_dir_on_network_mount(network_drive, path_to_dir):
+def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
+    '''
+    Only set error_if_exists = True if you want to raise an error and cancel the creation, if the dir already exists. 
+    '''
+    
+    created_dirs = []
+  
     path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)
+    initial_folders = set(os.listdir(path_on_server))
+    
     path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
     print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
-    if not os.path.exists(path_on_server):
-        os.mkdir(path_on_server)
-        print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
+    
+    
+    if os.path.exists(path_on_server):
+        if error_if_exists:
+            raise FileExistsError(f"The server tried to make a directory on {path_on_network}, but the directory already exists.")
+        else:
+            pass
     else:
-        raise Exception(f"The server tried to make a directory on {path_on_network}, but the directory already exists.")
+        # Only makes the directory if it does'nt already exist.
+        os.mkdir(path_on_server)
+        created_dirs.append(path_on_server)
+        print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
+        
+    return created_dirs
+    
+  
+        
+            
        
         
     
