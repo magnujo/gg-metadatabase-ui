@@ -417,16 +417,19 @@ def confirmed():
                             if len(project_names) < 1:
                                 raise Exception("Please fill in Running Project Title")
                             else:
+                                created_dirs = []
                                 for project_name in project_names:                      
                                     path_to_dir = os.path.join(constants.GEO_DATA_NETWORK_DIR, str(project_name))
-                                    created_dirs = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
+                                    created_dir = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
+                                    created_dirs.append(created_dir)
         except FileExistsError as e:
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])                       
         
         except Exception as e:
             if created_dirs:
                 for dir_path in created_dirs:
-                    if os.path.exists(dir_path):
+                    # Check if dirpath exist and is not None (this is because make_dir_on_network_mount returns None if the folder already exists)
+                    if os.path.exists(dir_path) and dir_path:
                         if str(dir_path)[-1] == str(os.path.sep):
                             destination_path = os.path.join(constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
                         else:
@@ -728,11 +731,9 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     Only set error_if_exists = True if you want to raise an error and cancel the creation, if the dir already exists. 
     '''
     
-    created_dirs = []
-  
-    path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)
-    initial_folders = set(os.listdir(path_on_server))
     
+  
+    path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)    
     path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
     print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
     
@@ -741,14 +742,12 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
         if error_if_exists:
             raise FileExistsError(f"The server tried to make a directory on {path_on_network}, but the directory already exists.")
         else:
-            pass
+            return None
     else:
         # Only makes the directory if it does'nt already exist.
         os.mkdir(path_on_server)
-        created_dirs.append(path_on_server)
         print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
-        
-    return created_dirs
+        return path_on_server
     
   
         
