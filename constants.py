@@ -43,9 +43,10 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
 pw = os.environ.get('DB_PASSWORD')
 
 PATH_TO_MOUNT = os.path.join("/", "mnt")
-GEO_DATA_NETWORK_DIR = "SUN-GI-metadb-test"
+GEO_DATA_NETWORK_DIR = os.path.join("SUN-GI-metadb-test", "Field Sample Projects")
+GEO_DATA_NETWORK_DIR_DELETIONS = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
 
-
+ 
 if RUN_MODE == 'production':
     DATABASE_CONFIG = {
         'host': 'dandyweb01fl',
