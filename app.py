@@ -730,9 +730,7 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     
     created_dirs = []
   
-    path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)
-    initial_folders = set(os.listdir(path_on_server))
-    
+    path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)    
     path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
     print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
     
