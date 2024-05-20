@@ -46,19 +46,6 @@ def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include
         super_cursor.close() 
         super_psy_conn.commit()
         
-        # super_cursor = super_psy_conn.cursor()
-        # if copy_dtypes == False:
-        #     for table in tables:
-        #         table_name = table[0]
-        #         print("Changing dtypes to text...")
-        #         column_names = queries.get_column_names(table_name=table_name, schema_name=source_schema)
-        #         print(column_names)
-        #         for column_name in column_names:
-        #             super_cursor.execute(f'ALTER TABLE "{destination_schema}"."{table_name}" ALTER COLUMN "{column_name}" TYPE text')
-        # super_cursor.close()
-        # super_psy_conn.commit()
-
-        
         print(f"Tables copied from schema '{source_schema}' to schema '{destination_schema}' successfully.")
     except Exception as e:
         print(f"Error copying tables: {e}")
@@ -71,7 +58,7 @@ def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include
             super_cursor.close()
 
 
-def run(conn, source_schema, new_schema, owner, include_constraints, copy_datatypes):
+def run(conn, source_schema, new_schema, owner, include_constraints, copy_datatypes, privileges):
     """
     Create a new schema, copy all tables from a source schema to the new schema,
     and grant privileges to the specified owner.
@@ -83,6 +70,7 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
     owner (str): The owner to grant privileges to.
     include_constraints (bool): If True, include constraints while copying tables.
     copy_datatypes (bool): If True, copy data types of columns, otherwise all columns will be text.
+    priviliges (list): specify which priviliges owner should have (SELECT, INSERT and/or DELETE).
 
     Returns:
     None
@@ -108,10 +96,17 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
         # Copy tables from source schema to the new schema
         copy_tables(conn, super_psy_conn, source_schema, new_schema, include_constraints=include_constraints, copy_dtypes=copy_datatypes)
         
+        if len(privileges) > 3:
+            raise Exception(f"Expected priviliges list to be max length of 3 but got {len(privileges)}")
+        
+        
+        if not all(item in constants.ALLOWED_PRIVILIGES for item in privileges):
+            raise Exception(f"Expected found not allowed value in priviliges list. Only {constants.ALLOWED_PRIVILIGES} allowed but got {privileges}")
+        
         # TODO: Remove upload_user and all its privileges
         # Query to give privileges to upload_user 
         priv_q_2 = f'GRANT USAGE ON SCHEMA "{new_schema}" TO "{owner}";'
-        priv_q = f'GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA "{new_schema}" TO "{owner}";'
+        priv_q = f'GRANT {", ".join(privileges)} ON ALL TABLES IN SCHEMA "{new_schema}" TO "{owner}";'
         
         try:
             cursor = super_psy_conn.cursor()

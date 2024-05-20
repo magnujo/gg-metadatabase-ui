@@ -139,7 +139,6 @@ def upload_file():
 
         
         sheets_to_parse = []
-        print(database_table_name)
         if database_table_name in constants.MULTI_TABLE_SHEETS:
             # TODO: Make more general:
             sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
@@ -187,15 +186,13 @@ def upload_file():
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
             
             clean_sheet['upload_uuid'] = 'not_uploaded'
-            print(clean_sheet.columns)
             
             
             db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
             db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
             db_table_data = db_table_data.drop(columns=db_generated_uuid)
-            print("TEST \n")
-            print(set(db_table_data.columns) - set(clean_sheet.columns))
+           
             clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
             assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -294,9 +291,6 @@ def confirmed():
                 # Test that the upload id doesnt exist already in table
                 # TODO: Should this operation be thread locked?
                 else:
-                    print("\n Test \n")
-                    print(upload_id)
-                    print(session.get("upload_id"))
                     upload_id = upload_id[0]
                     if str(session.get("upload_id")) != str(upload_id):
                         raise Exception("Upload ID discreprancy accross parsed sheet and session variable")
@@ -508,9 +502,6 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     
     clean_sheet = clean_sheet.sort_values(by=clean_sheet.columns.tolist()).reset_index(drop=True)
     uploaded_data = uploaded_data.sort_values(by=uploaded_data.columns.tolist()).reset_index(drop=True)
-    
-    print(clean_sheet.shape)
-    print(uploaded_data.shape)
     
     assert clean_sheet.shape == uploaded_data.shape, "Shape input file does not match shape of uploaded data."
     
