@@ -48,26 +48,7 @@ def copy_or_generate(active_schema, database_name, alch_engine, psy_conn):
     if equal:
         # If the active deleted schema is equal to the active schema then we keep it
         print("Old deleted schema is equal to active schema, so old deleted schema is used...")
-        pass
-        # table_names = table_names_source
-        # try:
-        #     with constants.ENGINE.connect() as conn:
-        #         with conn.begin() as trans:
-        #             try:
-        #                 for table_name in table_names:
-        #                     sql_query = f'INSERT INTO "{active_deleted_schema_name}"."{table_name}" SELECT * FROM "{source_schema}"."{table_name}"'
-                            
-        #                     # Execute the SQL query to copy data from source to destination
-        #                     conn.execute(sql_query)
-                        
-        #             except Exception as e:
-        #                 # Rollback the transaction if an error occurs
-        #                 trans.rollback()
-        #             else:
-        #                 conn.commit()
-                                                
-        # except SQLAlchemyError as e:
-        #     print("Error connecting to the database:", e)        
+        pass       
         
     else:
         # Make a duplicate schema of the active schema with todays date appended
@@ -80,24 +61,9 @@ def copy_or_generate(active_schema, database_name, alch_engine, psy_conn):
                             new_schema=new_schema_name, 
                             owner="upload_user", 
                             include_constraints=False, 
-                            copy_datatypes=False)
+                            copy_datatypes=False,
+                            privileges=["SELECT", "INSERT"])
     
-            
-# def grant_schema_usage(schema_name, user, conn):
-#     # Create a cursor object
-#     cur = conn.cursor()
-
-#     # Execute the SQL command to grant USAGE permission on the schema
-#     grant_sql = f"GRANT USAGE ON SCHEMA {schema_name} TO {user};"
-#     cur.execute(grant_sql)
-
-#     # Commit the transaction
-#     conn.commit()
-
-#     # Close the cursor and the connection
-#     cur.close()
-#     conn.close()
-
 
 def get_active_deleted_schema(schema_name, engine):
     q = '''

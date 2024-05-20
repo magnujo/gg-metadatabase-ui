@@ -8,7 +8,6 @@ def upload_id_filter(schema, table, upload_id):
     q = f'''
     select * from "{schema}"."{table}" where upload_uuid = '{upload_id}'
     '''
-    print(q)
     return q
 
 def check_if_upload_id_exists_in_table(schema, table, upload_id):
