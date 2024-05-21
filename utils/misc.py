@@ -2,6 +2,8 @@ import os
 from utils import queries
 import constants
 import utils.queries as q
+import json
+import requests
 
 def drop_auto_generated_columns(dataframe):
     '''
@@ -59,3 +61,26 @@ def empty_folder(folder_path):
             # Remove the empty directory
             os.rmdir(item_path)
             print(f"Removed directory: {item_path}")
+            
+def load_json_url(url):
+# The URL of the JSON file
+
+    try:
+        # Send an HTTP GET request to the URL
+        response = requests.get(url)
+        # Check if the request was successful (status code 200)
+        response.raise_for_status()
+
+        # Parse the JSON content
+        json_data = response.json()
+
+        # Print the JSON content (or do something else with it)
+        return json_data
+
+    except requests.exceptions.RequestException as e:
+        # Handle any errors that occur during the HTTP request
+        print(f"HTTP request failed: {e}")
+
+    except json.JSONDecodeError as e:
+        # Handle JSON decoding errors
+        print(f"Failed to parse JSON: {e}")

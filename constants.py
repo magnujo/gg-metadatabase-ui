@@ -160,3 +160,10 @@ DB_CHARACTER_ENCODING = 'UTF-8'
 
 
 COLUMN_TRANSLATER = {'ArchiveSampleID': 'Archive Sample ID'}
+
+'''
+The following is a translator from CGG DB column names to SPAAM defined in https://github.com/SPAAM-community/AncientMetagenomeDir
+'''
+TO_SPAAM_COLUMN_NAMES = {"field_sample": {"Country/Ocean": "geo_loc_name",
+                                          "Sample Setting": "feature"}}
+
