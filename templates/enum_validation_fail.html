@@ -16,14 +16,20 @@
 
 <body>
     <div class="container-fluid">
-        <h1>Failed data validation</h1>
-        <p>Your data failed validation: </p>
+        <h1>Failed data validaton</h1>
+        <p>Your data contains values that are not allowed. See below which values caused the error and click here to see which values are allowed: <a href="#allowed_values">Allowed values</a></p>
+        
+            <br>
+
+        <h2>Bad values</h2>
         <!-- Embedded DataFrame HTML -->
         {% for failed_validation in validation_results %}
             {% for bad_values in failed_validation["bad_values"] %}
                 {{ bad_values|safe }}
             {% endfor %}
         {% endfor %}
+        <h2 id="allowed_values">Allowed values</h2>
+        <p>Here are the allowed values: </p>
         {% for failed_validation in validation_results %}
             {% for allowed_values in failed_validation["allowed_values"] %}
                 {{ allowed_values|safe }}

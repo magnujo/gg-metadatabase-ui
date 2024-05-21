@@ -69,6 +69,9 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
         trimmed = pd.DataFrame(bad_values[col].dropna())
         trimmed["Row number"] = trimmed.index
         trimmed["Row number"] = trimmed["Row number"].apply(lambda x: x + 2)
+        column_name = trimmed.columns[0]
+        trimmed = trimmed.rename(columns={column_name: 'Value'})
+        trimmed.columns = pd.MultiIndex.from_tuples([(f"Column name: '{column_name}'", 'Value'), (f"Column name: '{column_name}'", 'Row Number')])
         
         bad_values_output.append(trimmed)
 
