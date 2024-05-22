@@ -1,3 +1,4 @@
+from validation_tools import validate
 from scripts import deleted_schema_management
 import zipfile
 from scripts import fid_query, library_id_query, get_all_query
@@ -222,16 +223,29 @@ def confirmation_request():
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
+        failed_validations = []
+                       
 
         clean_sheets = []
         for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
+            # Validate enum columns:
+            passed, bad_values, allowed_values = validate.validate_enums(clean_sheet, ele)
+            
+
+            if passed == False:
+                failed_validations.append({"bad_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), bad_values)), 
+                                           "allowed_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), allowed_values))})
+
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
             clean_sheets.append(html_table_with_caption)
-    
-        return render_template('confirmation_request.html', table_names=constants.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        
+            if failed_validations:
+                return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
+            else:
+                return render_template('confirmation_request.html', table_names=constants.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
@@ -547,7 +561,7 @@ def generate_html_message(message):
 <p>{message}</p>
 ''', traceback_
 
-def general_error_handling(message, errors=None, rows_to_delete=None, tables_uploaded_to=None, revert_db=False, num_of_uploaded_rows=-1, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
+def general_error_handling(message, error_tables=None, errors=None, rows_to_delete=None, tables_uploaded_to=None, revert_db=False, num_of_uploaded_rows=-1, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
         print("\n General error handling... \n")
         upload_id = session.get('upload_id')
@@ -616,7 +630,6 @@ def handle_uncaught_exception(e):
     app.logger.exception('Unhandled Exception: %s', e)
     message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. THIS MIGHT BE CRUCIAL, SO REPORT TO ADMIN BELOW!"
     return general_error_handling(f"{message}: \n Error message: \n {str(e)}")
-
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():

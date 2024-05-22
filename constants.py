@@ -2,6 +2,12 @@ import os
 from sqlalchemy import create_engine
 from flask import Flask
 import psycopg2
+from utils import misc
+
+
+VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/libraries/ancientmetagenome-environmental_libraries_schema.json',
+                           "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
+
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
@@ -160,3 +166,14 @@ DB_CHARACTER_ENCODING = 'UTF-8'
 
 
 COLUMN_TRANSLATER = {'ArchiveSampleID': 'Archive Sample ID'}
+
+'''
+The following is a translator from CGG DB column names to SPAAM defined in https://github.com/SPAAM-community/AncientMetagenomeDir
+'''
+TO_SPAAM_COLUMN_NAMES = {"field_sample": {"Country/Ocean": "geo_loc_name",
+                                          "Sample Setting": "feature"}}
+
+
+
+FROM_SPAAM_COLUMN_NAMES = lambda table_name: {value: key for key, value in TO_SPAAM_COLUMN_NAMES[table_name].items()} if table_name in TO_SPAAM_COLUMN_NAMES else None
+
