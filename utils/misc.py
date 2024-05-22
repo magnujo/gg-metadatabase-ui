@@ -1,4 +1,5 @@
 import os
+import db_table_constants
 from utils import queries
 import constants
 import utils.queries as q
@@ -87,10 +88,20 @@ def load_json_url(url):
         
         
 def check_tables():
+    '''
+    Check that all tables in the schema are present in the releavant lists.
+    '''
     tables_in_schema = q.get_table_names(constants.DATABASE_CONFIG["schema_name"], constants.DATABASE_CONFIG['database'])
-    constants.SAMPLE_TABLES_ENUM_VALIDATION
-    constants.LIBRARY_TABLES_ENUM_VALIDATION
-    constants.TABLE_SPLITTER
-    constants.DB_GENERATED_COLUMNS
-    constants.MULTI_TABLE_SHEETS
-    constants.COLUMNS
+    db_table_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["SAMPLE"]
+    db_table_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["LIBRARY"]
+    db_table_constants.DBTableRelated.TABLE_SPLITTER
+    db_table_constants.DBTableRelated.DB_GENERATED_COLUMNS
+
+
+def extract_leaf_values_from_dict(dictionary):
+    for value in dictionary.values():
+        if isinstance(value, dict):
+            yield from extract_leaf_values_from_dict(value)
+        else:
+            yield value
+            

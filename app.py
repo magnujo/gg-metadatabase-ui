@@ -1,3 +1,4 @@
+import db_table_constants
 from validation_tools import validate
 from scripts import deleted_schema_management
 import zipfile
@@ -140,7 +141,7 @@ def upload_file():
 
         
         sheets_to_parse = []
-        if database_table_name in constants.MULTI_TABLE_SHEETS:
+        if database_table_name == "lane_barcode_html":
             # TODO: Make more general:
             sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
             flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
@@ -160,7 +161,7 @@ def upload_file():
         clean_sheets = []
         
         for i, sheet in enumerate(sheets_to_parse):
-            split_database_table_name = constants.TABLE_SPLITTER[database_table_name][i]
+            split_database_table_name = db_table_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
             clean_sheet = parsers.parse(sheet=sheet,
                                         database_table_name=split_database_table_name,
                                         date_format=date_format,
@@ -227,7 +228,7 @@ def confirmation_request():
                        
 
         clean_sheets = []
-        for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
+        for i, ele in enumerate(db_table_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
             # Validate enum columns:
             passed, bad_values, allowed_values = validate.validate_enums(clean_sheet, ele)
@@ -245,7 +246,7 @@ def confirmation_request():
             if failed_validations:
                 return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
             else:
-                return render_template('confirmation_request.html', table_names=constants.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+                return render_template('confirmation_request.html', table_names=db_table_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
@@ -261,7 +262,7 @@ def confirmed():
                 return redirect(url_for("index"))
             file_name = session.get('file_name')
             database_table_name = session.get('database_table_name')
-            table_splits = constants.TABLE_SPLITTER.get(database_table_name)
+            table_splits = db_table_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)
             tables_uploaded_to = []
             clean_sheets = {}
             row_counts_before_upload = {}
@@ -471,7 +472,7 @@ def success():
         database_table_name = session.get('database_table_name')
 
         all_tables = []
-        for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+        for i, table in enumerate(db_table_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
             uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
@@ -507,8 +508,8 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     uploaded_data = uploaded_data.map(lambda x: x.lower() if isinstance(x, str) else x)
     clean_sheet = clean_sheet.map(lambda x: x.lower() if isinstance(x, str) else x)
 
-    if database_table_name in constants.DB_GENERATED_COLUMNS:
-        for db_generated_col in constants.DB_GENERATED_COLUMNS.get(database_table_name):
+    if database_table_name in db_table_constants.DBTableRelated.DB_GENERATED_COLUMNS:
+        for db_generated_col in db_table_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
             if db_generated_col in list(uploaded_data.columns):
                 uploaded_data.drop(db_generated_col, axis=1, inplace=True)
     
@@ -592,7 +593,7 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
                         delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=rows_to_delete[table])
                 else:        
                     database_table_name = session.get('database_table_name')
-                    for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+                    for i, table in enumerate(db_table_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
                         clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
                         
                         # To make sure to delete the correct number of rows
@@ -763,6 +764,8 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
         
 if __name__ == '__main__':
     print("Start")
+    db_table_constants.DBTableRelated.check_for_table_name_inconsistencies()
+    db_table_constants.DBTableRelated.check_for_duplicates()
     production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
     current_date = datetime.now().strftime('%Y%m%d')

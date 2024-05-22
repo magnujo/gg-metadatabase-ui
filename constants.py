@@ -3,12 +3,6 @@ from sqlalchemy import create_engine
 from flask import Flask
 import psycopg2
 
-SAMPLE_TABLES_ENUM_VALIDATION = ['field_sample', 'edna_robot_sample', 'edna_archive_sample', 'test']
-LIBRARY_TABLES_ENUM_VALIDATION = ['flowcell', 'seq_sample_sheet', 'top_unknown_seq_barcodes', 'adna_wetlab_report', 'edna_wetlab_report']
-
-
-    
-
 
 VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/libraries/ancientmetagenome-environmental_libraries_schema.json',
                            "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
@@ -110,6 +104,7 @@ PSY_CONN = psycopg2.connect(
             port=DATABASE_CONFIG["port"]
         )
 
+# If you add to this, make sure to include the table information in dbtable class
 SHEET_TYPES = {
     'field_sample': 'Field samples',
     'edna_archive_sample': 'eDNA archive sampling',
@@ -136,31 +131,10 @@ FILE_EXTENSIONS = {
     'master_depth': '.xlsx'
 }
 
-DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
 
-TABLE_SPLITTER = {
-    'field_sample': ['field_sample'],
-    'edna_archive_sample': ['edna_archive_sample'],
-    'edna_robot_sample': ['edna_robot_sample'],
-    'edna_wetlab_report': ['edna_wetlab_report'],
-    'adna_wetlab_report': ['adna_wetlab_report'],
-    'cgg_sediment_water': ['cgg_sediment_water'],
-    'cgg_animal_plant': ['cgg_animal_plant'],
-    'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes'],
-    'seq_sample_sheet': ['seq_sample_sheet'],
-    'master_depth': ['master_depth']
-}
-
-
-# Sheets that are split into multiple tables:
-# Value: Tables in the database that the sheet is split into
-MULTI_TABLE_SHEETS = {'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']}
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'My data doesn\'t contain dates']
 
-COLUMNS = {'field_sample':
-               {'float_columns':
-                    []}}
 
 POSTGRES_TYPES = {'floating_point': ['double precision', 'numeric', 'real', 'decimal', 'float4', 'float8', 'float'],
                   'integer': ['smallint', 'integer', 'bigint', 'int', 'int2', 'int4', 'int8'],
@@ -184,14 +158,5 @@ TO_SPAAM_COLUMN_NAMES = {"field_sample": {"Country/Ocean": "geo_loc_name",
 
 FROM_SPAAM_COLUMN_NAMES = lambda table_name: {value: key for key, value in TO_SPAAM_COLUMN_NAMES[table_name].items()} if table_name in TO_SPAAM_COLUMN_NAMES else None
 
-class DBTableRelated:
-    '''
-    Contains all constants that contain names of database tables
-    '''
-    SAMPLE_TABLES_ENUM_VALIDATION = SAMPLE_TABLES_ENUM_VALIDATION
-    LIBRARY_TABLES_ENUM_VALIDATION = LIBRARY_TABLES_ENUM_VALIDATION
-    TABLE_SPLITTER = TABLE_SPLITTER
-    DB_GENERATED_COLUMNS = DB_GENERATED_COLUMNS
-    MULTI_TABLE_SHEETS = MULTI_TABLE_SHEETS
-    COLUMNS = COLUMNS
-    
+        
+        

@@ -1,6 +1,7 @@
 import requests
 import json
 import pandas as pd
+import db_table_constants
 from utils import misc
 import constants
 
@@ -13,9 +14,9 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     to a official list of ocean and country names.
     '''
 
-    if table_name in constants.SAMPLE_TABLES_ENUM_VALIDATION:
+    if table_name in db_table_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["SAMPLE"]:
         validation_schema = misc.load_json_url(constants.VALIDATION_SCHEMA_LINKS["SAMPLE"])
-    elif table_name in constants.LIBRARY_TABLES_ENUM_VALIDATION:
+    elif table_name in db_table_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["LIBRARY"]:
         validation_schema = misc.load_json_url(constants.VALIDATION_SCHEMA_LINKS["LIBRARY"])
     else:
         raise Exception(f"validate_enums is not available for {table_name}")
@@ -29,9 +30,12 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     # If a column is a enum column it means it has a reference ($ref) to the SPAAM list of allowed values. 
     enum_columns = schema_t[~schema_t["$ref"].isna()]["$ref"]
     
-    column_name_translator = constants.TO_SPAAM_COLUMN_NAMES[table_name]
-    parsed_sheet = parsed_sheet.rename(columns=column_name_translator)
+    if table_name in constants.TO_SPAAM_COLUMN_NAMES:
+        column_name_translator = constants.TO_SPAAM_COLUMN_NAMES[table_name]
+        parsed_sheet = parsed_sheet.rename(columns=column_name_translator)
+        
     parsed_sheet = parsed_sheet.rename(columns=lambda x: x.lower())
+    
     
     # The following loops through each enum column in the parsed_sheet and returns a dataframe with the column and rows that do not contain an enum member.
     res = {}
@@ -59,8 +63,9 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
             enum_members_dfs.append(pd.DataFrame({key: list(map(lambda x: x.lower(), enum_members[key]))}))
     
     translator = constants.FROM_SPAAM_COLUMN_NAMES(table_name)
-
-    bad_values = bad_values.rename(columns=translator)
+    if translator:
+        bad_values = bad_values.rename(columns=translator)
+        
     bad_values_output = []
     for col in bad_values.columns:
         trimmed = pd.DataFrame(bad_values[col].dropna())
