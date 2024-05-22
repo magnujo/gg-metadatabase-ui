@@ -84,3 +84,13 @@ def load_json_url(url):
     except json.JSONDecodeError as e:
         # Handle JSON decoding errors
         print(f"Failed to parse JSON: {e}")
+        
+        
+def check_tables():
+    tables_in_schema = q.get_table_names(constants.DATABASE_CONFIG["schema_name"], constants.DATABASE_CONFIG['database'])
+    constants.SAMPLE_TABLES_ENUM_VALIDATION
+    constants.LIBRARY_TABLES_ENUM_VALIDATION
+    constants.TABLE_SPLITTER
+    constants.DB_GENERATED_COLUMNS
+    constants.MULTI_TABLE_SHEETS
+    constants.COLUMNS

@@ -12,13 +12,10 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     the data against their defined enum members. An enum column is defined as being restricted to a fixed set of allowed values. Example: County/Ocean is restricted
     to a official list of ocean and country names.
     '''
-        
-    sample_tables = ['field_sample', 'edna_robot_sample', 'edna_archive_sample']
-    library_tables = ['flowcell', 'seq_sample_sheet', 'top_unknown_seq_barcodes', 'adna_wetlab_report', 'edna_wetlab_report']
 
-    if table_name in sample_tables:
+    if table_name in constants.SAMPLE_TABLES_ENUM_VALIDATION:
         validation_schema = misc.load_json_url(constants.VALIDATION_SCHEMA_LINKS["SAMPLE"])
-    elif table_name in library_tables:
+    elif table_name in constants.LIBRARY_TABLES_ENUM_VALIDATION:
         validation_schema = misc.load_json_url(constants.VALIDATION_SCHEMA_LINKS["LIBRARY"])
     else:
         raise Exception(f"validate_enums is not available for {table_name}")

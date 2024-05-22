@@ -2,11 +2,17 @@ import os
 from sqlalchemy import create_engine
 from flask import Flask
 import psycopg2
-from utils import misc
+
+SAMPLE_TABLES_ENUM_VALIDATION = ['field_sample', 'edna_robot_sample', 'edna_archive_sample', 'test']
+LIBRARY_TABLES_ENUM_VALIDATION = ['flowcell', 'seq_sample_sheet', 'top_unknown_seq_barcodes', 'adna_wetlab_report', 'edna_wetlab_report']
+
+
+    
 
 
 VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/libraries/ancientmetagenome-environmental_libraries_schema.json',
                            "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
+
 
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
@@ -113,7 +119,8 @@ SHEET_TYPES = {
     'cgg_sediment_water': 'CGG Sediment Water',
     'cgg_animal_plant': 'CGG Animal Plant',
     'lane_barcode_html': 'Lane Barcode HTML',
-    'seq_sample_sheet': 'Sequencing Center Sample Sheet'
+    'seq_sample_sheet': 'Sequencing Center Sample Sheet',
+    'master_depth': 'Master Depths sheet'
 }
 
 FILE_EXTENSIONS = {
@@ -125,7 +132,8 @@ FILE_EXTENSIONS = {
     'cgg_sediment_water': '.xlsx',
     'cgg_animal_plant': '.xlsx',
     'lane_barcode_html': '.html',
-    'seq_sample_sheet': '.xlsx'
+    'seq_sample_sheet': '.xlsx',
+    'master_depth': '.xlsx'
 }
 
 DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
@@ -139,7 +147,8 @@ TABLE_SPLITTER = {
     'cgg_sediment_water': ['cgg_sediment_water'],
     'cgg_animal_plant': ['cgg_animal_plant'],
     'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes'],
-    'seq_sample_sheet': ['seq_sample_sheet']
+    'seq_sample_sheet': ['seq_sample_sheet'],
+    'master_depth': ['master_depth']
 }
 
 
@@ -173,7 +182,16 @@ The following is a translator from CGG DB column names to SPAAM defined in https
 TO_SPAAM_COLUMN_NAMES = {"field_sample": {"Country/Ocean": "geo_loc_name",
                                           "Sample Setting": "feature"}}
 
-
-
 FROM_SPAAM_COLUMN_NAMES = lambda table_name: {value: key for key, value in TO_SPAAM_COLUMN_NAMES[table_name].items()} if table_name in TO_SPAAM_COLUMN_NAMES else None
 
+class DBTableRelated:
+    '''
+    Contains all constants that contain names of database tables
+    '''
+    SAMPLE_TABLES_ENUM_VALIDATION = SAMPLE_TABLES_ENUM_VALIDATION
+    LIBRARY_TABLES_ENUM_VALIDATION = LIBRARY_TABLES_ENUM_VALIDATION
+    TABLE_SPLITTER = TABLE_SPLITTER
+    DB_GENERATED_COLUMNS = DB_GENERATED_COLUMNS
+    MULTI_TABLE_SHEETS = MULTI_TABLE_SHEETS
+    COLUMNS = COLUMNS
+    

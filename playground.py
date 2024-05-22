@@ -1,0 +1,4 @@
+import constants
+
+print(constants.DBTableRelated.SAMPLE_TABLES_ENUM_VALIDATION)
+print(constants.SAMPLE_TABLES_ENUM_VALIDATION)
