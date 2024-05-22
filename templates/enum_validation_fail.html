@@ -21,15 +21,15 @@
         
             <br>
 
-        <h2>Bad values</h2>
+        <h2>Values that caused the error</h2>
         <!-- Embedded DataFrame HTML -->
         {% for failed_validation in validation_results %}
             {% for bad_values in failed_validation["bad_values"] %}
                 {{ bad_values|safe }}
             {% endfor %}
         {% endfor %}
-        <h2 id="allowed_values">Allowed values</h2>
-        <p>Here are the allowed values: </p>
+        <h3 id="allowed_values">Allowed values</h3>
+        <p>Below are the allowed values. If you need to add a new value to the allowed list, to be able to report your meta data contact Magnus at magnus.johannsen@sund.ku.dk. </p>
         {% for failed_validation in validation_results %}
             {% for allowed_values in failed_validation["allowed_values"] %}
                 {{ allowed_values|safe }}
