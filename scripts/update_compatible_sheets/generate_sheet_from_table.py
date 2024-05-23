@@ -6,7 +6,7 @@ import pandas as pd
 import psycopg2
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # Add parent directory to sys.path
-import constants
+import constants.misc_constants as misc_constants
 import psycopg2
 import pandas as pd
 import getpass
@@ -79,7 +79,7 @@ full outer join information_schema.columns c on (
     # Create a DataFrame from the fetched data
     df = pd.DataFrame(rows, columns=['Column Name', 'Data Type', 'Is Nullable', 'Description'])
     # auto_generated_cols_in_df = [col for col in constants.auto_generated_columns if col in df.columns]
-    df = df[~df['Column Name'].isin(constants.AUTO_GENERATED_COLUMNS)]
+    df = df[~df['Column Name'].isin(misc_constants.AUTO_GENERATED_COLUMNS)]
 
 
     # Export the DataFrame to an Excel file

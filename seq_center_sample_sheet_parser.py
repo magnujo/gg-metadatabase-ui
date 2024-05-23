@@ -1,5 +1,5 @@
 import pandas as pd
-import constants
+import constants.misc_constants as misc_constants
 
 def parse(df):
     '''

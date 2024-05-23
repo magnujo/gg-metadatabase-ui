@@ -1,5 +1,5 @@
 import os
-from constants import DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
+from constants.misc_constants import DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import pandas as pd
 import psycopg2
 

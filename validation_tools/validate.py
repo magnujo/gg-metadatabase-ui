@@ -1,9 +1,9 @@
 import requests
 import json
 import pandas as pd
-import db_table_constants
+import constants.db_table_related_constants as db_table_related_constants
 from utils import misc
-import constants
+import constants.misc_constants as misc_constants
 
 
 def validate_enums(parsed_sheet, table_name, type="Environmental"):
@@ -14,10 +14,10 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     to a official list of ocean and country names.
     '''
 
-    if table_name in db_table_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["SAMPLE"]:
-        validation_schema = misc.load_json_url(constants.VALIDATION_SCHEMA_LINKS["SAMPLE"])
-    elif table_name in db_table_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["LIBRARY"]:
-        validation_schema = misc.load_json_url(constants.VALIDATION_SCHEMA_LINKS["LIBRARY"])
+    if table_name in db_table_related_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["SAMPLE"]:
+        validation_schema = misc.load_json_url(misc_constants.VALIDATION_SCHEMA_LINKS["SAMPLE"])
+    elif table_name in db_table_related_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["LIBRARY"]:
+        validation_schema = misc.load_json_url(misc_constants.VALIDATION_SCHEMA_LINKS["LIBRARY"])
     else:
         raise Exception(f"validate_enums is not available for {table_name}")
     
@@ -30,8 +30,8 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     # If a column is a enum column it means it has a reference ($ref) to the SPAAM list of allowed values. 
     enum_columns = schema_t[~schema_t["$ref"].isna()]["$ref"]
     
-    if table_name in constants.TO_SPAAM_COLUMN_NAMES:
-        column_name_translator = constants.TO_SPAAM_COLUMN_NAMES[table_name]
+    if table_name in misc_constants.TO_SPAAM_COLUMN_NAMES:
+        column_name_translator = misc_constants.TO_SPAAM_COLUMN_NAMES[table_name]
         parsed_sheet = parsed_sheet.rename(columns=column_name_translator)
         
     parsed_sheet = parsed_sheet.rename(columns=lambda x: x.lower())
@@ -62,7 +62,7 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
         if key in list(bad_values):
             enum_members_dfs.append(pd.DataFrame({key: list(map(lambda x: x.lower(), enum_members[key]))}))
     
-    translator = constants.FROM_SPAAM_COLUMN_NAMES(table_name)
+    translator = misc_constants.FROM_SPAAM_COLUMN_NAMES(table_name)
     if translator:
         bad_values = bad_values.rename(columns=translator)
         

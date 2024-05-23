@@ -2,7 +2,7 @@
 Run by calling run() in the bottom
 '''
 
-import constants
+import constants.misc_constants as misc_constants
 import psycopg2
 import getpass
 from utils import queries
@@ -83,11 +83,11 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
         super_user = input("Enter your database super username: ")
         super_password = getpass.getpass("Enter your super password: ")
         super_psy_conn = psycopg2.connect(
-            dbname=constants.DATABASE_CONFIG["database"],
+            dbname=misc_constants.DATABASE_CONFIG["database"],
             user=str(super_user),
             password=str(super_password),
-            host=constants.DATABASE_CONFIG["host"],
-            port=constants.DATABASE_CONFIG["port"]
+            host=misc_constants.DATABASE_CONFIG["host"],
+            port=misc_constants.DATABASE_CONFIG["port"]
         )
        
         # Create a new schema
@@ -100,8 +100,8 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
             raise Exception(f"Expected priviliges list to be max length of 3 but got {len(privileges)}")
         
         
-        if not all(item in constants.ALLOWED_PRIVILIGES for item in privileges):
-            raise Exception(f"Expected found not allowed value in priviliges list. Only {constants.ALLOWED_PRIVILIGES} allowed but got {privileges}")
+        if not all(item in misc_constants.ALLOWED_PRIVILIGES for item in privileges):
+            raise Exception(f"Expected found not allowed value in priviliges list. Only {misc_constants.ALLOWED_PRIVILIGES} allowed but got {privileges}")
         
         # TODO: Remove upload_user and all its privileges
         # Query to give privileges to upload_user 

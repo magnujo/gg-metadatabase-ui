@@ -1,4 +1,4 @@
-from constants import SHEET_TYPES, DATABASE_CONFIG
+from constants.misc_constants import SHEET_TYPES, DATABASE_CONFIG
 from utils import queries, misc
 import inspect
 

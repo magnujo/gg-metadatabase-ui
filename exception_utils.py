@@ -5,7 +5,7 @@ from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
-from constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
+from constants.misc_constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import psycopg2
 from scripts import deleted_schema_management
 

@@ -4,7 +4,7 @@ sys.path.append(parent_dir)
 
 import pandas as pd
 import psycopg2
-import constants
+import constants.misc_constants as misc_constants
 from sqlalchemy import create_engine
 import getpass
 

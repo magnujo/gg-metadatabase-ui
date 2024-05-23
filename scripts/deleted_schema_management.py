@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import pandas as pd
 from utils import queries
-import constants
+import constants.misc_constants as misc_constants
 from scripts import duplicate_schema
 
 
