@@ -32,6 +32,7 @@ class DBTableRelated:
         
 
     def check_for_duplicates():
+        print(f"\nRunning tests in {str(inspect.stack()[1].code_context[0]).strip()}...\n")
         
         potential_duplicates = sum(DBTableRelated.TABLE_SPLITTER.values(), [])
         no_duplicates = set(potential_duplicates)
@@ -48,6 +49,8 @@ class DBTableRelated:
             raise Exception("Duplicate table names found in TABLE_TYPES_FOR_ENUM_VALIDATION")
     
     def check_for_table_name_inconsistencies():
+        print(f"\nRunning tests in {str(inspect.stack()[1].code_context[0]).strip()}\n...")
+
         if set(SHEET_TYPES.keys()) == set(DBTableRelated.TABLE_SPLITTER.keys()):
             print("Sheet types matches table splitter")
         else:
