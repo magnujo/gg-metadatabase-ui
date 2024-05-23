@@ -6,7 +6,76 @@ from utils import misc
 import constants.misc_constants as misc_constants
 
 
-def validate_enums(parsed_sheet, table_name, type="Environmental"):
+ALLOWED_VALUES = {"field_sample": {'sample type': ['osl', 'core', 'monolith', 'sample bag', 'tube']}}
+
+def validate_enum_columns(df, valid_enum_values):
+    '''
+    valid_enum_values format: {col_name1: [allowed values], col_name2: [allowed values]}
+    '''
+    invalid_entries = []
+    for column, valid_values in valid_enum_values.items():
+        if column in df.columns:
+            df[column] = df[column].str.lower()
+            invalid_values = df[~df[column].isin(valid_values)][column]
+            if not invalid_values.empty:
+                invalid_entries.append((column, invalid_values))
+    return invalid_entries
+
+
+def validate_enums_custom(parsed_sheet, table_name):
+    table_name = str(table_name).lower()
+    valid_values = ALLOWED_VALUES[table_name]
+    invalid_entries = validate_enum_columns(parsed_sheet, valid_values)
+    if invalid_entries:
+        passed = False   
+    return passed, invalid_entries, valid_values
+
+def get_spaam(table_name, parsed_sheet):
+    
+    if table_name in db_table_related_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["SAMPLE"]:
+        validation_schema = misc.load_json_url(misc_constants.VALIDATION_SCHEMA_LINKS["SAMPLE"])
+    elif table_name in db_table_related_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["LIBRARY"]:
+        validation_schema = misc.load_json_url(misc_constants.VALIDATION_SCHEMA_LINKS["LIBRARY"])
+    else:
+        raise Exception(f"validate_enums is not available for {table_name}")
+
+        
+    schema = pd.DataFrame(validation_schema["items"]["properties"])
+    schema_t = schema.T
+    
+    # If a column is a enum column it means it has a reference ($ref) to the SPAAM list of allowed values or if its in ALLOWED_VALUES. 
+    enum_columns = schema_t[~schema_t["$ref"].isna()]["$ref"]
+    
+    translator = misc_constants.FROM_SPAAM_COLUMN_NAMES(table_name)
+    
+    if translator:
+        enum_columns = enum_columns.rename(index=translator)
+    
+    enum_columns = enum_columns.rename(index=lambda x: x.lower())
+    parsed_sheet = parsed_sheet.rename(columns=lambda x: x.lower())
+    
+    
+    # The following loops through each enum column in the parsed_sheet and returns a dataframe with the column and rows that do not contain an enum member.
+    enum_members = {}
+    
+    for column_name in list(enum_columns.index):
+        if column_name in parsed_sheet.columns:
+            link_to_enum_members_json = enum_columns[column_name] 
+            enum_members[column_name] = list(map(lambda x: x.lower(), misc.load_json_url(link_to_enum_members_json)["enum"]))
+    return enum_members
+
+def validate_enums_exp(parsed_sheet, table_name):
+    table_name = table_name.lower()
+    parsed_sheet = parsed_sheet.rename(columns=lambda x: x.lower())
+    spaam_allowed_values = get_spaam(table_name, parsed_sheet)
+    custom_allowed_values = ALLOWED_VALUES[table_name]
+    combined = {**custom_allowed_values, **spaam_allowed_values}
+    invalid_values = validate_enum_columns(parsed_sheet, combined)
+    
+    return combined, invalid_values
+    
+
+def validate_enums_spaam(parsed_sheet, table_name, type="Environmental"):
     
     '''
     Checks all the enum columns of a parsed_sheet. Translates relevant columns to match the column names of the SPAAM comminuty and validates
@@ -27,8 +96,9 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     schema = pd.DataFrame(validation_schema["items"]["properties"])
     schema_t = schema.T
     
-    # If a column is a enum column it means it has a reference ($ref) to the SPAAM list of allowed values. 
+    # If a column is a enum column it means it has a reference ($ref) to the SPAAM list of allowed values or if its in ALLOWED_VALUES. 
     enum_columns = schema_t[~schema_t["$ref"].isna()]["$ref"]
+    
     
     if table_name in misc_constants.TO_SPAAM_COLUMN_NAMES:
         column_name_translator = misc_constants.TO_SPAAM_COLUMN_NAMES[table_name]
@@ -41,6 +111,7 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     res = {}
     enum_members = {}
     enum_members_dfs = []
+    
     for column_name in list(enum_columns.index):
         if column_name in parsed_sheet.columns:
             link_to_enum_members_json = enum_columns[column_name] 
@@ -52,6 +123,8 @@ def validate_enums(parsed_sheet, table_name, type="Environmental"):
     # Filter the parsed sheet to only show the neg of valid_values and drop any rows and columns with 0 invalid values.
     valid_values = pd.DataFrame(res)
 
+    invalid_values = validate_enum_columns(parsed_sheet, valid_enum_values=enum_members)
+    
     # Returns True if all values are good
     passed = valid_values.all().all()
 

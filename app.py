@@ -237,22 +237,31 @@ def confirmation_request():
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
             # Validate enum columns:
-            passed, bad_values, allowed_values = validate.validate_enums(clean_sheet, ele)
+            allowed_values, invalid_values = validate.validate_enums_exp(clean_sheet, table_name=ele) 
+            invalid_values_cols = list(map(lambda x: x[0], invalid_values))
             
+            # passed, bad_values, allowed_values = validate.validate_enums_spaam(clean_sheet, ele)
 
-            if passed == False:
-                failed_validations.append({"bad_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), bad_values)), 
-                                           "allowed_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), allowed_values))})
-
+            # if passed == False:
+            #     failed_validations.append({"bad_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), bad_values)), 
+            #                                "allowed_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), allowed_values))})
+            allowed_values = [pd.DataFrame({item: allowed_values[item]}).to_html(na_rep=" ", justify="center", classes="table table-striped", index=False) for item in allowed_values if item in invalid_values_cols]
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
             clean_sheets.append(html_table_with_caption)
-        
-            if failed_validations:
-                return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
+            
+            if invalid_values:
+                invalid_values = list(map(lambda x: (x[0], pd.DataFrame(x[1]).to_html(na_rep=" ", justify="center", classes="table table-striped", index=True, header=False)), invalid_values))
+            
+                return render_template('enum_validation_fail copy.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
             else:
                 return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        
+            # if failed_validations:
+            #     return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
+            # else:
+            #     return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
