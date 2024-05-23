@@ -1,3 +1,4 @@
+from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
 from validation_tools import validate
 from scripts import deleted_schema_management
@@ -154,6 +155,8 @@ def upload_file():
                     l.append(f"Column{i+1}")
                 sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                 sheet = seq_center_sample_sheet_parser.parse(sheet)
+            elif database_table_name == "age_depth_model":
+                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
             else:
                 sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
             sheets_to_parse.append(sheet)
@@ -188,6 +191,9 @@ def upload_file():
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
             
             clean_sheet['upload_uuid'] = 'not_uploaded'
+            
+            if split_database_table_name == "age_depth_model":
+                clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
             
             
             db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)

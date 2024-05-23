@@ -9,7 +9,7 @@ class DBTableRelated:
     '''
 
 
-    TABLE_TYPES_FOR_ENUM_VALIDATION = {"ENVIRONMENTAL": {"SAMPLE": ['field_sample', 'edna_robot_sample', 'edna_archive_sample', "master_depth", "cgg_animal_plant", "cgg_sediment_water"],
+    TABLE_TYPES_FOR_ENUM_VALIDATION = {"ENVIRONMENTAL": {"SAMPLE": ['field_sample', 'edna_robot_sample', 'edna_archive_sample', "master_depth", "cgg_animal_plant", "cgg_sediment_water", "age_depth_model"],
                                                          "LIBRARY": ['flowcell', 'seq_sample_sheet', 'top_unknown_seq_barcodes', 'adna_wetlab_report', 'edna_wetlab_report']
                                                          }
                                        }
@@ -25,7 +25,8 @@ class DBTableRelated:
                         'cgg_animal_plant': ['cgg_animal_plant'],
                         'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes'],
                         'seq_sample_sheet': ['seq_sample_sheet'],
-                        'master_depth': ['master_depth']
+                        'master_depth': ['master_depth'],
+                        'age_depth_model': ['age_depth_model']
                     }
 
     DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}

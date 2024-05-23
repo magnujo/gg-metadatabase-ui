@@ -115,7 +115,8 @@ SHEET_TYPES = {
     'cgg_animal_plant': 'CGG Animal Plant',
     'lane_barcode_html': 'Lane Barcode HTML',
     'seq_sample_sheet': 'Sequencing Center Sample Sheet',
-    'master_depth': 'Master Depths sheet'
+    'master_depth': 'Master Depths sheet',
+    'age_depth_model': 'Age Depth Model'
 }
 
 FILE_EXTENSIONS = {
