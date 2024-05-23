@@ -1,3 +1,5 @@
+from pathlib import Path
+import constants.db_table_related_constants as db_table_related_constants
 from validation_tools import validate
 from scripts import deleted_schema_management
 import zipfile
@@ -19,19 +21,19 @@ from psycopg2 import Error
 import traceback
 import inspect
 import shutil
-import constants
+import constants.misc_constants as misc_constants
 import log_util
 from utils import queries
 from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
+from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
 from pandas import testing
 import logging
-from constants import ENGINE, DATABASE_CONFIG, UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
+from constants.misc_constants import ENGINE, DATABASE_CONFIG, UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
 from utils import parsers
@@ -71,7 +73,7 @@ def index():
         if 'error_message_admin' not in session:
             session['error_message_admin'] = None
         
-        example_sheets = os.listdir(constants.PATH_TO_STANDARD_SHEETS)
+        example_sheets = os.listdir(misc_constants.PATH_TO_STANDARD_SHEETS)
     
         return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
  
@@ -140,7 +142,7 @@ def upload_file():
 
         
         sheets_to_parse = []
-        if database_table_name in constants.MULTI_TABLE_SHEETS:
+        if database_table_name == "lane_barcode_html":
             # TODO: Make more general:
             sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
             flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
@@ -153,6 +155,8 @@ def upload_file():
                     l.append(f"Column{i+1}")
                 sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                 sheet = seq_center_sample_sheet_parser.parse(sheet)
+            elif database_table_name == "age_depth_model":
+                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
             else:
                 sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
             sheets_to_parse.append(sheet)
@@ -160,7 +164,7 @@ def upload_file():
         clean_sheets = []
         
         for i, sheet in enumerate(sheets_to_parse):
-            split_database_table_name = constants.TABLE_SPLITTER[database_table_name][i]
+            split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
             clean_sheet = parsers.parse(sheet=sheet,
                                         database_table_name=split_database_table_name,
                                         date_format=date_format,
@@ -168,7 +172,7 @@ def upload_file():
                                         thousands_seperator=thousands_seperator)
             
             # Rename columns
-            for old_name, new_name in constants.COLUMN_TRANSLATER.items():
+            for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
                 if old_name in clean_sheet.columns:
                     clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
             
@@ -187,6 +191,9 @@ def upload_file():
             clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
             
             clean_sheet['upload_uuid'] = 'not_uploaded'
+            
+            if split_database_table_name == "age_depth_model":
+                clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
             
             
             db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
@@ -227,7 +234,7 @@ def confirmation_request():
                        
 
         clean_sheets = []
-        for i, ele in enumerate(constants.TABLE_SPLITTER[database_table_name]):
+        for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
             # Validate enum columns:
             passed, bad_values, allowed_values = validate.validate_enums(clean_sheet, ele)
@@ -245,7 +252,7 @@ def confirmation_request():
             if failed_validations:
                 return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
             else:
-                return render_template('confirmation_request.html', table_names=constants.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+                return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
@@ -261,7 +268,7 @@ def confirmed():
                 return redirect(url_for("index"))
             file_name = session.get('file_name')
             database_table_name = session.get('database_table_name')
-            table_splits = constants.TABLE_SPLITTER.get(database_table_name)
+            table_splits = db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)
             tables_uploaded_to = []
             clean_sheets = {}
             row_counts_before_upload = {}
@@ -426,7 +433,7 @@ def confirmed():
                             else:
                                 created_dirs = []
                                 for project_name in project_names:                      
-                                    path_to_dir = os.path.join(constants.GEO_DATA_NETWORK_DIR, str(project_name))
+                                    path_to_dir = os.path.join(misc_constants.GEO_DATA_NETWORK_DIR, str(project_name))
                                     created_dir = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
                                     created_dirs.append(created_dir)
         except FileExistsError as e:
@@ -439,9 +446,9 @@ def confirmed():
                     if dir_path != None:
                         if os.path.exists(dir_path):
                             if str(dir_path)[-1] == str(os.path.sep):
-                                destination_path = os.path.join(constants.PATH_TO_MOUNT, constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
+                                destination_path = os.path.join(misc_constants.PATH_TO_MOUNT, misc_constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
                             else:
-                                destination_path = os.path.join(constants.PATH_TO_MOUNT, constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
+                                destination_path = os.path.join(misc_constants.PATH_TO_MOUNT, misc_constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
                             timestamp = time.strftime("%Y%m%d%H%M%S")
                             destination_path = f"{destination_path}_{timestamp}"
                             shutil.move(dir_path, destination_path)
@@ -471,7 +478,7 @@ def success():
         database_table_name = session.get('database_table_name')
 
         all_tables = []
-        for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+        for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
             uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
@@ -507,8 +514,8 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     uploaded_data = uploaded_data.map(lambda x: x.lower() if isinstance(x, str) else x)
     clean_sheet = clean_sheet.map(lambda x: x.lower() if isinstance(x, str) else x)
 
-    if database_table_name in constants.DB_GENERATED_COLUMNS:
-        for db_generated_col in constants.DB_GENERATED_COLUMNS.get(database_table_name):
+    if database_table_name in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS:
+        for db_generated_col in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
             if db_generated_col in list(uploaded_data.columns):
                 uploaded_data.drop(db_generated_col, axis=1, inplace=True)
     
@@ -542,12 +549,12 @@ def allowed_file(filename):
 @app.route('/download_manual')
 @decorators.log_info(app)
 def download_manual():
-    return send_file(constants.MANUAL, as_attachment=True)
+    return send_file(misc_constants.MANUAL, as_attachment=True)
 
 @app.route('/download/<path:filename>')
 @decorators.log_info(app)
 def download_file(filename): 
-    return send_from_directory(constants.PATH_TO_STANDARD_SHEETS, filename, as_attachment=True)
+    return send_from_directory(misc_constants.PATH_TO_STANDARD_SHEETS, filename, as_attachment=True)
 
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name
@@ -592,7 +599,7 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
                         delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=rows_to_delete[table])
                 else:        
                     database_table_name = session.get('database_table_name')
-                    for i, table in enumerate(constants.TABLE_SPLITTER.get(database_table_name)):
+                    for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
                         clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
                         
                         # To make sure to delete the correct number of rows
@@ -737,7 +744,7 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     
     
   
-    path_on_server = os.path.join(constants.PATH_TO_MOUNT, path_to_dir)    
+    path_on_server = os.path.join(misc_constants.PATH_TO_MOUNT, path_to_dir)    
     path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
     print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
     
@@ -763,22 +770,24 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
         
 if __name__ == '__main__':
     print("Start")
-    production_args = constants.ALLOWED_COMMAND_LINE_ARGS['production']
-    development_args = constants.ALLOWED_COMMAND_LINE_ARGS['development']
+    db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()
+    db_table_related_constants.DBTableRelated.check_for_duplicates()
+    production_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['production']
+    development_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['development']
     current_date = datetime.now().strftime('%Y%m%d')
 
     if os.environ.get('RUN_MODE'):
-        constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
-        if not constants.RUN_MODE in constants.RUN_MODE_OPTIONS:
+        misc_constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
+        if not misc_constants.RUN_MODE in misc_constants.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    print(f"RUNMODE:{constants.RUN_MODE}")
+    print(f"RUNMODE:{misc_constants.RUN_MODE}")
     
-    deleted_schema_management.copy_or_generate(constants.DATABASE_CONFIG["schema_name"], database_name=constants.DATABASE_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.PSY_CONN)
+    deleted_schema_management.copy_or_generate(misc_constants.DATABASE_CONFIG["schema_name"], database_name=misc_constants.DATABASE_CONFIG["database"], alch_engine=ENGINE, psy_conn=misc_constants.PSY_CONN)
     misc.empty_folder("query_files")
     
-    if constants.RUN_MODE == 'production':
+    if misc_constants.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)
-    elif constants.RUN_MODE == 'development':
+    elif misc_constants.RUN_MODE == 'development':
         app.run(debug=True)
     else:
         raise Exception('Error')    

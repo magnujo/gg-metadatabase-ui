@@ -2,7 +2,7 @@ from utils import parsers
 from utils import cgg_animal_plant_parser, robot_sample_sheet_parser, archive_sample_sheet_parser, cgg_sediment_water_parser
 from utils import edna_wetlab_report_parser, adna_wetlab_report_parser, field_sample_parser
 from utils import queries
-import constants
+import constants.misc_constants as misc_constants
 
 def clean_up(tsv_file_path, database_table_name, date_format, decimal_point, 
              thousands_seperator):

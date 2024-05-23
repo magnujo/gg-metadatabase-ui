@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 from logging.handlers import RotatingFileHandler
 from flask import request
-from constants import DATABASE_CONFIG_2
+from constants.misc_constants import DATABASE_CONFIG_2
 import psycopg2
 
 def db_stuff(func):

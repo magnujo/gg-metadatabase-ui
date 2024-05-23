@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
 import pandas as pd
-import constants
+import constants.misc_constants as misc_constants
 import numpy as np
 from scripts import fid_query
-ENGINE = constants.ENGINE_READ_ONLY
+ENGINE = misc_constants.ENGINE_READ_ONLY
 
 def get_all_fids():
     wldf_q = "select * from test_1.edna_wetlab_report;"

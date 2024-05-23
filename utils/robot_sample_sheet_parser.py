@@ -1,7 +1,7 @@
 from utils import parsers
-import constants
+import constants.misc_constants as misc_constants
 import pandas as pd
-from constants import DATABASE_CONFIG, ADMIN_EMAIL, ENGINE
+from constants.misc_constants import DATABASE_CONFIG, ADMIN_EMAIL, ENGINE
 import pandas as pd
 from utils.parsers import parse_dates, validate_integers
 
@@ -15,7 +15,7 @@ def parse(sheet, date_format, database_table_name, decimal_point, thousands_sepe
         raise Exception(f"Did not expect decimal numbers. Please contact contact {ADMIN_EMAIL} if you think this is a mistake.")
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {misc_constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=misc_constants.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
     
@@ -33,7 +33,7 @@ def parse(sheet, date_format, database_table_name, decimal_point, thousands_sepe
     
     # Drop test:
     if len(sheet) != num_of_not_null_rows:
-        raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
+        raise Exception(f'Error dropping null values. Contact {misc_constants.ADMIN_EMAIL} for help.')
     
     # Parse dates, throws error if formatting is wrong in the sheet
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)
