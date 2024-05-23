@@ -2,7 +2,7 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 import os
-import constants
+import constants.misc_constants as misc_constants
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -10,9 +10,9 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 def send(subject, body, attachment_paths):
-    email_sender = constants.EMAIL_SENDER
+    email_sender = misc_constants.EMAIL_SENDER
     email_password = os.environ.get('EMAIL_PASSWORD')
-    email_receiver = constants.ADMIN_EMAIL
+    email_receiver = misc_constants.ADMIN_EMAIL
 
     em = EmailMessage()
     em['From'] = email_sender

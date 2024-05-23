@@ -2,11 +2,11 @@ import os
 from sqlalchemy import create_engine
 from flask import Flask
 import psycopg2
-from utils import misc
 
 
 VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/libraries/ancientmetagenome-environmental_libraries_schema.json',
                            "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
+
 
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
@@ -104,6 +104,7 @@ PSY_CONN = psycopg2.connect(
             port=DATABASE_CONFIG["port"]
         )
 
+# If you add to this, make sure to include the table information in dbtable class
 SHEET_TYPES = {
     'field_sample': 'Field samples',
     'edna_archive_sample': 'eDNA archive sampling',
@@ -113,7 +114,9 @@ SHEET_TYPES = {
     'cgg_sediment_water': 'CGG Sediment Water',
     'cgg_animal_plant': 'CGG Animal Plant',
     'lane_barcode_html': 'Lane Barcode HTML',
-    'seq_sample_sheet': 'Sequencing Center Sample Sheet'
+    'seq_sample_sheet': 'Sequencing Center Sample Sheet',
+    'master_depth': 'Master Depths sheet',
+    'age_depth_model': 'Age Depth Model'
 }
 
 FILE_EXTENSIONS = {
@@ -125,33 +128,14 @@ FILE_EXTENSIONS = {
     'cgg_sediment_water': '.xlsx',
     'cgg_animal_plant': '.xlsx',
     'lane_barcode_html': '.html',
-    'seq_sample_sheet': '.xlsx'
-}
-
-DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}
-
-TABLE_SPLITTER = {
-    'field_sample': ['field_sample'],
-    'edna_archive_sample': ['edna_archive_sample'],
-    'edna_robot_sample': ['edna_robot_sample'],
-    'edna_wetlab_report': ['edna_wetlab_report'],
-    'adna_wetlab_report': ['adna_wetlab_report'],
-    'cgg_sediment_water': ['cgg_sediment_water'],
-    'cgg_animal_plant': ['cgg_animal_plant'],
-    'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes'],
-    'seq_sample_sheet': ['seq_sample_sheet']
+    'seq_sample_sheet': '.xlsx',
+    'master_depth': '.xlsx'
 }
 
 
-# Sheets that are split into multiple tables:
-# Value: Tables in the database that the sheet is split into
-MULTI_TABLE_SHEETS = {'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes']}
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'My data doesn\'t contain dates']
 
-COLUMNS = {'field_sample':
-               {'float_columns':
-                    []}}
 
 POSTGRES_TYPES = {'floating_point': ['double precision', 'numeric', 'real', 'decimal', 'float4', 'float8', 'float'],
                   'integer': ['smallint', 'integer', 'bigint', 'int', 'int2', 'int4', 'int8'],
@@ -173,7 +157,7 @@ The following is a translator from CGG DB column names to SPAAM defined in https
 TO_SPAAM_COLUMN_NAMES = {"field_sample": {"Country/Ocean": "geo_loc_name",
                                           "Sample Setting": "feature"}}
 
-
-
 FROM_SPAAM_COLUMN_NAMES = lambda table_name: {value: key for key, value in TO_SPAAM_COLUMN_NAMES[table_name].items()} if table_name in TO_SPAAM_COLUMN_NAMES else None
 
+        
+        

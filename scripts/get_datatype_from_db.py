@@ -2,7 +2,7 @@ import pandas as pd
 import os, sys
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
-import constants
+import constants.misc_constants as misc_constants
 
 
 def add_db_datatyped_to_excel(input_file, output_file, row, table, schema, database_engine):

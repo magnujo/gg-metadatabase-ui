@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 import pandas as pd
-from constants import ENGINE_READ_ONLY as ENGINE
+from constants.misc_constants import ENGINE_READ_ONLY as ENGINE
 import numpy as np
 
 def get_meta_data(input_data):

@@ -1,9 +1,9 @@
 import os
 import sys
 from utils import parsers
-import constants
+import constants.misc_constants as misc_constants
 import pandas as pd
-from constants import DATABASE_CONFIG, ADMIN_EMAIL, ENGINE
+from constants.misc_constants import DATABASE_CONFIG, ADMIN_EMAIL, ENGINE
 import pandas as pd
 from utils.parsers import parse_dates, parse_floats, validate_integers
 
@@ -40,18 +40,18 @@ def parse(file_path,
     
     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
     
-    if not constants.RUN_MODE == 'production':
+    if not misc_constants.RUN_MODE == 'production':
         sheet = sheet.dropna(axis='index', how='all')
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {misc_constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=misc_constants.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
    
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")
 
-    if not constants.RUN_MODE == 'production':
+    if not misc_constants.RUN_MODE == 'production':
         # For drop testing. Counts the number of rows where primary key is not null.
         num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
 
@@ -59,11 +59,11 @@ def parse(file_path,
         if primary_key in sheet.columns:
             sheet = sheet.dropna(axis='index', how='all', subset=[primary_key])
         else:
-            raise Exception (f"Upload failed. Expected column {primary_key} not found. Contact {constants.ADMIN_EMAIL} if you think this is a mistake")
+            raise Exception (f"Upload failed. Expected column {primary_key} not found. Contact {misc_constants.ADMIN_EMAIL} if you think this is a mistake")
         
         # Drop test:
         if len(sheet) != num_of_not_null_rows:
-            raise Exception(f'Error dropping null values. Contact {constants.ADMIN_EMAIL} for help.')
+            raise Exception(f'Error dropping null values. Contact {misc_constants.ADMIN_EMAIL} for help.')
     
     # Parse dates, throws error if formatting is wrong in the sheet
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)       

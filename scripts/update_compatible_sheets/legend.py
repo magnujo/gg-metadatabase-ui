@@ -1,11 +1,11 @@
-import constants
+import constants.misc_constants as misc_constants
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))  # Add parent directory to sys.path
 
 
 
 data_types_descriptions = {
-    'text': f"Free text. Can contain any amount of {constants.DB_CHARACTER_ENCODING} characters", 
+    'text': f"Free text. Can contain any amount of {misc_constants.DB_CHARACTER_ENCODING} characters", 
     'smallint': 'Integer number. Minus sign allowed. Min allowed value: -32768 max allowed value: 32767', 
     'integer': 'Integer number. Minus sign allowed. Min allowed value: -2147483648 max allowed value: 2147483647', 
     'int4range': 'Restricted mathematical notation of the form [{integer}, {integer}). Meaning only use "[" as the opening bracket and ")" as the closing bracket.',
