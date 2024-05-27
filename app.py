@@ -257,15 +257,10 @@ def confirmation_request():
             clean_sheets.append(html_table_with_caption)
             
             
-            # if invalid_values:            
-            #     return render_template('enum_validation_fail copy.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
-          
-        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        # if invalid_values:            
+        #     return render_template('enum_validation_fail.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
         
-            # if failed_validations:
-            #     return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
-            # else:
-            #     return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
