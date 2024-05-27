@@ -1,6 +1,6 @@
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
-from validation_tools import validate
+from validation_tools import validate_enum_columns
 from scripts import deleted_schema_management
 import zipfile
 from scripts import fid_query, library_id_query, get_all_query
@@ -177,6 +177,8 @@ def upload_file():
                     clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
             
             clean_sheet.columns = clean_sheet.columns.str.strip()
+            
+            clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
 
             
             # Adds rows about which user was responsible for the upload:
@@ -221,6 +223,15 @@ def upload_file():
         return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
 
 
+def handle_enum_columns(parsed_sheet, table_name):
+    allowed_values, invalid_values = validate_enum_columns.validate_enums_exp(parsed_sheet, table_name=table_name)
+    if invalid_values:
+        invalid_values_cols = list(map(lambda x: x[0], invalid_values))
+        invalid_values = list(map(lambda x: (x[0], pd.DataFrame(x[1]).to_html(na_rep=" ", justify="center", classes="table table-striped", index=True, header=False)), invalid_values))
+    allowed_values = [pd.DataFrame({item: allowed_values[item]}).to_html(na_rep=" ", justify="center", classes="table table-striped", index=False) for item in allowed_values if item in invalid_values_cols]
+
+    return allowed_values, invalid_values
+
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmation_request', methods=['GET'])
 @decorators.log_info(app)
@@ -236,27 +247,20 @@ def confirmation_request():
         clean_sheets = []
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
-            # Validate enum columns:
-            allowed_values, invalid_values = validate.validate_enums_exp(clean_sheet, table_name=ele) 
-            invalid_values_cols = list(map(lambda x: x[0], invalid_values))
-            
-            # passed, bad_values, allowed_values = validate.validate_enums_spaam(clean_sheet, ele)
-
-            # if passed == False:
-            #     failed_validations.append({"bad_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), bad_values)), 
-            #                                "allowed_values": list(map(lambda x: x.to_html(na_rep=" ", justify="center", classes="table table-striped", index=False), allowed_values))})
-            allowed_values = [pd.DataFrame({item: allowed_values[item]}).to_html(na_rep=" ", justify="center", classes="table table-striped", index=False) for item in allowed_values if item in invalid_values_cols]
+            # Validate enum columns:   
+          
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
+            # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
+
             clean_sheets.append(html_table_with_caption)
             
-            if invalid_values:
-                invalid_values = list(map(lambda x: (x[0], pd.DataFrame(x[1]).to_html(na_rep=" ", justify="center", classes="table table-striped", index=True, header=False)), invalid_values))
             
-                return render_template('enum_validation_fail copy.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
-            else:
-                return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+            # if invalid_values:            
+            #     return render_template('enum_validation_fail copy.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
+          
+        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
         
             # if failed_validations:
             #     return render_template('enum_validation_fail.html', validation_results=failed_validations, file_name=file_name, database_table_name=database_table_name)
