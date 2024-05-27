@@ -7,8 +7,7 @@ class DBTableRelated:
     '''
     Contains all constants that contain names of database tables
     '''
-
-
+    
     TABLE_TYPES_FOR_ENUM_VALIDATION = {"ENVIRONMENTAL": {"SAMPLE": ['field_sample', 'edna_robot_sample', 'edna_archive_sample', "master_depth", "cgg_animal_plant", "cgg_sediment_water", "age_depth_model"],
                                                          "LIBRARY": ['flowcell', 'seq_sample_sheet', 'top_unknown_seq_barcodes', 'adna_wetlab_report', 'edna_wetlab_report']
                                                          }

@@ -85,7 +85,19 @@ def load_json_url(url):
     except json.JSONDecodeError as e:
         # Handle JSON decoding errors
         print(f"Failed to parse JSON: {e}")
-        
+
+def values_and_keys_to_lower(d):
+    '''
+    Makes all keys and values of a dictionary (nested or not nested) lower case
+    '''
+    if isinstance(d, dict):
+        return {values_and_keys_to_lower(k): values_and_keys_to_lower(v) for k, v in d.items()}
+    elif isinstance(d, list):
+        return [values_and_keys_to_lower(i) for i in d]
+    elif isinstance(d, str):
+        return d.lower()
+    else:
+        return d
         
 def check_tables():
     '''

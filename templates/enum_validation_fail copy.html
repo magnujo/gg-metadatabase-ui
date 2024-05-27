@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="#">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pandas DataFrame Display</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Center align content within the container */
+        .container {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <h1>Failed data validaton</h1>
+        <p>Your data contains values that are not allowed. See below which values caused the error and click here (or scroll down) to see which values are allowed: <a href="#allowed_values">Allowed values</a></p>
+        
+            <br>
+
+        <h2>Values that caused the error</h2>
+        <p>Below you can see the row number and value of all the bad values. 
+            <br>
+            NOTE: Row numbers start at 0 and header is not included so you will most likely need to add 2 to it to find the row in your spreadsheet 
+        </p>
+        {% for failed_validation in validation_results[0] %}
+        <h5> Column name: "{{failed_validation[0]}}"</h5>
+                {{ failed_validation[1]|safe }}
+        {% endfor %}
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <h3 id="allowed_values">Allowed values</h3>
+        <p>Below are the allowed values for the relevant columns. If you need to add a new value to the allowed list, to be able to report your meta data contact Magnus at magnus.johannsen@sund.ku.dk. </p>
+        {% for failed_validation in validation_results[1] %}
+                {{ failed_validation|safe }}
+        {% endfor %}  
+        
+        
+    </div>
+</body>
+</html>
