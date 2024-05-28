@@ -28,6 +28,7 @@ from flask import Flask, render_template, render_template_string, request, send_
 import os
 import sys
 from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
+from constants import paths
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
@@ -177,9 +178,7 @@ def upload_file():
                     clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
             
             clean_sheet.columns = clean_sheet.columns.str.strip()
-            
-            clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
-
+        
             
             # Adds rows about which user was responsible for the upload:
             clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
@@ -646,6 +645,31 @@ def handle_uncaught_exception(e):
     message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. THIS MIGHT BE CRUCIAL, SO REPORT TO ADMIN BELOW!"
     return general_error_handling(f"{message}: \n Error message: \n {str(e)}")
 
+def make_dirs_for_query_files(search_id):
+    
+    # Create directory if it doesn't exist
+    if not os.path.exists(paths.QUERY_FILES):
+        os.makedirs(paths.QUERY_FILES)
+    
+    # Creating directory path
+    directory_path = os.path.join(paths.QUERY_FILES, search_id)
+
+    # Create directory if it doesn't exist
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+    else:
+        raise Exception(f"Directory {search_id} already exists")
+        
+    raw_path = os.path.join(directory_path, 'raw_tables')
+    
+    if not os.path.exists(raw_path):
+        os.makedirs(raw_path)
+    else:
+        raise Exception(f"Directory {raw_path} already exists")
+    
+    return directory_path, raw_path
+    
+
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     error = ""
@@ -665,16 +689,8 @@ def search():
             global search_id 
             search_id = search_id + 1
             session["search_id"] = str(search_id)
-
-            # Creating directory path
-            directory_path = os.path.join("query_files", session.get("search_id"))
-
-            # Create directory if it doesn't exist
-            if not os.path.exists(directory_path):
-                os.makedirs(directory_path)
-            else:
-                raise Exception(f"Directory {session.get('search_id')} already exists")
-
+            
+            directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
             
             try:
                 match input_dropdown:
@@ -683,19 +699,36 @@ def search():
                     case "no_choice":
                         raise Exception("You need to choose a search type in the dropdown menu")
                     case "fID":
-                        (essential_merged_df, full_merged_df) = fid_query.get_meta_data(list(values_list))
+                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list))
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
-                        full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
-                        essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+                 
                     case "lID":
-                        (essential_merged_df, full_merged_df) = library_id_query.get_meta_data(list(values_list))
+                        essential_merged_df, full_merged_df, raws = library_id_query.get_meta_data(list(values_list))
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
-                        full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
-                        essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+                        
+                    case "country":
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
+                        essential_merged_df = essential_merged_df[essential_merged_df["Country"].isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df["Country"].isin(list(values_list))] 
+                        path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
+                        path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                                           
                     case _:
                         raise Exception("You need to choose a search type in the dropdown menu")
+                    
+                full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
+                essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+                zip_paths = []
+                for key in raws:
+                    path_full = os.path.join(raw_path, f'{key}.csv')
+                    raws[key].to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
+                    zip_paths.append(path_full)
+                            
+                path_zip_query = os.path.join(directory_path, 'individual_filtered_tables.zip')
+                create_zip(zip_paths, path_zip_query)
+                        
             except Exception as e:
                 return general_error_handling(message=e, revert_db=False)
             
@@ -713,19 +746,38 @@ def create_zip(files, zip_path):
 
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
-    essential, full = get_all_query.get_all_meta_data_using_fids()
-    
-    path_essential = os.path.join('query_files', 'query_result_essential.csv')
-    path_full = os.path.join('query_files', 'query_result_full.csv')
-    path_zip = os.path.join('query_files', 'query_all.zip')
-    
-    full.to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
-    essential.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
-    
-    create_zip([str(path_essential), str(path_full)], path_zip)
+    with lock2:
+        
+        zip_paths = []
+        
+        essential, full, raws = get_all_query.get_all_meta_data_using_fids()
+        
+        global search_id 
+        search_id = search_id + 1
+        session["search_id"] = str(search_id)
+        
+        directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+                
+        path_essential = os.path.join(directory_path, 'query_result_essential.csv')
+        zip_paths.append(path_essential)
+        path_full = os.path.join(directory_path, 'query_result_full.csv')
+        zip_paths.append(path_full)
+        path_zip_query = os.path.join(directory_path, 'query_all.zip')
+        
+        full.to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
+        essential.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+        
+        for key in raws:
+            
+            raw_path = os.path.join(directory_path, 'raw_tables', f'{key}.csv')
+            zip_paths.append(raw_path)
+            raws[key].to_csv(path_or_buf=raw_path, index=False, encoding='utf-16')
+        
+        create_zip(zip_paths, path_zip_query)
 
-    # Send the text file as a download to the user
-    return send_file(path_zip, as_attachment=True)
+        # Send the text file as a download to the user
+        return send_file(path_zip_query, as_attachment=True)
+
 
 @app.route('/download_all')
 def download_all():
@@ -733,8 +785,6 @@ def download_all():
     
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
-
-
 
 
 @app.route('/download_essential')
@@ -745,13 +795,18 @@ def download_essential():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
+@app.route('/download_individual_unfiltered_tables')
+def download_individual_unfiltered_tables():
+    path = os.path.join('query_files', str(session.get("search_id")), 'individual_filtered_tables.zip')
+    
+    # Send the text file as a download to the user
+    return send_file(path, as_attachment=True)
+
 def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     '''
     Only set error_if_exists = True if you want to raise an error and cancel the creation, if the dir already exists. 
     '''
-    
-    
-  
+     
     path_on_server = os.path.join(misc_constants.PATH_TO_MOUNT, path_to_dir)    
     path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
     print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")

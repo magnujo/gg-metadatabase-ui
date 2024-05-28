@@ -25,5 +25,5 @@ def get_all_fids():
 
 def get_all_meta_data_using_fids():
     all_fids = get_all_fids()
-    essential, full = fid_query.get_meta_data(all_fids)
-    return essential, full
+    essential, full, raws = fid_query.get_meta_data(all_fids)
+    return essential, full, raws
