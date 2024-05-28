@@ -18,7 +18,13 @@ def get_meta_data(input_data):
     asdf = pd.read_sql(asdf_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
     cgg = pd.read_sql(cgg_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
     flowcell = pd.read_sql(flowcell_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
-
+    
+    raw_tables = {"Flowcell": flowcell, "CGG3": cgg, "Archive Sampling": asdf, "WetLabFinalReport": wldf}
+    
+    wldf = wldf.map(lambda x: x.upper() if isinstance(x, str) else x)
+    asdf = asdf.map(lambda x: x.upper() if isinstance(x, str) else x)
+    cgg = cgg.map(lambda x: x.upper() if isinstance(x, str) else x)
+    flowcell = flowcell.map(lambda x: x.upper() if isinstance(x, str) else x)
 
     # TODO: check that replacemants doesnt result in duplicate data
     input_data = list(map(lambda x: x.upper(), input_data))
@@ -34,6 +40,7 @@ def get_meta_data(input_data):
     flowcell = flowcell.fillna(np.nan)
     flowcell = flowcell.replace("NONE", np.nan)
 
+    
     cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
 
     # Get all the rows where the fID matches 
@@ -79,4 +86,4 @@ def get_meta_data(input_data):
     .combine_first(aID_x_mID)
     .combine_first(bulksampleid_x_mID))
     
-    return combined_essential, combined
+    return combined_essential, combined, raw_tables
