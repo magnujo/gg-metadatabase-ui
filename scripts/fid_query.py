@@ -15,6 +15,7 @@ def get_meta_data(fIDs):
     asdf = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
     cgg = pd.read_sql(cgg_q, dtype=str, con=ENGINE)
 
+    raw_tables = {"CGG3": cgg, "Archive Sampling": asdf, "WetLabFinalReport": wldf}
 
     # TODO: check that replacemants doesnt result in duplicate data
     fIDs = list(map(lambda x: x.upper(), fIDs))
@@ -47,8 +48,9 @@ def get_meta_data(fIDs):
     asdf = asdf.replace("NONE", np.nan)
     cgg = cgg.fillna(np.nan)
     cgg = cgg.replace("NONE", np.nan)
+    
 
-    cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
+    cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Country", "Lat", "Lon", "GPS"]]
 
     # Get all the rows where the fID matches 
     input_filter_cgg = cgg[cgg["Museum ID/sample ID"].isin(fIDs)]
@@ -77,10 +79,10 @@ def get_meta_data(fIDs):
     merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "Archive Sample ID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
     merged_on_CGG_ID = pd.merge(input_filter_cgg, wldf, left_on='CGG ID', right_on='Archive Sample ID', how='left')
-    merged_on_CGG_ID_essentials = merged_on_CGG_ID[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
+    merged_on_CGG_ID_essentials = merged_on_CGG_ID[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Country", "Lat", "Lon", "GPS"]]
 
     merged_on_museum_id = pd.merge(input_filter_cgg, wldf, left_on='Museum ID/sample ID', right_on='Archive Sample ID', how='left')
-    merged_on_museum_id_essentials = merged_on_museum_id[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
+    merged_on_museum_id_essentials = merged_on_museum_id[["Museum ID/sample ID", 'CGG ID', "Library ID", 'FastQ File ID', "Depth", "height (m) asl.", "Age", "Geological age", "Country", "Lat", "Lon", "GPS"]]
 
     merged_on_bulksampleid = pd.merge(input_filter_asdf, wldf, left_on='BulkSampleID', right_on='Archive Sample ID', how='left') 
 
@@ -127,4 +129,4 @@ def get_meta_data(fIDs):
     # Rename the columns back to their original names
     essential_merged_df = merged_df.rename(columns={col: col[:-2] for col in merged_df.columns if col.endswith('_x')})
     
-    return (essential_merged_df, full_merged_df)
+    return (essential_merged_df, full_merged_df, raw_tables)
