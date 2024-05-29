@@ -18,24 +18,34 @@ def get_meta_data(fIDs):
     raw_tables = {"CGG3": cgg, "Archive Sampling": asdf, "WetLabFinalReport": wldf}
 
     # TODO: check that replacemants doesnt result in duplicate data
+    # Cleaning input ids
     fIDs = list(map(lambda x: x.upper(), fIDs))
+    fIDs = list(map(lambda x: x.strip(), fIDs))
     fIDs = list(map(lambda x: x.replace(" ", ""), fIDs))
     fIDs = list(map(lambda x: x.replace("," , "."), fIDs))
     fIDs = list(map(lambda x: x.replace("-" , "_"), fIDs))
+    
+    # Cleaning archive sample table
     asdf["BulkSampleID"] = asdf["BulkSampleID"].str.strip()
     asdf["BulkSampleID"] = asdf["BulkSampleID"].str.replace("-", "_")
     asdf["BulkSampleID"] = asdf["BulkSampleID"].str.replace(",", ".")
     asdf["BulkSampleID"] = asdf["BulkSampleID"].str.upper()
     asdf["BulkSampleID"] = asdf["BulkSampleID"].str.replace(" ", "")
+    
+    # Cleaning cgg Museum ID/sample ID
     cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.strip()
     cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.replace("," , ".")
     cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.replace("-" , "_")
     cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.upper()
     cgg["Museum ID/sample ID"] = cgg["Museum ID/sample ID"].str.replace(" ", "")
+    
+    # Cleaning CGG ID
     cgg["CGG ID"] = cgg["CGG ID"].str.strip()
     cgg["CGG ID"] = cgg["CGG ID"].str.replace("-" , "_")
     cgg["CGG ID"] = cgg["CGG ID"].str.upper()
     cgg["CGG ID"] = cgg["CGG ID"].str.replace(" ", "")
+    
+    # Cleaning Archive Sample ID from Wet lab report
     wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.strip()
     wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace("-", "_")
     wldf["Archive Sample ID"] = wldf["Archive Sample ID"].str.replace("," , ".")
@@ -51,7 +61,7 @@ def get_meta_data(fIDs):
     
 
     cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Country", "Lat", "Lon", "GPS"]]
-
+        
     # Get all the rows where the fID matches 
     input_filter_cgg = cgg[cgg["Museum ID/sample ID"].isin(fIDs)]
     input_filter_asdf = asdf[asdf["BulkSampleID"].isin(fIDs)]

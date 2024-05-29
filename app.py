@@ -682,9 +682,10 @@ def search():
             input_values = input_values.rstrip('\r\n')
             
             # Split the input values into a list
-            values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
+            values_list_original = input_values.split('\r\n')  # Assuming values are separated by newline character
                         
-            values_list_repr = list(map(lambda x: repr(x), values_list))
+            values_list_original = list(map(lambda x: x.strip(), values_list_original))
+            values_list = list(map(lambda x: x.upper(), values_list_original))
             
             global search_id 
             search_id = search_id + 1
@@ -704,14 +705,20 @@ def search():
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                  
                     case "lID":
-                        essential_merged_df, full_merged_df, raws = library_id_query.get_meta_data(list(values_list))
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
+                        essential_merged_df = essential_merged_df[essential_merged_df["Library ID"].str.upper().isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df["Library ID"].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
+                        # essential_merged_df, full_merged_df, raws = library_id_query.get_meta_data(list(values_list))
+                        # path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
+                        # path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                        
                     case "country":
                         essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
-                        essential_merged_df = essential_merged_df[essential_merged_df["Country"].isin(list(values_list))] 
-                        full_merged_df = full_merged_df[full_merged_df["Country"].isin(list(values_list))] 
+                        essential_merged_df = essential_merged_df[essential_merged_df["Country"].str.upper().isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df["Country"].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                                            
@@ -734,7 +741,7 @@ def search():
             
             # TODO: Save the dataframes somehow and load again when downloading instead of doing the whole parsing again 
             # Render the template again with the parsed values
-            return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df, table=essential_merged_df.to_html(classes='data', header=True))
+            return render_template('search.html', parsed_values=values_list_original, results=essential_merged_df, table=essential_merged_df.to_html(classes='data', header=True))
     
     # Render the template for GET requests
     return render_template('search.html')
