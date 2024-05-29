@@ -721,6 +721,9 @@ def search():
                         full_merged_df = full_merged_df[full_merged_df["Country"].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                        
+                        # Test:
+                        raws
                                            
                     case _:
                         raise Exception("You need to choose a search type in the dropdown menu")
