@@ -677,7 +677,8 @@ def search():
         with lock2:
             input_values = request.form['input_values']                
             input_dropdown = request.form['search_type']
-
+            encoding_type = request.form['encoding_type']
+            
             # Remove trailing newline characters
             input_values = input_values.rstrip('\r\n')
             
@@ -686,6 +687,7 @@ def search():
                         
             values_list_original = list(map(lambda x: x.strip(), values_list_original))
             values_list = list(map(lambda x: x.upper(), values_list_original))
+            
             
             global search_id 
             search_id = search_id + 1
@@ -728,12 +730,12 @@ def search():
                     case _:
                         raise Exception("You need to choose a search type in the dropdown menu")
                     
-                full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
-                essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+                full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding=encoding_type)
+                essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding=encoding_type)
                 zip_paths = []
                 for key in raws:
                     path_full = os.path.join(raw_path, f'{key}.csv')
-                    raws[key].to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
+                    raws[key].to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
                     zip_paths.append(path_full)
                             
                 path_zip_query = os.path.join(directory_path, 'individual_filtered_tables.zip')
@@ -758,6 +760,9 @@ def create_zip(files, zip_path):
 def get_all_data():
     with lock2:
         
+        encoding_type = request.form['encoding_type']
+
+        
         zip_paths = []
         
         essential, full, raws = get_all_query.get_all_meta_data_using_fids()
@@ -774,14 +779,14 @@ def get_all_data():
         zip_paths.append(path_full)
         path_zip_query = os.path.join(directory_path, 'query_all.zip')
         
-        full.to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
-        essential.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+        full.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+        essential.to_csv(path_or_buf=path_essential, index=False, encoding=encoding_type)
         
         for key in raws:
             
             raw_path = os.path.join(directory_path, 'raw_tables', f'{key}.csv')
             zip_paths.append(raw_path)
-            raws[key].to_csv(path_or_buf=raw_path, index=False, encoding='utf-16')
+            raws[key].to_csv(path_or_buf=raw_path, index=False, encoding=encoding_type)
         
         create_zip(zip_paths, path_zip_query)
 
