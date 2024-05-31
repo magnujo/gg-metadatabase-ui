@@ -20,6 +20,7 @@ dependencies:
   - html5lib
   - xlrd
   - jupyter
+  - matplotlib
   - pip
   - pip:
     - pretty_html_table
