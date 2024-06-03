@@ -22,5 +22,8 @@ dependencies:
   - jupyter
   - matplotlib
   - pip
+  - ipympl
+  - jupyterlab
   - pip:
     - pretty_html_table
+    - jupyterlab

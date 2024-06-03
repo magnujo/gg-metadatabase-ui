@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np 
 
-values_list = ["hej", "JA   \v", "Ne"]
-
-values_list = [val.lower().strip() for val in values_list]
-
-print(values_list)
+x = np.linspace(0, 20, 100)
+plt.plot(x, np.sin(x))
+plt.show()
