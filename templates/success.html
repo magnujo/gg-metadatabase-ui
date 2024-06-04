@@ -37,7 +37,11 @@
 </head>
 <body>
     <h1>Almost done...</h1>
-    <p>Your data is now uploaded to the database. Below you can see what the uploaded data looks like in the database. Please make sure it is as expected. If not, contact {{ admin_emails }}</p>
+    <p>Your data is now uploaded to the database. 
+        Below you can see what the uploaded data looks like in the database. 
+        <br>
+        Please make sure it is as expected. If not, contact {{ admin_emails }}. 
+    <br> NOTE: The data is converted to lowercase, to enable case insensitive comparisons in the database.</p>
     <table>
         <thead>
             <tr>

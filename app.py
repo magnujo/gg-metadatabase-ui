@@ -175,7 +175,7 @@ def upload_file():
             # Rename columns
             for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
                 if old_name in clean_sheet.columns:
-                    clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
+                    clean_sheet = clean_sheet.rename(columns={old_name: new_name})
             
             clean_sheet.columns = clean_sheet.columns.str.strip()
         
@@ -302,6 +302,7 @@ def confirmed():
             try:
                 parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
+                clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
