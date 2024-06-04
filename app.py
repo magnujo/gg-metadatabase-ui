@@ -175,7 +175,7 @@ def upload_file():
             # Rename columns
             for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
                 if old_name in clean_sheet.columns:
-                    clean_sheet = clean_sheet.rename(columns={old_name: new_name}, inplace=True)
+                    clean_sheet = clean_sheet.rename(columns={old_name: new_name})
             
             clean_sheet.columns = clean_sheet.columns.str.strip()
         
@@ -302,6 +302,7 @@ def confirmed():
             try:
                 parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
+                clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
@@ -677,14 +678,17 @@ def search():
         with lock2:
             input_values = request.form['input_values']                
             input_dropdown = request.form['search_type']
-
+            encoding_type = request.form['encoding_type']
+            
             # Remove trailing newline characters
             input_values = input_values.rstrip('\r\n')
             
             # Split the input values into a list
-            values_list = input_values.split('\r\n')  # Assuming values are separated by newline character
+            values_list_original = input_values.split('\r\n')  # Assuming values are separated by newline character
                         
-            values_list_repr = list(map(lambda x: repr(x), values_list))
+            values_list_original = list(map(lambda x: x.strip(), values_list_original))
+            values_list = list(map(lambda x: x.upper(), values_list_original))
+            
             
             global search_id 
             search_id = search_id + 1
@@ -704,26 +708,35 @@ def search():
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                  
                     case "lID":
-                        essential_merged_df, full_merged_df, raws = library_id_query.get_meta_data(list(values_list))
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
+                        essential_merged_df = essential_merged_df[essential_merged_df["Library ID"].str.upper().isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df["Library ID"].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
+                        # essential_merged_df, full_merged_df, raws = library_id_query.get_meta_data(list(values_list))
+                        # path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
+                        # path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                        
                     case "country":
                         essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
-                        essential_merged_df = essential_merged_df[essential_merged_df["Country"].isin(list(values_list))] 
-                        full_merged_df = full_merged_df[full_merged_df["Country"].isin(list(values_list))] 
+                        essential_merged_df = essential_merged_df[essential_merged_df["Country"].str.upper().isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df["Country"].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
+                        
+                        # Test:
+                        raws
                                            
                     case _:
                         raise Exception("You need to choose a search type in the dropdown menu")
                     
-                full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding='utf-16')
-                essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+                full_merged_df.to_csv(path_or_buf=path_all, index=False, encoding=encoding_type)
+                essential_merged_df.to_csv(path_or_buf=path_essential, index=False, encoding=encoding_type)
                 zip_paths = []
                 for key in raws:
                     path_full = os.path.join(raw_path, f'{key}.csv')
-                    raws[key].to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
+                    raws[key].to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
                     zip_paths.append(path_full)
                             
                 path_zip_query = os.path.join(directory_path, 'individual_filtered_tables.zip')
@@ -734,7 +747,7 @@ def search():
             
             # TODO: Save the dataframes somehow and load again when downloading instead of doing the whole parsing again 
             # Render the template again with the parsed values
-            return render_template('search.html', parsed_values=values_list_repr, results=essential_merged_df, table=essential_merged_df.to_html(classes='data', header=True))
+            return render_template('search.html', parsed_values=values_list_original, results=essential_merged_df, table=essential_merged_df.to_html(classes='data', header=True))
     
     # Render the template for GET requests
     return render_template('search.html')
@@ -747,6 +760,9 @@ def create_zip(files, zip_path):
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
     with lock2:
+        
+        encoding_type = request.form['encoding_type']
+
         
         zip_paths = []
         
@@ -764,14 +780,14 @@ def get_all_data():
         zip_paths.append(path_full)
         path_zip_query = os.path.join(directory_path, 'query_all.zip')
         
-        full.to_csv(path_or_buf=path_full, index=False, encoding='utf-16')
-        essential.to_csv(path_or_buf=path_essential, index=False, encoding='utf-16')
+        full.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+        essential.to_csv(path_or_buf=path_essential, index=False, encoding=encoding_type)
         
         for key in raws:
             
             raw_path = os.path.join(directory_path, 'raw_tables', f'{key}.csv')
             zip_paths.append(raw_path)
-            raws[key].to_csv(path_or_buf=raw_path, index=False, encoding='utf-16')
+            raws[key].to_csv(path_or_buf=raw_path, index=False, encoding=encoding_type)
         
         create_zip(zip_paths, path_zip_query)
 
