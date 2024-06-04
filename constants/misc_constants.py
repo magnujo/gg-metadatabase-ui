@@ -116,7 +116,8 @@ SHEET_TYPES = {
     'lane_barcode_html': 'Lane Barcode HTML',
     'seq_sample_sheet': 'Sequencing Center Sample Sheet',
     'master_depth': 'Master Depths sheet',
-    'age_depth_model': 'Age Depth Model'
+    'age_depth_model': 'Age Depth Model',
+    'initials_translator': 'Initials Translator'
 }
 
 

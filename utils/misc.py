@@ -99,15 +99,6 @@ def values_and_keys_to_lower(d):
     else:
         return d
         
-def check_tables():
-    '''
-    Check that all tables in the schema are present in the releavant lists.
-    '''
-    tables_in_schema = q.get_table_names(misc_constants.DATABASE_CONFIG["schema_name"], misc_constants.DATABASE_CONFIG['database'])
-    db_table_related_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["SAMPLE"]
-    db_table_related_constants.DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION["ENVIRONMENTAL"]["LIBRARY"]
-    db_table_related_constants.DBTableRelated.TABLE_SPLITTER
-    db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS
 
 
 def extract_leaf_values_from_dict(dictionary):

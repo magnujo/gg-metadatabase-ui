@@ -33,8 +33,23 @@
     </style>
 </head>
 <body>
+    <br>
+    <br>
+   
+    <p>PLEASE NOTE: As of now it this search function is still under development, and some data is missing and not standardized. Use it with care.</p>
+    <br>
+
     <h2>Get all data</h2>
+    
     <form method="post" action="/get_all_data">
+        <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
+        <select name="encoding_type" id="encoding_type" required>
+            <option value="">Choose an option...</option> 
+            <option value="utf_8">UTF-8</option>  
+            <option value="utf_16">UTF-16</option>  
+            <option value="ascii">ASCII</option>  
+            </select>
+        <br>
         Press to get meta data about all (reported) field samples and associated subsamples in a single csv: <input type="submit" value="Get all data...">
     </form>
     ...or search for meta data of specific ID(s) below:
@@ -49,6 +64,14 @@
             <option value="fID">Field Sample ID</option>  
             <option value="lID">Library ID</option>  
             <option value="country">Country</option>  
+            </select>
+        <br>
+        <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
+        <select name="encoding_type" id="encoding_type" required>
+            <option value="">Choose an option...</option> 
+            <option value="utf_8">UTF-8</option>  
+            <option value="utf_16">UTF-16</option>  
+            <option value="ascii">ASCII</option>  
             </select>
         <br>
         <label for="input_values">Insert ID(s) that you want meta data about (seperated by new line):</label><br>
