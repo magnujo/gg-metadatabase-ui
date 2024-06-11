@@ -2,12 +2,20 @@ import os
 from sqlalchemy import create_engine
 from flask import Flask
 import psycopg2
+import platform
+
 
 
 VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/libraries/ancientmetagenome-environmental_libraries_schema.json',
                            "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
 
-
+if str(platform.system()) == "Windows":
+    PATH_TO_MOUNT = os.path.join("N:", os.path.sep)
+else:
+    PATH_TO_MOUNT = os.path.join("/", "mnt")
+    
+GEO_DATA_NETWORK_DIR = os.path.join("SUN-GI-metadb-test", "Field Sample Projects")
+GEO_DATA_NETWORK_DIR_DELETIONS = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
@@ -18,14 +26,18 @@ ORIGINAL_FILES = 'original_sheets'
 RUN_MODE = 'development'
 RUN_MODE_OPTIONS = ['production', 'development']
 STATIC_DIR = os.path.join(os.getcwd(), 'static')
-PATH_TO_STANDARD_SHEETS = os.path.join(STATIC_DIR, 'example_sheets_online')
+# PATH_TO_STANDARD_SHEETS = os.path.join(STATIC_DIR, 'example_sheets_online')
+PATH_TO_STANDARD_SHEETS = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "standard_spreadsheet_templates")
+# MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
+MANUAL_DIR = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "manuals", "latest_manual")
+MANUAL = os.path.join(MANUAL_DIR, os.listdir(MANUAL_DIR)[0])
+
 
 if os.environ.get('RUN_MODE'):
     RUN_MODE = os.environ.get('RUN_MODE').lower()
     if not RUN_MODE in RUN_MODE_OPTIONS:
         raise Exception(f'Unknown value for RUN_MODE')
 
-MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
 
 EMAIL_SENDER = 'cgg.metadb.ui.website@gmail.com'
 
@@ -48,9 +60,7 @@ ALLOWED_COMMAND_LINE_ARGS = {'development': [],
 
 pw = os.environ.get('DB_PASSWORD')
 
-PATH_TO_MOUNT = os.path.join("/", "mnt")
-GEO_DATA_NETWORK_DIR = os.path.join("SUN-GI-metadb-test", "Field Sample Projects")
-GEO_DATA_NETWORK_DIR_DELETIONS = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
+
 
 ALLOWED_PRIVILIGES = ["INSERT", "DELETE", "SELECT"]
  
