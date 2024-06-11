@@ -8,6 +8,7 @@ import time
 from threading import Lock
 lock = Lock()
 lock2 = Lock()
+upload_lock = Lock()
 import seq_center_sample_sheet_parser
 from utils import misc
 from flask_wtf import FlaskForm
@@ -82,144 +83,161 @@ def index():
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
 def upload_file():
-    # logger.info('Running: ' + str(index.__name__))
-    
-    session.clear()
+    with upload_lock:
+        # logger.info('Running: ' + str(index.__name__))
+        
+        session.clear()
 
-    
-    session['email'] = None
-    session['error'] = False
-    session['error_message_user'] = None
-    session['error_message_admin'] = None
-    session['visited_success'] = False
-    session['email_send'] = False
-    file = request.files['file']
-    file_name = file.filename
-    
-    try:
-        if file.filename == '':
-            raise DontTriggerFileDeletion('No selected file')
+        session['session_id'] = uuid.uuid4()
+        session['session_dir'] = os.path.join(misc_constants.SESSION_DATA, str(session.get("session_id")))
+        session['email'] = None
+        session['error'] = False
+        session['error_message_user'] = None
+        session['error_message_admin'] = None
+        session['visited_success'] = False
+        session['email_send'] = False
+        file = request.files['file']
+        file_name = file.filename
         
-        session['file_name'] = file_name
-        
-        if file and allowed_file(file.filename):
-            file_path = os.path.join(ORIGINAL_FILES, file.filename)
-        else:
-            raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
-        
-        if '--no_file_test' in sys.argv:
-            pass
-        else:
-            # TODO Make more general
-            if os.path.exists(os.path.join(UPLOADED_FILES, file.filename)) and file_name != "laneBarcode.html":
-                raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
-        
-        # else:
-            # Use DontTriggerFileDelete before this and use Exception after. 
-        file.save(file_path)
-        
-        database_table_name = request.form.get('database_table_name')
-        session['database_table_name'] = database_table_name
-        date_format = request.form.get('date_format')
-        decimal_point = request.form.get('decimal_point')
-        thousands_seperator = request.form.get('thousands_seperator')
-        
-        if thousands_seperator == "no_choice" or not thousands_seperator:
-            raise DontTriggerFileDeletion('Please select a thousands seperator character')
-
-        if decimal_point == "no_choice" or not decimal_point:
-            raise DontTriggerFileDeletion('Please select a decimal point character')
-        
-        if decimal_point == thousands_seperator and (decimal_point != "not_relevant" and thousands_seperator != "not_relevant"):
-            raise DontTriggerFileDeletion('Decimal point has to be different from thousands seperator')
-        
-        if date_format == "no_choice" or not date_format:
-            raise DontTriggerFileDeletion('Please select a date format type')
-        
-        if database_table_name == "no_choice" or not database_table_name:
-            raise DontTriggerFileDeletion('Please select a spreadsheet type')
-
-        file_path = os.path.join(ORIGINAL_FILES, file.filename)
-
-        
-        sheets_to_parse = []
-        if database_table_name == "lane_barcode_html":
-            # TODO: Make more general:
-            sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
-            flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
-            sheets_to_parse.append(flowcell_data)
-            sheets_to_parse.append(top_unknown_barcodes)
-        else:       
-            if database_table_name == "seq_sample_sheet":
-                l = []
-                for i in range(10):
-                    l.append(f"Column{i+1}")
-                sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
-                sheet = seq_center_sample_sheet_parser.parse(sheet)
-            elif database_table_name == "age_depth_model":
-                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
+        try:
+            if file.filename == '':
+                raise DontTriggerFileDeletion('No selected file')
+            
+            session['file_name'] = file_name
+            
+            
+            session_dir = str(str(session.get("session_dir")))
+            
+            os.mkdir(session_dir)
+            os.mkdir(os.path.join(session_dir, ORIGINAL_FILES))
+            os.mkdir(os.path.join(session_dir, PARSED_SHEETS_FOLDER))
+            os.mkdir(os.path.join(session_dir, UPLOADED_FILES))
+            
+            
+            if file and allowed_file(file.filename):
+                file_path = os.path.join(session_dir, ORIGINAL_FILES, file.filename)
             else:
-                sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
-            sheets_to_parse.append(sheet)
+                raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
+            
+            if '--no_file_test' in sys.argv:
+                pass
+            else:
+                # TODO Make more general
+                if os.path.exists(os.path.join(UPLOADED_FILES, file.filename)) and file_name != "laneBarcode.html":
+                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
+            
+            # else:
+                # Use DontTriggerFileDelete before this and use Exception after. 
+                
+            if not os.path.exists(file_path):
+                file.save(file_path)
+            else:
+                raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
+                
+            database_table_name = request.form.get('database_table_name')
+            session['database_table_name'] = database_table_name
+            date_format = request.form.get('date_format')
+            decimal_point = request.form.get('decimal_point')
+            thousands_seperator = request.form.get('thousands_seperator')
+            
+            if thousands_seperator == "no_choice" or not thousands_seperator:
+                raise DontTriggerFileDeletion('Please select a thousands seperator character')
+
+            if decimal_point == "no_choice" or not decimal_point:
+                raise DontTriggerFileDeletion('Please select a decimal point character')
+            
+            if decimal_point == thousands_seperator and (decimal_point != "not_relevant" and thousands_seperator != "not_relevant"):
+                raise DontTriggerFileDeletion('Decimal point has to be different from thousands seperator')
+            
+            if date_format == "no_choice" or not date_format:
+                raise DontTriggerFileDeletion('Please select a date format type')
+            
+            if database_table_name == "no_choice" or not database_table_name:
+                raise DontTriggerFileDeletion('Please select a spreadsheet type')
+
+            
+            sheets_to_parse = []
+            if database_table_name == "lane_barcode_html":
+                # TODO: Make more general:
+                sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
+                flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
+                sheets_to_parse.append(flowcell_data)
+                sheets_to_parse.append(top_unknown_barcodes)
+            else:       
+                if database_table_name == "seq_sample_sheet":
+                    l = []
+                    for i in range(10):
+                        l.append(f"Column{i+1}")
+                    sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
+                    sheet = seq_center_sample_sheet_parser.parse(sheet)
+                elif database_table_name == "age_depth_model":
+                    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
+                else:
+                    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+                sheets_to_parse.append(sheet)
+            
+            clean_sheets = []
+            
+            for i, sheet in enumerate(sheets_to_parse):
+                split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
+                clean_sheet = parsers.parse(sheet=sheet,
+                                            database_table_name=split_database_table_name,
+                                            date_format=date_format,
+                                            decimal_point=decimal_point,
+                                            thousands_seperator=thousands_seperator)
+                
+                # Rename columns
+                for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
+                    if old_name in clean_sheet.columns:
+                        clean_sheet = clean_sheet.rename(columns={old_name: new_name})
+                
+                clean_sheet.columns = clean_sheet.columns.str.strip()
+            
+                
+                # Adds rows about which user was responsible for the upload:
+                clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+                
+                # Adds information about which file the data came from:
+                clean_sheet['from_spreadsheet'] = file_name
+
+                # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
+                clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
+                # Convert to ns to enable testing (postgres converts to ns, when uploading)
+                clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
+                
+                clean_sheet['upload_uuid'] = 'not_uploaded'
+                
+                if split_database_table_name == "age_depth_model":
+                    clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
+                
+                
+                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
+
+                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
+                db_table_data = db_table_data.drop(columns=db_generated_uuid)
+            
+                clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
+                assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
+
+                clean_sheets.append(clean_sheet)
+
+            for i, clean_sheet in enumerate(clean_sheets):
+                     
+                write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{file.filename}_{i}')
+                if not os.path.exists(write_path):       
+                    clean_sheet.to_csv(write_path, index=False, encoding='utf_16', sep="\t")
+                else:
+                    raise Exception("Error happened during writing parsed sheet. Contact admin.")
+
+            return redirect(url_for("confirmation_request"))
         
-        clean_sheets = []
-        
-        for i, sheet in enumerate(sheets_to_parse):
-            split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
-            clean_sheet = parsers.parse(sheet=sheet,
-                                        database_table_name=split_database_table_name,
-                                        date_format=date_format,
-                                        decimal_point=decimal_point,
-                                        thousands_seperator=thousands_seperator)
-            
-            # Rename columns
-            for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
-                if old_name in clean_sheet.columns:
-                    clean_sheet = clean_sheet.rename(columns={old_name: new_name})
-            
-            clean_sheet.columns = clean_sheet.columns.str.strip()
-        
-            
-            # Adds rows about which user was responsible for the upload:
-            clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
-            
-            # Adds information about which file the data came from:
-            clean_sheet['from_spreadsheet'] = file_name
-
-            # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
-            clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')
-            # Convert to ns to enable testing (postgres converts to ns, when uploading)
-            clean_sheet['database_insert_datetime_utc'] = clean_sheet['database_insert_datetime_utc'].astype('datetime64[ns, UTC]')
-            
-            clean_sheet['upload_uuid'] = 'not_uploaded'
-            
-            if split_database_table_name == "age_depth_model":
-                clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
-            
-            
-            db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
-
-            db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
-            db_table_data = db_table_data.drop(columns=db_generated_uuid)
-           
-            clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
-            assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
-
-            clean_sheets.append(clean_sheet)
-
-        for i, clean_sheet in enumerate(clean_sheets):
-            
-            clean_sheet.to_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file.filename}_{i}'), index=False, encoding='utf_16', sep="\t")
-
-        return redirect(url_for("confirmation_request"))
-    
-    # If user tries to upload a file that was already added we don't delete anything other than the session data, 
-    # to make sure the original file and db data doesn't get deleted.
-    except DontTriggerFileDeletion as e1:
-        return general_error_handling(message=e1, files_to_del=files_to_del['Before Upload'])
-            
-    except Exception as e:
-        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
+        # If user tries to upload a file that was already added we don't delete anything other than the session data, 
+        # to make sure the original file and db data doesn't get deleted.
+        except DontTriggerFileDeletion as e1:
+            return general_error_handling(message=e1, files_to_del=files_to_del['Before Upload'], state_dirs_before=state_dirs_before)
+                
+        except Exception as e:
+            return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
 
 
 def handle_enum_columns(parsed_sheet, table_name):
@@ -245,7 +263,7 @@ def confirmation_request():
 
         clean_sheets = []
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
-            clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
+            clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
             # Validate enum columns:   
           
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
@@ -300,7 +318,7 @@ def confirmed():
         # UPLOADING
         for i, table_name in enumerate(table_splits):
             try:
-                parsed_file_to_upload = os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
+                parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
                 clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                             
@@ -416,10 +434,10 @@ def confirmed():
             return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])    
             
         try:
-            if '--no_file_test' in sys.argv and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
+            if '--no_file_test' in sys.argv and os.path.exists(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
                 pass
             else:
-                shutil.copy(os.path.join(ORIGINAL_FILES, file_name), UPLOADED_FILES)
+                shutil.copy(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name), UPLOADED_FILES)
                 # shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
                 
                     
@@ -576,7 +594,9 @@ def generate_html_message(message):
 <p>{message}</p>
 ''', traceback_
 
-def general_error_handling(message, error_tables=None, errors=None, rows_to_delete=None, tables_uploaded_to=None, revert_db=False, num_of_uploaded_rows=-1, files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
+def general_error_handling(message, error_tables=None, errors=None, rows_to_delete=None, tables_uploaded_to=None, revert_db=False, 
+                           num_of_uploaded_rows=-1, 
+                           files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
         print("\n General error handling... \n")
         upload_id = session.get('upload_id')
@@ -585,11 +605,10 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
         user_error, admin_error = generate_html_message(message)
         error_messages_user.append(user_error)
         
-            
         if revert_db:
             if tables_uploaded_to:
                 for i, table in enumerate(tables_uploaded_to):
-                    clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                    clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
                     
                     # To make sure to delete the correct number of rows
                     if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
@@ -608,7 +627,7 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
                 else:        
                     database_table_name = session.get('database_table_name')
                     for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
-                        clean_sheet = pd.read_csv(os.path.join(PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                        clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
                         
                         # To make sure to delete the correct number of rows
                         if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
@@ -617,7 +636,7 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
                             num_of_rows_to_del = num_of_uploaded_rows
                     
                         delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=num_of_rows_to_del)
-        delete_files(file_name=file_name, **files_to_del)
+        delete_files(file_name=file_name, **files_to_del, session_dir=str(session.get("session_dir")))
         # session.clear()
         
         session['error_message_user'] = error_messages_user
@@ -632,7 +651,7 @@ def send_error_details():
     error_message = session.get('error_message_admin')
     message = f'{email} \n {error_message}'
     file_name = session.get('file_name')
-    attachment_paths = [os.path.join(ORIGINAL_FILES, file_name)]
+    attachment_paths = [os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name)]
     send_email.send('Error on upload website', message, attachment_paths=attachment_paths)
     
     session['email_send'] = True

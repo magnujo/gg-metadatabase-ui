@@ -8,7 +8,7 @@ VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-c
                            "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
 
 
-
+SESSION_DATA = "session_data"
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt', 'html', 'csv'}

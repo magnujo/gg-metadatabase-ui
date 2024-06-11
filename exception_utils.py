@@ -8,16 +8,41 @@ import os
 from constants.misc_constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import psycopg2
 from scripts import deleted_schema_management
+import shutil
 
-def delete_files(file_name, original=False, parsed=False, uploaded=False):
-        if original and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
-                os.remove(os.path.join(ORIGINAL_FILES, file_name))
+def delete_files(file_name, session_dir, original=False, parsed=False, uploaded=False):
+        
+        if os.path.exists(session_dir):        
+                shutil.rmtree(session_dir)
+        
+        if uploaded:
+                path = os.path.join(UPLOADED_FILES, file_name)
+                if os.path.exists(path):
+                        os.remove(path)
+                else:
+                        raise Exception(f"Error deleting uploaded file. {path} not found. Contact admin.")
+                        
+        
+        # files_to_del = {}
+        # for key in state_dirs_after_error:
+        #         dir_before = state_dirs_before[key]
+        #         dir_after = state_dirs_after_error[key]
                 
-        if uploaded and os.path.exists(os.path.join(UPLOADED_FILES, file_name)):
-                os.remove(os.path.join(UPLOADED_FILES, file_name))
+        #         files_to_del = set(dir_after).difference(set(dir_before))
+                
+        #         for file_name in files_to_del:
+        #                 path = os.path.join(session_dir, key, file_name)
+        #                 os.remove(path)
+                
+        
+        # if original and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
+        #         os.remove(os.path.join(ORIGINAL_FILES, file_name))
+                
+        # if uploaded and os.path.exists(os.path.join(UPLOADED_FILES, file_name)):
+        #         os.remove(os.path.join(UPLOADED_FILES, file_name))
     
-        if parsed and os.path.exists(os.path.join(PARSED_SHEETS_FOLDER, file_name)):
-                os.remove(os.path.join(PARSED_SHEETS_FOLDER, file_name))
+        # if parsed and os.path.exists(os.path.join(PARSED_SHEETS_FOLDER, file_name)):
+        #         os.remove(os.path.join(PARSED_SHEETS_FOLDER, file_name))
     
 # TODO: Make more secure: implement time check for example.
 def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):
