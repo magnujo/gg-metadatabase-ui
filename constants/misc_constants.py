@@ -13,6 +13,7 @@ ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt', 'html', 'csv'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
+DELETED_SESSION_DATA = "deleted_session_data"
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'original_sheets'
 RUN_MODE = 'development'

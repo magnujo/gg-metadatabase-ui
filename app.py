@@ -85,34 +85,31 @@ def index():
 def upload_file():
     with upload_lock:
         # logger.info('Running: ' + str(index.__name__))
-        
+       
         session.clear()
-
-        session['session_id'] = uuid.uuid4()
-        session['session_dir'] = os.path.join(misc_constants.SESSION_DATA, str(session.get("session_id")))
         session['email'] = None
         session['error'] = False
         session['error_message_user'] = None
         session['error_message_admin'] = None
         session['visited_success'] = False
         session['email_send'] = False
+        session['session_dir_created'] = False
+        
         file = request.files['file']
         file_name = file.filename
+        session['session_id'] = uuid.uuid4()
+        session['session_dir'] = os.path.join(misc_constants.SESSION_DATA, str(session.get("session_id")))
         
         try:
             if file.filename == '':
                 raise DontTriggerFileDeletion('No selected file')
             
             session['file_name'] = file_name
-            
-            
-            session_dir = str(str(session.get("session_dir")))
-            
-            os.mkdir(session_dir)
-            os.mkdir(os.path.join(session_dir, ORIGINAL_FILES))
-            os.mkdir(os.path.join(session_dir, PARSED_SHEETS_FOLDER))
-            os.mkdir(os.path.join(session_dir, UPLOADED_FILES))
-            
+
+            session_dir = str(str(session.get("session_dir"))) 
+        
+            if os.path.exists(session_dir):
+                raise DontTriggerFileDeletion("Session dir already exists")
             
             if file and allowed_file(file.filename):
                 file_path = os.path.join(session_dir, ORIGINAL_FILES, file.filename)
@@ -125,14 +122,6 @@ def upload_file():
                 # TODO Make more general
                 if os.path.exists(os.path.join(UPLOADED_FILES, file.filename)) and file_name != "laneBarcode.html":
                     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
-            
-            # else:
-                # Use DontTriggerFileDelete before this and use Exception after. 
-                
-            if not os.path.exists(file_path):
-                file.save(file_path)
-            else:
-                raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
                 
             database_table_name = request.form.get('database_table_name')
             session['database_table_name'] = database_table_name
@@ -154,6 +143,26 @@ def upload_file():
             
             if database_table_name == "no_choice" or not database_table_name:
                 raise DontTriggerFileDeletion('Please select a spreadsheet type')
+
+            os.mkdir(session_dir)
+        
+        # Dont delete session dir on error before the session dir has been created. This might otherwise delete a dir by mistake.
+        except Exception as e:
+            return general_error_handling(message=e, delete_session_dir=False, files_to_del=files_to_del['Before Upload'])
+            
+        try:
+            parsed_dir = os.path.join(session_dir, PARSED_SHEETS_FOLDER)
+            os.mkdir(os.path.join(session_dir, ORIGINAL_FILES))
+            os.mkdir(parsed_dir)
+            os.mkdir(os.path.join(session_dir, UPLOADED_FILES))
+            
+            for table_name in db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]:
+                os.mkdir(os.path.join(parsed_dir, table_name))
+            
+            if not os.path.exists(file_path):
+                file.save(file_path)
+            else:
+                raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
 
             
             sheets_to_parse = []
@@ -219,11 +228,13 @@ def upload_file():
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
-                clean_sheets.append(clean_sheet)
+                clean_sheets.append((clean_sheet, split_database_table_name))
+                
 
-            for i, clean_sheet in enumerate(clean_sheets):
-                     
-                write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{file.filename}_{i}')
+            for i, (clean_sheet, table_name) in enumerate(clean_sheets):
+                suf = str(Path(str(file_name)).suffix)
+                stem = str(Path(str(file_name)).stem)
+                write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
                 if not os.path.exists(write_path):       
                     clean_sheet.to_csv(write_path, index=False, encoding='utf_16', sep="\t")
                 else:
@@ -231,13 +242,9 @@ def upload_file():
 
             return redirect(url_for("confirmation_request"))
         
-        # If user tries to upload a file that was already added we don't delete anything other than the session data, 
-        # to make sure the original file and db data doesn't get deleted.
-        except DontTriggerFileDeletion as e1:
-            return general_error_handling(message=e1, files_to_del=files_to_del['Before Upload'], state_dirs_before=state_dirs_before)
                 
         except Exception as e:
-            return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
+            return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
 
 
 def handle_enum_columns(parsed_sheet, table_name):
@@ -254,7 +261,7 @@ def handle_enum_columns(parsed_sheet, table_name):
 @decorators.log_info(app)
 def confirmation_request():
     try:
-        if session['error'] == True:
+        if session.get("error") == True:
             return redirect(url_for("index"))
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
@@ -263,7 +270,9 @@ def confirmation_request():
 
         clean_sheets = []
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
-            clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep='\t')
+            suf = str(Path(str(file_name)).suffix)
+            stem = str(Path(str(file_name)).stem)
+            clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding='utf_16', sep='\t')
             # Validate enum columns:   
           
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
@@ -280,7 +289,7 @@ def confirmation_request():
         return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
-        return general_error_handling(message=e, files_to_del=files_to_del['Before Upload'])
+        return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
 
 # TODO: lock this function so only 1 can happen at a time (alternatively 1 upload per table at a time)
 @app.route('/confirmed', methods=['POST'])
@@ -289,7 +298,7 @@ def confirmed():
     with lock:
         print("Confirmed")
         try:
-            if session['error'] == True:
+            if session.get("error") == True:
                 return redirect(url_for("index"))
             file_name = session.get('file_name')
             database_table_name = session.get('database_table_name')
@@ -310,7 +319,7 @@ def confirmed():
                 raise Exception(f"Found upload_id already in {tables_with_uid}")            
             
         except Exception as e:
-            return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload']) 
         
            
                 
@@ -318,7 +327,9 @@ def confirmed():
         # UPLOADING
         for i, table_name in enumerate(table_splits):
             try:
-                parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{file_name}_{i}')
+                suf = str(Path(str(file_name)).suffix)
+                stem = str(Path(str(file_name)).stem)
+                parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
                 clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                             
@@ -349,7 +360,7 @@ def confirmed():
                 row_counts_before_upload[table_name] = row_count_before_upload
             
             except Exception as e:
-                return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])
+                return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload'])
     
         # Try to upload and rollback if errors happen
         with ENGINE.connect() as conn:
@@ -372,12 +383,12 @@ def confirmed():
                                 # TODO: Remove only rows that were not rolled back?
                                 raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. CLICK BELOW TO NOTIFY ADMIN.")
                     except Exception as e:
-                        return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+                        return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload']) 
                     else:
                         if isinstance(e, SQLAlchemyError):
-                            return general_error_handling(message=e.orig, revert_db=False, files_to_del=files_to_del['Before Upload']) 
+                            return general_error_handling(message=e.orig, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload']) 
                         else:
-                            return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])        
+                            return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload'])        
                 # Commit if no exception happened
                 else:
                     trans.commit() 
@@ -390,8 +401,10 @@ def confirmed():
                 num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
                 q = queries.upload_id_filter(schema=DATABASE_CONFIG['schema_name'], table=table_name, upload_id=upload_id)
                 num_of_upload_ids_in_db[table_name] = len(pd.read_sql(q, con=ENGINE))
+            
         except Exception as e: 
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
+        
         
         # Test that the amount of rows uploaded matches the lengths of the sheets             
         try:
@@ -405,12 +418,12 @@ def confirmed():
                     # Here we can trust upload_id to be correct because of the above conditional, so we can delete data based on it.
                     if expected_rows != num_of_uploaded_rows[table_name]:
                         row_count_errors[table_name].append(f"Error happened during upload. Expected to find {expected_rows} added rows in {table_name} but {num_of_uploaded_rows[table_name]} were found. Rolling back...")
-                    
+             
         except ValueError as e:
-            return general_error_handling(message=e, revert_db=False, files_to_del=files_to_del['Before Upload'])  
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload'])  
         
         except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])                          
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])                          
         
         
         try:
@@ -418,8 +431,9 @@ def confirmed():
                 if len(row_count_errors[table_name]) > 0:
                     raise Exception("")
         
+            
         except Exception as e:
-            return general_error_handling(message=e, errors=row_count_errors, revert_db=True, rows_to_delete=num_of_uploaded_rows, files_to_del=files_to_del['Before Upload'])
+            return general_error_handling(message=e, delete_session_dir=True, errors=row_count_errors, revert_db=True, rows_to_delete=num_of_uploaded_rows, files_to_del=files_to_del['Before Upload'])
         
             
         # Test that the uploaded data is equal to the parsed sheets
@@ -429,9 +443,9 @@ def confirmed():
                     pass
                 else:
                     integrity_test(table_name, file_name, clean_sheets[table_name], upload_id=session.get('upload_id'))
-        
+           
         except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])    
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])    
             
         try:
             if '--no_file_test' in sys.argv and os.path.exists(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
@@ -440,13 +454,15 @@ def confirmed():
                 shutil.copy(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name), UPLOADED_FILES)
                 # shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
                 
-                    
+                       
         except Exception as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['Before Upload'])
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
         
         try:
             
+            
+                        
             if database_table_name == 'field_sample':
                 if len(table_splits) != 1:
                     raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
@@ -458,15 +474,20 @@ def confirmed():
                                 raise Exception("Please fill in Running Project Title")
                             else:
                                 created_dirs = []
+                                
                                 for project_name in project_names:                      
                                     path_to_dir = os.path.join(misc_constants.GEO_DATA_NETWORK_DIR, str(project_name))
                                     created_dir = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
                                     created_dirs.append(created_dir)
+        
+                                       
+        
         except FileExistsError as e:
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['After Upload'])                       
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])                       
         
         except Exception as e:
-            if created_dirs:
+            
+            if "created_dirs" in locals().keys():
                 for dir_path in created_dirs:
                     # Check if dirpath exist and is not None (this is because make_dir_on_network_mount returns None if the folder already exists)
                     if dir_path != None:
@@ -478,8 +499,7 @@ def confirmed():
                             timestamp = time.strftime("%Y%m%d%H%M%S")
                             destination_path = f"{destination_path}_{timestamp}"
                             shutil.move(dir_path, destination_path)
-            return general_error_handling(message=e, revert_db=True, files_to_del=files_to_del['After Upload'])
-       
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])
         
                         
         return redirect(url_for("success")) 
@@ -497,7 +517,7 @@ def cancel_upload():
 @decorators.log_info(app)
 def success():
     try:
-        if session['error'] == True:
+        if session.get('error') == True:
             return redirect(url_for("index"))
               
         file_name = session.get('file_name')
@@ -594,11 +614,12 @@ def generate_html_message(message):
 <p>{message}</p>
 ''', traceback_
 
-def general_error_handling(message, error_tables=None, errors=None, rows_to_delete=None, tables_uploaded_to=None, revert_db=False, 
+def general_error_handling(message, delete_session_dir=False, error_tables=None, errors=None, rows_to_delete=None, tables_uploaded_to=None, revert_db=False, 
                            num_of_uploaded_rows=-1, 
                            files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
         print("\n General error handling... \n")
+        session["error"] = True
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
         error_messages_user = []
@@ -608,7 +629,9 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
         if revert_db:
             if tables_uploaded_to:
                 for i, table in enumerate(tables_uploaded_to):
-                    clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                    suf = str(Path(str(file_name)).suffix)
+                    stem = str(Path(str(file_name)).stem)
+                    clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table}{suf}'), encoding='utf_16', sep="\t")
                     
                     # To make sure to delete the correct number of rows
                     if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
@@ -627,7 +650,9 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
                 else:        
                     database_table_name = session.get('database_table_name')
                     for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
-                        clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{file_name}_{i}'), encoding='utf_16', sep="\t")
+                        suf = str(Path(str(file_name)).suffix)
+                        stem = str(Path(str(file_name)).stem)
+                        clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table}{suf}'), encoding='utf_16', sep="\t")
                         
                         # To make sure to delete the correct number of rows
                         if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
@@ -636,7 +661,8 @@ def general_error_handling(message, error_tables=None, errors=None, rows_to_dele
                             num_of_rows_to_del = num_of_uploaded_rows
                     
                         delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=num_of_rows_to_del)
-        delete_files(file_name=file_name, **files_to_del, session_dir=str(session.get("session_dir")))
+                        
+        delete_files(file_name=file_name, **files_to_del, session_dir=str(session.get("session_dir")), delete_session_dir=delete_session_dir)
         # session.clear()
         
         session['error_message_user'] = error_messages_user
