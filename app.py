@@ -907,7 +907,7 @@ if __name__ == '__main__':
     print(f"RUNMODE:{misc_constants.RUN_MODE}")
     
     deleted_schema_management.copy_or_generate(misc_constants.DATABASE_CONFIG["schema_name"], database_name=misc_constants.DATABASE_CONFIG["database"], alch_engine=ENGINE, psy_conn=misc_constants.PSY_CONN)
-    misc.empty_folder("query_files")
+    misc.empty_folder("query_files", exclude=[".gitignore"])
     
     if misc_constants.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)

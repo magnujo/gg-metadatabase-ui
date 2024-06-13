@@ -41,7 +41,7 @@ def get_db_generated_uuid_col(table_name, schema_name):
         pass
     return db_generated_uuid
 
-def empty_folder(folder_path):
+def empty_folder(folder_path, exclude=[]):
     # Check if the folder exists
     if not os.path.exists(folder_path):
         print(f"Folder '{folder_path}' does not exist.")
@@ -52,7 +52,7 @@ def empty_folder(folder_path):
         item_path = os.path.join(folder_path, item)
         
         # Check if it's a file or directory
-        if os.path.isfile(item_path):
+        if os.path.isfile(item_path) and item not in exclude:
             # Remove the file
             os.remove(item_path)
             print(f"Removed file: {item_path}")
