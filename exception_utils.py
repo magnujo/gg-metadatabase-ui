@@ -5,19 +5,41 @@ from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
-from constants.misc_constants import PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
+from constants.misc_constants import DELETED_SESSION_DATA, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
 import psycopg2
 from scripts import deleted_schema_management
+import shutil
+from datetime import datetime
+import time
+import random
 
-def delete_files(file_name, original=False, parsed=False, uploaded=False):
-        if original and os.path.exists(os.path.join(ORIGINAL_FILES, file_name)):
-                os.remove(os.path.join(ORIGINAL_FILES, file_name))
+
+
+
+def delete_files(file_name, session_dir, delete_session_dir, original=False, parsed=False, uploaded=False):
+        
+        if delete_session_dir:
+                if os.path.exists(session_dir):  
+                        shutil.move(session_dir, os.path.join(DELETED_SESSION_DATA, "failed_sessions"))
+                                                    
+                else:
+                        raise Exception("Session dir could not be found")
+        
+        if uploaded:
                 
-        if uploaded and os.path.exists(os.path.join(UPLOADED_FILES, file_name)):
-                os.remove(os.path.join(UPLOADED_FILES, file_name))
-    
-        if parsed and os.path.exists(os.path.join(PARSED_SHEETS_FOLDER, file_name)):
-                os.remove(os.path.join(PARSED_SHEETS_FOLDER, file_name))
+                origin_path = os.path.join(UPLOADED_FILES, file_name)
+                timestamp = str(datetime.now().strftime("%Y%m%d_%H%M%S"))
+                destination_dir = os.path.join(DELETED_SESSION_DATA, "failed_upload_files", timestamp)
+                
+                if os.path.exists(origin_path):
+                        if os.path.exists(destination_dir):
+                                shutil.move(origin_path, destination_dir)
+                        else:
+                                os.mkdir(destination_dir)
+                                shutil.move(origin_path, destination_dir)
+                else:
+                        raise Exception(f"Error deleting uploaded file. {origin_path} not found. Contact admin.")
+                        
     
 # TODO: Make more secure: implement time check for example.
 def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):

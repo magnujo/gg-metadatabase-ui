@@ -9,6 +9,10 @@ import platform
 VALIDATION_SCHEMA_LINKS = {"LIBRARY": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/libraries/ancientmetagenome-environmental_libraries_schema.json',
                            "SAMPLE": 'https://raw.githubusercontent.com/SPAAM-community/AncientMetagenomeDir/master/ancientmetagenome-environmental/samples/ancientmetagenome-environmental_samples_schema.json'}
 
+
+
+SESSION_DATA = "session_data"
+
 if str(platform.system()) == "Windows":
     PATH_TO_MOUNT = os.path.join("N:", os.path.sep)
 else:
@@ -21,6 +25,7 @@ ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
 ALLOWED_EXTENSIONS = {'txt', 'html', 'csv'}
 PARSED_SHEETS_FOLDER = 'parsed_sheets'
+DELETED_SESSION_DATA = "deleted_session_data"
 TEMP_FOLDER = 'temp'
 ORIGINAL_FILES = 'original_sheets'
 RUN_MODE = 'development'
