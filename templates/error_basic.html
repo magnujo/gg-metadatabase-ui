@@ -1,0 +1,35 @@
+<head>
+    <title>Meta data spreadsheet upload</title>
+    <link rel="shortcut icon" href="#">
+</head>
+<h2>Error</h2>
+<p>An error has occured while trying to process your request and no data was uploaded to the database. 
+    <br>
+    Try to resolve it by reading the error message below. 
+    If it doesn't make sense try again, and make sure you select the correct upload options.
+    If you can't resolve it, enter your email and press the "Report Error" below.
+    <br>
+    This will send an email to the the admin, with details of the error</p>
+
+<h3>Error Message:</h3>
+<p>During upload the following errors occured:</p>
+<br>
+{% for error_message in error_messages %} 
+<p>{{ error_message|safe }}</p>
+<br>
+{% endfor %}
+    
+<br>
+<h4>Report error:</h4>
+<p>Only do this if you cannot resolve the error yourself. 
+    Please send the following to magnus.johannsen@sund.ku.dk:
+</p>
+<p>{{ error_message_admin|safe }}</p>
+<br>
+<br>
+<form action="/" method="post" enctype="multipart/form-data">
+    <div class="centered">
+        <button type="submit">To Homepage</button>
+    </div>
+</form>
+
