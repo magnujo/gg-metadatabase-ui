@@ -164,7 +164,9 @@ def upload_file():
             else:
                 raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
 
+            #TODO only from here can user report error. Solution: only send file in error report if it exists
             
+            raise Exception("test")
             sheets_to_parse = []
             if database_table_name == "lane_barcode_html":
                 # TODO: Make more general:
@@ -539,10 +541,11 @@ def success():
 @decorators.log_info(app)
 def error():
     error_messages = session.get('error_message_user')
+    error_message_admin = session.get("error_message_admin")
     session['error'] = True
 
     #error_message = request.args.get('error_message', 'An error occurred.')
-    return render_template('error.html', email_send=session.get('email_send'), error_messages=error_messages, admin=ADMIN_EMAIL)
+    return render_template('error_basic.html', email_send=session.get('email_send'), error_messages=error_messages, error_message_admin=error_message_admin, admin=ADMIN_EMAIL)
 
 def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
@@ -677,7 +680,9 @@ def send_error_details():
     error_message = session.get('error_message_admin')
     message = f'{email} \n {error_message}'
     file_name = session.get('file_name')
-    attachment_paths = [os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name)]
+    failed_session = os.path.join("deleted_session_data", "failed_sessions", str(session.get("session_id")))
+    # attachment_paths = [os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name)]
+    attachment_paths = [os.path.join(failed_session, ORIGINAL_FILES, file_name)]
     send_email.send('Error on upload website', message, attachment_paths=attachment_paths)
     
     session['email_send'] = True
