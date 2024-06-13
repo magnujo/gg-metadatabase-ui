@@ -16,7 +16,7 @@ Automatically generates a compatible excel sheet template for a given table.
 '''
 
 output_folder=r'static\auto_sheets'
-table_name='Field Samples' 
+table_name='master_depth' 
 schema_name='test_1'
 user = input("Enter your database username: ")
 password = getpass.getpass("Enter your password: ")
@@ -106,10 +106,13 @@ full outer join information_schema.columns c on (
     result_df = result_df.fillna(np.nan)
     result_df = result_df.dropna(axis='rows', how='all')
     result_df = result_df.dropna(axis='columns', how='all')
-    result_df = result_df.drop(columns=['Comment'])
+    
+    if "Comment" in result_df.columns:
+        result_df = result_df.drop(columns=['Comment'])
+    
     if sort_on_null:
         result_df = result_df.sort_values(by="Is Nullable")
-        
+    
     result_df_T = result_df[["Column Name"]]
     result_df_T = result_df_T.set_index("Column Name")
     result_df_T = result_df_T.T
