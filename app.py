@@ -166,7 +166,7 @@ def upload_file():
 
             #TODO only from here can user report error. Solution: only send file in error report if it exists
             
-            raise Exception("test")
+            
             sheets_to_parse = []
             if database_table_name == "lane_barcode_html":
                 # TODO: Make more general:
