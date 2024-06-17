@@ -39,6 +39,7 @@ def get_meta_data(input_data):
     cgg = cgg.replace("NONE", np.nan)
     flowcell = flowcell.fillna(np.nan)
     flowcell = flowcell.replace("NONE", np.nan)
+    asdf = asdf.rename(columns={"ArchiveSampleID": "Archive Sample ID"})
 
     
     cgg_essential = cgg[["Museum ID/sample ID", 'CGG ID', "Depth", "height (m) asl.", "Age", "Geological age", "Lat", "Lon", "GPS"]]
