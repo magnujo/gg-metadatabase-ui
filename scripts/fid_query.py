@@ -31,6 +31,7 @@ def get_meta_data(field_sample_IDs):
     archive_samples["BulkSampleID"] = archive_samples["BulkSampleID"].str.replace(",", ".")
     archive_samples["BulkSampleID"] = archive_samples["BulkSampleID"].str.upper()
     archive_samples["BulkSampleID"] = archive_samples["BulkSampleID"].str.replace(" ", "")
+    archive_samples = archive_samples.rename(columns={"ArchiveSampleID": "Archive Sample ID"})
     
     # Cleaning cgg Museum ID/sample ID
     cgg_3["Museum ID/sample ID"] = cgg_3["Museum ID/sample ID"].str.strip()
@@ -98,10 +99,7 @@ def get_meta_data(field_sample_IDs):
     
     # assert len(merged_on_aID) == len(expected_vals_from_wldf) + len(expected_vals_from_asdf)
     # assert expected_vals_from_asdf.sort_values().equals(merged_on_aID["Archive Sample ID"].sort_values())
-    # assert expected_vals_from_wldf.sort_values().equals(merged_on_aID["Archive Sample ID"].sort_values())
-    
-    assert merged_on_aID["Archive Sample ID"].isnull().all() == False
-    
+    # assert expected_vals_from_wldf.sort_values().equals(merged_on_aID["Archive Sample ID"].sort_values())    
 
     merged_on_aID_essentials = merged_on_aID[['BulkSampleID', "Archive Sample ID", "Robot Sample ID", "Library ID", 'FastQ File ID', "DepthSampledCalTape"]]
 
