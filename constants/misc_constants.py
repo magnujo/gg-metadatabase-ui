@@ -168,7 +168,7 @@ AUTO_GENERATED_COLUMNS = ['database_insert_by', 'from_spreadsheet', 'database_in
 DB_CHARACTER_ENCODING = 'UTF-8'
 
 
-COLUMN_TRANSLATER = {'ArchiveSampleID': 'Archive Sample ID'}
+COLUMN_TRANSLATER = {'ArchiveSampleID': 'ArchiveSampleID'}
 
 '''
 The following is a translator from CGG DB column names to SPAAM defined in https://github.com/SPAAM-community/AncientMetagenomeDir

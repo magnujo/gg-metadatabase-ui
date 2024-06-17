@@ -1,6 +1,7 @@
 import platform
 import os
+from utils import queries as q
 
-PATH_TO_MOUNT = os.path.join("N:", os.path.sep)
-print(os.path.join(PATH_TO_MOUNT, "AAA"))                   
+b = q.get_table_information("edna_archive_sample", "test_1")
+           
 
