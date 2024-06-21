@@ -39,7 +39,8 @@
     <p>PLEASE NOTE: As of now it this search function is still under development, and some data is missing and not standardized. Use it with care.</p>
     <br>
 
-    <h2>Get all data</h2>
+    <h2>Get all CGG data</h2>
+    <p>Use this functionality if you are interested in CGG data. This is old unstandardized data.</p>
     
     <form method="post" action="/get_all_data">
         <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
@@ -52,7 +53,24 @@
         <br>
         Press to get meta data about all (reported) field samples and associated subsamples in a single csv: <input type="submit" value="Get all data...">
     </form>
-    ...or search for meta data of specific ID(s) below:
+
+    <br>
+
+    <br>
+    
+    <h2>Download all tables</h2>
+    <p> Use this functionality if you want to download all the tables of the database</p>
+    <form method="post" action="/download_all_individual_tables">
+        <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
+        <select name="encoding_type" id="encoding_type" required>
+            <option value="">Choose an option...</option> 
+            <option value="utf_8">UTF-8</option>  
+            <option value="utf_16">UTF-16</option>  
+            <option value="ascii">ASCII</option>  
+            </select>
+        <br>
+        Press to get meta data about all (reported) field samples and associated subsamples in a single csv: <input type="submit" value="Download all tables...">
+    </form>
     <br>
     <br>
     <h2>Search for specific ID(s)</h2>
