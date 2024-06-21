@@ -7,7 +7,7 @@ from scripts import fid_query, library_id_query, get_all_query
 import time
 from threading import Lock
 lock = Lock()
-lock2 = Lock()
+download_lock = Lock()
 upload_lock = Lock()
 import seq_center_sample_sheet_parser
 from utils import misc
@@ -696,36 +696,43 @@ def handle_uncaught_exception(e):
     message = "!!!!IMPORTANT!!!!: UNKNOWN ERROR OCCURED. THIS MIGHT BE CRUCIAL, SO REPORT TO ADMIN BELOW!"
     return general_error_handling(f"{message}: \n Error message: \n {str(e)}")
 
-def make_dirs_for_query_files(search_id):
-    
+
+def make_search_folder(search_id):
     # Create directory if it doesn't exist
     if not os.path.exists(paths.QUERY_FILES):
         os.makedirs(paths.QUERY_FILES)
     
     # Creating directory path
-    directory_path = os.path.join(paths.QUERY_FILES, search_id)
-
-    # Create directory if it doesn't exist
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+    search_dir_path = os.path.join(paths.QUERY_FILES, search_id)
+    
+    if not os.path.exists(search_dir_path):
+        os.makedirs(search_dir_path)
     else:
         raise Exception(f"Directory {search_id} already exists")
+
+    return search_dir_path
+    
+
+def make_dirs_for_query_files(search_id):
+    
+    # Creating directory path
+    search_dir_path = make_search_folder(search_id)
         
-    raw_path = os.path.join(directory_path, 'raw_tables')
+    raw_path = os.path.join(search_dir_path, 'raw_tables')
     
     if not os.path.exists(raw_path):
         os.makedirs(raw_path)
     else:
         raise Exception(f"Directory {raw_path} already exists")
     
-    return directory_path, raw_path
+    return search_dir_path, raw_path
     
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     error = ""
     if request.method == 'POST':
-        with lock2:
+        with download_lock:
             input_values = request.form['input_values']                
             input_dropdown = request.form['search_type']
             encoding_type = request.form['encoding_type']
@@ -809,7 +816,7 @@ def create_zip(files, zip_path):
 
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
-    with lock2:
+    with download_lock:
         
         encoding_type = request.form['encoding_type']
 
@@ -821,6 +828,8 @@ def get_all_data():
         global search_id 
         search_id = search_id + 1
         session["search_id"] = str(search_id)
+        
+        make_search_folder()
         
         directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
                 
@@ -851,6 +860,38 @@ def download_all():
     
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
+
+@app.route('/download_all_individual_tables', methods=['POST'])
+def download_all_individual_tables():
+    
+    with download_lock:
+        encoding_type = request.form['encoding_type']    
+        zip_paths = []
+        
+        global search_id 
+        search_id = search_id + 1
+        session["search_id"] = str(search_id) 
+        
+        directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+        
+        path_zip = os.path.join(directory_path, 'all_tables.zip')
+        
+        schema_name = misc_constants.DATABASE_CONFIG["schema_name"]
+        database_name = misc_constants.DATABASE_CONFIG["database"]
+        
+        tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
+        
+        for table_name in tables:
+            df = pd.read_sql(f'select * from {schema_name}.{table_name}', con=ENGINE)
+            table_path = os.path.join(raw_path, f"{table_name}.tsv")
+            df.to_csv(table_path, encoding=encoding_type, sep="\t")
+            zip_paths.append(table_path)
+            
+        create_zip(zip_paths, path_zip)
+
+
+        # Send the text file as a download to the user
+        return send_file(path_zip, as_attachment=True)
 
 
 @app.route('/download_essential')
