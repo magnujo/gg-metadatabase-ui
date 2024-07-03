@@ -1,3 +1,4 @@
+from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
 from validation_tools import validate_enum_columns
@@ -703,7 +704,7 @@ def make_search_folder(search_id):
         os.makedirs(paths.QUERY_FILES)
     
     # Creating directory path
-    search_dir_path = os.path.join(paths.QUERY_FILES, search_id)
+    search_dir_path = os.path.join(paths.QUERY_FILES, str(search_id))
     
     if not os.path.exists(search_dir_path):
         os.makedirs(search_dir_path)
@@ -721,7 +722,7 @@ def make_dirs_for_query_files(search_id):
     raw_path = os.path.join(search_dir_path, 'raw_tables')
     
     if not os.path.exists(raw_path):
-        os.makedirs(raw_path)
+        os.makedirs(raw_path) 
     else:
         raise Exception(f"Directory {raw_path} already exists")
     
@@ -736,6 +737,8 @@ def search():
             input_values = request.form['input_values']                
             input_dropdown = request.form['search_type']
             encoding_type = request.form['encoding_type']
+            
+            
             
             # Remove trailing newline characters
             input_values = input_values.rstrip('\r\n')
@@ -753,6 +756,14 @@ def search():
             
             directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
             
+            ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
+                        "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
+                        "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
+            
+            library_id_col_name = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(23)
+            country_col_name = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(23)
+            
+            
             try:
                 match input_dropdown:
                     case "":
@@ -760,14 +771,14 @@ def search():
                     case "no_choice":
                         raise Exception("You need to choose a search type in the dropdown menu")
                     case "fID":
-                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list))
+                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list), ordinal_position_maps)
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                  
                     case "lID":
-                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
-                        essential_merged_df = essential_merged_df[essential_merged_df["Library ID"].str.upper().isin(list(values_list))] 
-                        full_merged_df = full_merged_df[full_merged_df["Library ID"].str.upper().isin(list(values_list))] 
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+                        essential_merged_df = essential_merged_df[essential_merged_df[library_id_col_name].str.upper().isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df[library_id_col_name].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
@@ -776,9 +787,9 @@ def search():
                         # path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
                     case "country":
-                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
-                        essential_merged_df = essential_merged_df[essential_merged_df["Country"].str.upper().isin(list(values_list))] 
-                        full_merged_df = full_merged_df[full_merged_df["Country"].str.upper().isin(list(values_list))] 
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+                        essential_merged_df = essential_merged_df[essential_merged_df[country_col_name].str.upper().isin(list(values_list))] 
+                        full_merged_df = full_merged_df[full_merged_df[country_col_name].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
@@ -823,14 +834,16 @@ def get_all_data():
         
         zip_paths = []
         
-        essential, full, raws = get_all_query.get_all_meta_data_using_fids()
+        ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
+                        "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
+                        "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
+        
+        essential, full, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
         
         global search_id 
         search_id = search_id + 1
         session["search_id"] = str(search_id)
-        
-        make_search_folder()
-        
+                
         directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
                 
         path_essential = os.path.join(directory_path, 'query_result_essential.csv')
@@ -930,14 +943,6 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
         print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
         return path_on_server
     
-  
-        
-            
-       
-        
-    
-        
-        
 if __name__ == '__main__':
     print("Start")
     db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()
