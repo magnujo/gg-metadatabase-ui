@@ -15,6 +15,7 @@ def get_meta_data(field_sample_IDs):
     archive_samples = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
     cgg_3 = pd.read_sql(cgg_q, dtype=str, con=ENGINE)
 
+
     raw_tables = {"CGG3": cgg_3, "Archive Sampling": archive_samples, "WetLabFinalReport": wet_lab_reports}
 
     # TODO: check that replacemants doesnt result in duplicate data
