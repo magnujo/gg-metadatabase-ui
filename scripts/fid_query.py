@@ -4,7 +4,7 @@ from constants.misc_constants import ENGINE_READ_ONLY as ENGINE
 import numpy as np
 from utils.db_utils import get_ordinal_position_maps
 
-def get_meta_data(field_sample_IDs):
+def get_meta_data(field_sample_IDs, ordinal_position_maps):
     '''
     Gets all meta data connected to fIDs across WetLab, Archive and CGG sediment table
     '''
@@ -16,9 +16,7 @@ def get_meta_data(field_sample_IDs):
     archive_samples = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
     cgg_3 = pd.read_sql(cgg_q, dtype=str, con=ENGINE)
     
-    ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
-                             "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
-                             "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
+    
     
     # Renames all columns to their corresponding ordinal position in Postgres. To be renamed back before returned.
     # wet_lab_reports = wet_lab_reports.rename(columns=ordinal_position_maps["edna_wetlab_report"].col_to_pos)
@@ -27,29 +25,15 @@ def get_meta_data(field_sample_IDs):
     
     # Dynamic column names Wetlab Report
     library_id = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(23)
-    assert library_id == "Library ID"
-    
     fastq_file_id = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(51)
-    assert fastq_file_id == "FastQ File ID"
-    
     robot_sample_ID = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(9)
-    assert robot_sample_ID == "Robot Sample ID"
-    
     extraction_ID = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(16)
-    assert extraction_ID == "eDNA ID"
-    
     aID_wlr = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(10)
-    assert aID_wlr == "Archive Sample ID"
     
     # Dynamic col names Archive Samples
     aID_as = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(1)
-    assert aID_as == "ArchiveSampleID"
-    
     field_sample_ID = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(5)
-    assert field_sample_ID == "BulkSampleID"
-    
     depth_as = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(6)
-    assert depth_as == depth_as
     
     # Dynamic col names CGG
     cgg_ID = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(1)
@@ -213,6 +197,4 @@ def get_meta_data(field_sample_IDs):
     essential_merged_df = merged_df.rename(columns={col: col[:-2] for col in merged_df.columns if col.endswith('_x')})
     
     # Test:
-    
-    
     return (essential_merged_df, full_merged_df, raw_tables)

@@ -11,7 +11,7 @@ class OrdinalPositionMaps:
 
 def get_ordinal_position_maps(table_name, schema_name, engine):
     '''
-    Returns maps from ordinal_position to column name and vice versa.
+    Returns maps from ordinal_position to column name and vice versa. This enables dynamic column accessing.
     '''
     
     # Execute a query to get the column names
