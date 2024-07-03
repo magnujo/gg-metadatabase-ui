@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 from constants.misc_constants import ENGINE_READ_ONLY as ENGINE
 import numpy as np
+from utils.db_utils import get_ordinal_position_maps
 
 def get_meta_data(input_data):
     
@@ -18,6 +19,8 @@ def get_meta_data(input_data):
     asdf = pd.read_sql(asdf_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
     cgg = pd.read_sql(cgg_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
     flowcell = pd.read_sql(flowcell_q, dtype=str, con=ENGINE).map(lambda x: x.upper() if isinstance(x, str) else x)
+    
+   
     
     raw_tables = {"Flowcell": flowcell, "CGG3": cgg, "Archive Sampling": asdf, "WetLabFinalReport": wldf}
     
