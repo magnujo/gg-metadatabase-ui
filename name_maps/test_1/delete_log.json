@@ -1,0 +1,7 @@
+{
+    "log_id": "log_id",
+    "table_name": "table_name",
+    "operation": "operation",
+    "timestamp": "timestamp",
+    "affected_row": "affected_row"
+}

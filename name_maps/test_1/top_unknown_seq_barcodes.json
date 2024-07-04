@@ -1,0 +1,11 @@
+{
+    "Lane": "Lane",
+    "Count": "Count",
+    "Sequence": "Sequence",
+    "Flowcell ID": "Flowcell ID",
+    "database_insert_by": "database_insert_by",
+    "from_spreadsheet": "from_spreadsheet",
+    "database_insert_datetime_utc": "database_insert_datetime_utc",
+    "uid": "uid",
+    "upload_uuid": "upload_uuid"
+}

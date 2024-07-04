@@ -1,0 +1,22 @@
+{
+    "ArchiveSampleID": "sample_id",
+    "PositionInRack": "position_in_rack",
+    "RackName": "rack_name",
+    "RackID": "rack_id",
+    "BulkSampleID": "parent_id",
+    "DepthSampledCalTape": "depth_sampled_cal_tape",
+    "DepthOrderedCalTape": "depth_ordered_cal_tape",
+    "OrganicContent": "organic_content",
+    "SurfaceExposed": "surface_exposed",
+    "RemarksArchiveSampling": "remarks_archive_sampling",
+    "SampledBy1": "sampled_by_1",
+    "SampledBy2": "sampled_by_2",
+    "SamplingDate": "sampling_date",
+    "Submitter": "submitter",
+    "SubmissionDate": "submission_date",
+    "RemarksSubmission": "remarks_submission",
+    "database_insert_by": "database_insert_by",
+    "from_spreadsheet": "from_spreadsheet",
+    "database_insert_datetime_utc": "database_insert_datetime_utc",
+    "upload_uuid": "upload_uuid"
+}

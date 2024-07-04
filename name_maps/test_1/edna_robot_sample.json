@@ -1,0 +1,18 @@
+{
+    "SubSampleID": "SubSampleID",
+    "RackName": "RackName",
+    "RackID": "RackID",
+    "PositionInRack": "PositionInRack",
+    "Mass": "Mass",
+    "SampledBy": "SampledBy",
+    "SamplingDate": "SamplingDate",
+    "RemarksSubSampling": "RemarksSubSampling",
+    "ArchiveSampleID": "ArchiveSampleID",
+    "Submitter": "Submitter",
+    "SubmissionDate": "SubmissionDate",
+    "RemarksSubmission": "RemarksSubmission",
+    "database_insert_by": "database_insert_by",
+    "from_spreadsheet": "from_spreadsheet",
+    "database_insert_datetime_utc": "database_insert_datetime_utc",
+    "upload_uuid": "upload_uuid"
+}

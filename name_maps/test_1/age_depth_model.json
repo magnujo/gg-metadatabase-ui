@@ -1,0 +1,12 @@
+{
+    "depth": "depth",
+    "min": "min",
+    "max": "max",
+    "mean": "mean",
+    "database_insert_by": "database_insert_by",
+    "from_spreadsheet": "from_spreadsheet",
+    "database_insert_datetime_utc": "database_insert_datetime_utc",
+    "upload_uuid": "upload_uuid",
+    "Master Field Sample ID": "Master Field Sample ID",
+    "median": "median"
+}
