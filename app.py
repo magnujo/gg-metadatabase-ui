@@ -220,7 +220,18 @@ def upload_file():
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
                 if split_database_table_name == "age_depth_model":
-                    clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
+                    master_id = str(Path(str(file_name)).stem).lower()
+                    master_ids_in_database = set(queries.get_table_as_dataframe(ENGINE, schema_name=DATABASE_CONFIG["schema_name"], table_name="field_sample")["Master ID/Parent Sample ID"].apply(lambda x: x.lower()).unique())
+                    print(master_ids_in_database)
+                    
+                    if master_id == None or master_ids_in_database == None:
+                        raise Exception("master_id or master_ids_in_database is None")
+                    
+                    if master_id in master_ids_in_database and master_id != "unknown":
+                        clean_sheet['Master Field Sample ID'] = master_id
+                    
+                    else:
+                        raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
                 
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
