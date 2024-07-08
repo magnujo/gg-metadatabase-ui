@@ -221,6 +221,12 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
     result_df = parse_numerics(col_dtypes_non_auto, numeric_columns=['Amount1', 'Amount2'], decimal_point='.', thousands_separator=',')
     ```
     '''
+    error_message = lambda col, rows, bad_char: \
+        f"Found {bad_char} in numeric column: {col} in the following rows: {rows}, but you didn't choose \
+        it as either decimal point or thousands seperator character. Please go back and make sure you chose the correct upload settings" \
+        if len(rows) < 10 else \
+        f"Found {bad_char} in numeric column: {col}, in the following rows: {rows[0:10]} among others, but you didn't choose \
+        it as either decimal point or thousands seperator character. Please go back and make sure you chose the correct upload settings"
     
     for ele in float_columns:
         if ele in sheet.columns:
@@ -231,40 +237,41 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                 case ("not_relevant", ","):
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
-                        raise Exception(f"Found . (period) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
+                        bad_rows_indices = list(sheet[bad_rows].index + 1)
+                        if len(bad_rows) > 10:
+                            bad_rows = bad_rows[0:10]
+                        raise Exception(error_message(ele, bad_rows_indices, "period"))
                     else:
                         sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
                         
                 case (",", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
-                        raise Exception(f"Found . (period) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
+                        bad_rows_indices = list(sheet[bad_rows].index + 1)
+                        raise Exception(error_message(ele, bad_rows_indices, "period"))
                     else:
                         sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
-                        
                         
                 case (".", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
-                        raise Exception(f"Found , (comma) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
+                        bad_rows_indices = list(sheet[bad_rows].index + 1)
+                        raise Exception(error_message(ele, bad_rows_indices, "comma"))
                     
                 case ("not_relevant", "."):
                     # returns the rows that contains ","
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
-                        raise Exception(f"Found , (comma) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
+                        bad_rows_indices = list(sheet[bad_rows].index + 1)
+                        raise Exception(error_message(ele, bad_rows_indices, "comma"))
                     else:
                         sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
 
                 case ("not_relevant", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
                     if bad_rows.any():
-                        raise Exception(f"Found , (comma) or . (period) in numeric data in the following rows, \
-                                        but not in user input: \n \n {list(sheet[bad_rows].index + 1)}")
+                        bad_rows_indices = list(sheet[bad_rows].index + 1)
+                        raise Exception(error_message(ele, bad_rows_indices, "comma or period"))
                         
                 case (",", "."):
                     sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
