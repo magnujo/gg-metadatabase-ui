@@ -345,7 +345,9 @@ def confirmed():
                 stem = str(Path(str(file_name)).stem)
                 parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
-                clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
+               
+                
+                # clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
