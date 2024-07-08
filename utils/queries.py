@@ -24,6 +24,9 @@ def check_if_upload_id_exists_in_table(schema, table, upload_id):
             return False
     else:
         return False
+
+def get_unique_values_from_db_column(schema: str, table: str, column: str, engine) -> set:
+    return set(get_table_as_dataframe(engine, schema_name=schema, table_name=table)[column].apply(lambda x: x.lower()).unique())
     
 def check_if_upload_id_exists_in_schema(database, schema, upload_id):
     cases = []

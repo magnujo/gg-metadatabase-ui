@@ -220,18 +220,32 @@ def upload_file():
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
                 if split_database_table_name == "age_depth_model":
-                    master_id = str(Path(str(file_name)).stem).lower()
-                    master_ids_in_database = set(queries.get_table_as_dataframe(ENGINE, schema_name=DATABASE_CONFIG["schema_name"], table_name="field_sample")["Master ID/Parent Sample ID"].apply(lambda x: x.lower()).unique())
-                    print(master_ids_in_database)
+                    master_ids = {str(Path(str(file_name)).stem).lower()}
+                
+                if split_database_table_name == "master_depth":
+                    master_ids: set = set(clean_sheet["Master Field Sample ID"].apply(lambda x: x.lower()).unique())
+                
+                
+                
+                if split_database_table_name == "age_depth_model" or split_database_table_name == "master_depth":
+                    if master_ids == None or len(master_ids) < 1:
+                        raise Exception("master_ids is None or empty")
                     
-                    if master_id == None or master_ids_in_database == None:
-                        raise Exception("master_id or master_ids_in_database is None")
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column="Master ID/Parent sample ID", 
+                                                                                      engine=ENGINE, 
+                                                                                      schema=DATABASE_CONFIG["schema_name"], 
+                                                                                      table="field_sample")
                     
-                    if master_id in master_ids_in_database and master_id != "unknown":
-                        clean_sheet['Master Field Sample ID'] = master_id
-                    
-                    else:
-                        raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
+                    for master_id in master_ids:
+                        print(master_id)
+                        if master_id == None or unique_master_IDs_in_db == None:
+                            raise Exception("master_id or master_ids_in_database is None")
+                        
+                        if master_id in unique_master_IDs_in_db and master_id != "unknown":
+                            clean_sheet['Master Field Sample ID'] = master_id
+                        
+                        else:
+                            raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
                 
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
@@ -475,10 +489,7 @@ def confirmed():
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
         
-        try:
-            
-            
-                        
+        try:                        
             if database_table_name == 'field_sample':
                 if len(table_splits) != 1:
                     raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
