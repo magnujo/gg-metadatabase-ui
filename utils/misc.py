@@ -108,3 +108,57 @@ def extract_leaf_values_from_dict(dictionary):
         else:
             yield value
             
+
+
+def extract_sample_hierachy(root_ids: list[str], df, sample_id_col_name: str, parent_sample_id_col_name: str):
+    '''
+    A Root id means the ID is only found in the parent_sample 
+    '''
+    
+    def traverse(sample_id, subset_df, full_df, sample_id_col_name: str, parent_sample_id_col_name: str):
+        
+        
+        all_sample_ids = list(df[sample_id_col_name].unique())
+        
+        
+        
+        # Pass in root ids and call the function for all root ids
+        
+        
+        # What if sample id is equal to its parent id? Prevent by check when uploading? 
+        
+       
+        all_parent_sample_ids = full_df[parent_sample_id_col_name].unique()
+        children = set(subset_df[sample_id_col_name].unique())
+        print(f"children for {sample_id}:")
+        print(children)
+        print("\n")
+        
+        base_case = sample_id not in all_parent_sample_ids
+        
+        if base_case:
+            return {}
+        else:
+            partial_res = {}
+            for child in children:
+                subset_df = full_df[full_df[parent_sample_id_col_name] == child]
+                print(f"subset for {child}:")
+                print(subset_df)
+                print("\n")
+                partial_res[child] = traverse(sample_id=child, subset_df=subset_df, full_df=full_df, 
+                                      sample_id_col_name=sample_id_col_name, 
+                                      parent_sample_id_col_name=parent_sample_id_col_name)
+            return partial_res
+    print(f"Root ids: {root_ids}")
+    res = {}
+    for root_id in root_ids:
+        subset = df[df[parent_sample_id_col_name] == root_id]
+        print("subset:")
+        print(subset)
+        print("\n")
+        
+        res[root_id] = traverse(sample_id=root_id, subset_df=subset, full_df=df, sample_id_col_name=sample_id_col_name, parent_sample_id_col_name=parent_sample_id_col_name)
+    
+    return res
+
+ 
