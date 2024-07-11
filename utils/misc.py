@@ -116,49 +116,54 @@ def extract_sample_hierachy(root_ids: list[str], df, sample_id_col_name: str, pa
     '''
     
     def traverse(sample_id, subset_df, full_df, sample_id_col_name: str, parent_sample_id_col_name: str):
-        
-        
-        all_sample_ids = list(df[sample_id_col_name].unique())
-        
-        
-        
-        # Pass in root ids and call the function for all root ids
-        
+                        
         
         # What if sample id is equal to its parent id? Prevent by check when uploading? 
         
        
         all_parent_sample_ids = full_df[parent_sample_id_col_name].unique()
         children = set(subset_df[sample_id_col_name].unique())
-        print(f"children for {sample_id}:")
-        print(children)
-        print("\n")
         
         base_case = sample_id not in all_parent_sample_ids
         
         if base_case:
-            return {}
+            return None
         else:
             partial_res = {}
             for child in children:
                 subset_df = full_df[full_df[parent_sample_id_col_name] == child]
-                print(f"subset for {child}:")
-                print(subset_df)
-                print("\n")
                 partial_res[child] = traverse(sample_id=child, subset_df=subset_df, full_df=full_df, 
                                       sample_id_col_name=sample_id_col_name, 
                                       parent_sample_id_col_name=parent_sample_id_col_name)
             return partial_res
-    print(f"Root ids: {root_ids}")
     res = {}
     for root_id in root_ids:
         subset = df[df[parent_sample_id_col_name] == root_id]
-        print("subset:")
-        print(subset)
-        print("\n")
         
         res[root_id] = traverse(sample_id=root_id, subset_df=subset, full_df=df, sample_id_col_name=sample_id_col_name, parent_sample_id_col_name=parent_sample_id_col_name)
     
     return res
 
- 
+
+def get_nested_dict_depth(input_dict):
+    input_list = [list(input_dict.values())]
+    
+    def traverse(input_values, depth=0):
+
+        if len(input_values) > 0:
+            if isinstance(input_values[0], list):
+                if len(input_values[0]) == 0:
+                    return depth
+
+        if len(input_values) == 0:
+            return depth
+        else:
+            new_input_values = []
+            for val in input_values:
+                for x in val:
+                    if isinstance(x, dict):
+                        new_input_values.append(list(x.values()))
+            
+            return traverse(new_input_values, depth=depth + 1)
+            
+    return traverse(input_values=input_list)
