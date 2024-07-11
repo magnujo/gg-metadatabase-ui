@@ -127,7 +127,8 @@ def extract_sample_hierachy(root_ids: list[str], df, sample_id_col_name: str, pa
         base_case = sample_id not in all_parent_sample_ids
         
         if base_case:
-            return None
+            return 'None'
+
         else:
             partial_res = {}
             for child in children:
@@ -145,25 +146,7 @@ def extract_sample_hierachy(root_ids: list[str], df, sample_id_col_name: str, pa
     return res
 
 
-def get_nested_dict_depth(input_dict):
-    input_list = [list(input_dict.values())]
-    
-    def traverse(input_values, depth=0):
-
-        if len(input_values) > 0:
-            if isinstance(input_values[0], list):
-                if len(input_values[0]) == 0:
-                    return depth
-
-        if len(input_values) == 0:
-            return depth
-        else:
-            new_input_values = []
-            for val in input_values:
-                for x in val:
-                    if isinstance(x, dict):
-                        new_input_values.append(list(x.values()))
-            
-            return traverse(new_input_values, depth=depth + 1)
-            
-    return traverse(input_values=input_list)
+def get_dict_depth(d):
+    if isinstance(d, dict) and d:
+        return 1 + max(map(get_dict_depth, d.values()))
+    return 0
