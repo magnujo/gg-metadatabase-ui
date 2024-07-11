@@ -147,6 +147,40 @@ def extract_sample_hierachy(root_ids: list[str], df, sample_id_col_name: str, pa
 
 
 def get_dict_depth(d):
-    if isinstance(d, dict) and d:
-        return 1 + max(map(get_dict_depth, d.values()))
-    return 0
+    """
+    Calculate the maximum depth of a nested dictionary.
+
+    Args:
+        d (dict): The dictionary whose depth is to be found.
+
+    Returns:
+        int: The maximum depth of the dictionary.
+
+    Note:
+        This function assumes that there are no circular references in the dictionary.
+        If there are, the function will enter an infinite loop.
+    """
+    if isinstance(d, dict) and d:  # Check if 'd' is a dictionary and 'd' is not empty
+        return 1 + max(map(get_dict_depth, d.values()))  # Recursively find the max depth among all values in the dictionary
+    return 0  # If 'd' is empty or if it's not a dictionary 
+
+
+def create_nested_folders(nested_dict, parent=""):
+    """
+    Create a nested folder structure based on a nested dictionary.
+
+    Parameters:
+    nested_dict (dict): The nested dictionary representing the folder structure.
+    parent (str): The parent path for creating the nested folders. Default is the current directory.
+
+    Returns:
+    None
+    """
+    for k, v in nested_dict.items():
+        # Create new path by appending the current key (folder name)
+        new_path = os.path.join(parent, k)
+        os.makedirs(new_path, exist_ok=True)
+        print(new_path)
+        # If the value of the current key is a dictionary, recurse
+        if isinstance(v, dict):
+            create_nested_folders(v, new_path)
