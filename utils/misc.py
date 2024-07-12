@@ -178,7 +178,8 @@ def create_nested_paths(nested_dict, root_path="", nested_paths=[]):
     """
     for k, v in nested_dict.items():
         # Create new path by appending the current key (folder name)
-        new_path = os.path.join(root_path, k)
+        
+        new_path = os.path.join(root_path, k.strip())
         nested_paths.append(new_path)
         nested_paths.append(os.path.join(new_path, "Files"))
         nested_paths.append(os.path.join(new_path, "Files", "Analyses"))
@@ -218,7 +219,7 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     
     
 def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_root_dir):
-    project_names = list(parsed_sheet["Running Project Title"].unique())
+    project_names = list(parsed_sheet["Running Project Title"].str.strip().unique())
     if len(project_names) < 1:
         raise Exception("Please fill in Running Project Title")
     else:
@@ -241,7 +242,8 @@ def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_roo
     # Make sample paths
     parent_sample_id_col_name = "Master ID/Parent sample ID"
     sample_id_col_name = "Unique Sample ID" 
-    root_sample_ids = set(parsed_sheet[parent_sample_id_col_name].unique()) - set(parsed_sheet[sample_id_col_name].unique())
+    root_sample_ids = \
+        set(parsed_sheet[parent_sample_id_col_name].str.strip().unique()) - set(parsed_sheet[sample_id_col_name].str.strip().unique())
     sample_hierachy = extract_sample_hierachy(root_sample_ids, parsed_sheet, 
                                                     sample_id_col_name=sample_id_col_name, 
                                                     parent_sample_id_col_name=parent_sample_id_col_name)
