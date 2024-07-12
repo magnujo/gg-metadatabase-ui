@@ -165,7 +165,7 @@ def get_dict_depth(d):
     return 0  # If 'd' is empty or if it's not a dictionary 
 
 
-def create_nested_folders(nested_dict, parent=""):
+def create_nested_paths(nested_dict, root_path="", nested_paths=[]):
     """
     Create a nested folder structure based on a nested dictionary.
 
@@ -178,9 +178,89 @@ def create_nested_folders(nested_dict, parent=""):
     """
     for k, v in nested_dict.items():
         # Create new path by appending the current key (folder name)
-        new_path = os.path.join(parent, k)
-        os.makedirs(new_path, exist_ok=True)
-        print(new_path)
+        new_path = os.path.join(root_path, k)
+        nested_paths.append(new_path)
+        nested_paths.append(os.path.join(new_path, "Files"))
+        nested_paths.append(os.path.join(new_path, "Files", "Analyses"))
+        nested_paths.append(os.path.join(new_path, "Files", "Permits"))
+        nested_paths.append(os.path.join(new_path, "Files", "Reports"))
+        nested_paths.append(os.path.join(new_path, "Files", "Other"))
+        nested_paths.append(os.path.join(new_path, "Files", "Reports", "Age-Depth Reports"))
+        nested_paths.append(os.path.join(new_path, "Files", "Reports", "Other"))
+        
         # If the value of the current key is a dictionary, recurse
         if isinstance(v, dict):
-            create_nested_folders(v, new_path)
+            create_nested_paths(v, os.path.join(new_path, "Sub Samples"), nested_paths)
+    return nested_paths
+
+
+
+def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
+    '''
+    Only set error_if_exists = True if you want to raise an error and cancel the creation, if the dir already exists. 
+    '''
+
+    path_on_server = os.path.join(misc_constants.PATH_TO_MOUNT, path_to_dir)
+    path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
+    print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
+
+
+    if os.path.exists(path_on_server):
+        if error_if_exists:
+            raise FileExistsError(f"The server tried to make a directory on {path_on_network}, but the directory already exists.")
+        else:
+            return None
+    else:
+        # Only makes the directory if it does'nt already exist.
+        os.mkdir(path_on_server)
+        print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
+        return path_on_server
+    
+    
+def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_root_dir):
+    project_names = list(parsed_sheet["Running Project Title"].unique())
+    if len(project_names) < 1:
+        raise Exception("Please fill in Running Project Title")
+    else:
+        paths_to_create = []
+        
+        for project_name in project_names: 
+    
+            project_path_on_server = os.path.join(projects_root_dir, str(project_name))
+            if os.path.exists(project_path_on_server):
+                raise Exception(f"Tried to create {project_path_on_server} but the path already exists")
+            else:                 
+                paths_to_create.append(project_path_on_server)
+                paths_to_create.append(os.path.join(project_path_on_server, "Permits"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Reports"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Age-Depth Reports"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Other"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Analyses"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Other"))
+
+    # Make sample paths
+    parent_sample_id_col_name = "Master ID/Parent sample ID"
+    sample_id_col_name = "Unique Sample ID" 
+    root_sample_ids = set(parsed_sheet[parent_sample_id_col_name].unique()) - set(parsed_sheet[sample_id_col_name].unique())
+    sample_hierachy = extract_sample_hierachy(root_sample_ids, parsed_sheet, 
+                                                    sample_id_col_name=sample_id_col_name, 
+                                                    parent_sample_id_col_name=parent_sample_id_col_name)
+
+    nested_sample_paths = create_nested_paths(sample_hierachy, root_path=samples_root_dir)
+    
+    # Make sample folders
+    for path in nested_sample_paths:
+        if os.path.exists(path):
+            raise Exception(f"Tried to create {path} but the path already exists")
+        else:
+            paths_to_create.append(path)
+    return paths_to_create
+
+def get_first_directory(path, root_path):
+    '''
+    Gets the first directory in a path from a given root path
+    '''
+    if path[:len(root_path)] == root_path: # If the first characters of s is equal to the root.
+        path = path[len(root_path):]  # Remove the root from s. +1 is to remove the trailing / 
+        split = path.split(os.sep)
+        return split[1]
