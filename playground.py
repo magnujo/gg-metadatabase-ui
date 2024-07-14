@@ -1,18 +1,10 @@
+import platform
 import os
-from constants import misc_constants
-from pathlib import Path
-from utils import misc
-from utils import queries
+from utils import queries as q
+from constants.misc_constants import ENGINE
 
+b = q.get_table_as_dataframe(ENGINE, "test_1", "field_sample")
 
-df = queries.get_table_as_dataframe(engine=misc_constants.ENGINE, schema_name="test_1", table_name="field_sample", dtype=str)
-samples_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Sample specific files"
-projects_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Project specific files"
-dirs_to_create = misc.generate_field_sample_dir_paths(df, projects_root_dir=projects_root_dir, 
-                                                                                          samples_root_dir=samples_root_dir)
+print(b["Master ID/Parent Sample ID"].unique())
+           
 
-created_dirs = []
-for path in dirs_to_create:
-   
-    os.makedirs(path)
-    created_dirs.append(path)

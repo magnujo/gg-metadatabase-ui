@@ -162,13 +162,13 @@ def get_schema_names(database):
     
     df = pd.read_sql(q, con=ENGINE)
 
-def get_table_as_dataframe(engine, schema_name: str, table_name: str, dtype=None):
+def get_table_as_dataframe(engine, schema_name: str, table_name: str):
     q = f'''
     SELECT *
     FROM "{schema_name}"."{table_name}";
     '''
     
-    df = pd.read_sql(q, con=engine, dtype=dtype)
+    df = pd.read_sql(q, con=engine)
     return df
 
 
