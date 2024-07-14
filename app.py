@@ -257,6 +257,41 @@ def upload_file():
                         else:
                             raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
                 
+                if split_database_table_name == 'field_sample':
+                    parent_col = "Master ID/Parent sample ID"
+                    project_col = "Running Project Title"
+                    
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=parent_col, 
+                                                                                      engine=ENGINE, 
+                                                                                      schema=DATABASE_CONFIG["schema_name"], 
+                                                                                      table="field_sample")
+                    
+                    unique_project_IDs_in_db = queries.get_unique_values_from_db_column(column=project_col, 
+                                                                                      engine=ENGINE, 
+                                                                                      schema=DATABASE_CONFIG["schema_name"], 
+                                                                                      table="field_sample")
+                    
+  
+                    if not parent_col in clean_sheet.columns:
+                        raise Exception(f"Expected column {parent_col}, but column was not found in the uploaded file")
+                    
+                    
+                    if not project_col in clean_sheet.columns:
+                        raise Exception(f"Expected column {project_col}, but column was not found in the uploaded file")
+                        
+                    unique_master_IDs_in_parsed_sheet = set(clean_sheet[parent_col].str.lower().unique())
+                    unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
+                        
+                    
+                    bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
+                    
+                    bad_project_ids = [id for id in unique_project_IDs_in_parsed_sheet if id in unique_project_IDs_in_db]
+                    
+                    if len(bad_master_ids) > 0 or len(bad_project_ids) > 0:
+                        raise Exception(f''' The data cannot be uploaded because the following '{parent_col}' values already exists in the database: {bad_master_ids} \n
+                                        and/or the following '{project_col}' values already exist in the database {bad_project_ids}. \n
+                                        If you want to add the data anyways, contact {ADMIN_EMAIL}
+                                        ''') 
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
