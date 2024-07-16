@@ -1,3 +1,7 @@
+'''
+Scans the field_sample table and makes all the folder and subfolders. 
+
+'''
 import os
 from constants import misc_constants
 from pathlib import Path
@@ -10,8 +14,7 @@ samples_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Sample specifi
 projects_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Project specific files"
 dirs_to_create = misc.generate_field_sample_dir_paths(df, projects_root_dir=projects_root_dir, 
                                                                                           samples_root_dir=samples_root_dir)
-# for dir in dirs_to_create:
-#     print(dir)
+
 created_dirs = []
 for path_ in dirs_to_create:
     if not os.path.exists(path_):
