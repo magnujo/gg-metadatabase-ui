@@ -107,9 +107,17 @@ def get_table_dtypes(table_name, schema_name):
 
 def get_possible_datatypes(category):
     
-    if category == "date":
-        code = 'D'
-        
+    
+    match(category):
+        case "date":
+            code = "D"
+        case "boolean":
+            code = "B"
+        case "string":
+            code = "S"
+        case _:
+            raise Exception("Unknown category")
+
     q = f'''
     SELECT typname
     FROM pg_catalog.pg_type
