@@ -1,20 +1,12 @@
-import os
-from constants import misc_constants
-from pathlib import Path
-from utils import misc
-from utils import queries
+import pandas as pd
 
+# Example DataFrame
+data = {'Name': ['Alice', 'Bob', 'Charlie'],
+        'Age': [25, 30, 35]}
 
-df = queries.get_table_as_dataframe(engine=misc_constants.ENGINE, schema_name="test_1", table_name="field_sample", dtype=str)
-samples_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Sample specific files"
-projects_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Project specific files"
-dirs_to_create = misc.generate_field_sample_dir_paths(df, projects_root_dir=projects_root_dir, 
-                                                                                          samples_root_dir=samples_root_dir)
-# for dir in dirs_to_create:
-#     print(dir)
-created_dirs = []
-for path_ in dirs_to_create:
-    if not os.path.exists(path_):
-        print(path_)
-        os.mkdir(path_)
-        created_dirs.append(path_)
+df = pd.DataFrame(data)
+
+# Iterate over a specific column (e.g., 'Name')
+column_name = 'Name'
+for index, value in df[column_name].items():
+    print(f"Index: {index}, Value: {value}")
