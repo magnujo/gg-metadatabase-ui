@@ -28,7 +28,6 @@ def parse(sheet,
     range_columns = list(col_dtypes[col_dtypes['data_type'].isin(misc_constants.POSTGRES_TYPES['int_range'])]['column_name'])
     date_columns = list(col_dtypes[col_dtypes['udt_name'].isin(postgres_date_types)]['column_name'])
     bool_columns = list(col_dtypes[col_dtypes['udt_name'].isin(postgres_bool_types)]['column_name'])
-    print("bools", bool_columns)
     
     primary_key = queries.get_primary_key(table_name=database_table_name, 
                                           schema_name=schema_name, 
@@ -328,7 +327,6 @@ def parse_booleans(sheet, boolean_columns):
     for col in boolean_columns:
         if col in sheet.columns:
             bad_values[col] = []
-            print(sheet[col])
             for index, value in sheet[col].items():
                 if value in expected_vals:
                     pass
