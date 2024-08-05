@@ -1,5 +1,7 @@
-import os
-from constants.misc_constants import DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
+import os, sys
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+from constants.misc_constants import SQL_ALCH_CONFIG, PSYCON_CONFIG, ENGINE
 import pandas as pd
 import psycopg2
 
@@ -119,10 +121,10 @@ def get_possible_datatypes(category):
     # Connect to PostgreSQL database
 def count_rows(database, schema, table_name):
     conn = psycopg2.connect(
-        host=DATABASE_CONFIG['host'],
+        host=SQL_ALCH_CONFIG['host'],
         database=database,
-        user=DATABASE_CONFIG['user'],
-        password=DATABASE_CONFIG['password']
+        user=SQL_ALCH_CONFIG['user'],
+        password=SQL_ALCH_CONFIG['password']
     )
     
     # Create a cursor object
@@ -160,5 +162,30 @@ def get_schema_names(database):
     df = pd.read_sql(q, con=ENGINE)
     
 
+def execute_query(query, params=None):
+    # Connection parameters
+    conn_config = PSYCON_CONFIG
 
-
+    try:
+        # Establish a connection
+        with psycopg2.connect(**conn_config) as conn:
+            # Create a cursor
+            with conn.cursor() as cur:
+                # Execute the query
+                if params:
+                    cur.execute(query, params)
+                else:
+                    cur.execute(query)
+                
+                # Fetch results if it's a SELECT query
+                if query.strip().upper().startswith("SELECT"):
+                    
+                    return cur.fetchall()
+                
+                else:
+                    # For INSERT, UPDATE, DELETE queries
+                    conn.commit()
+                    return cur.rowcount
+    
+    except (Exception, psycopg2.Error) as error:
+        raise

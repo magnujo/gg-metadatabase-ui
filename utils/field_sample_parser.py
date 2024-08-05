@@ -3,7 +3,7 @@ import sys
 from utils import parsers
 import constants.misc_constants as misc_constants
 import pandas as pd
-from constants.misc_constants import DATABASE_CONFIG, ADMIN_EMAIL, ENGINE
+from constants.misc_constants import SQL_ALCH_CONFIG, ADMIN_EMAIL, ENGINE
 import pandas as pd
 from utils.parsers import parse_dates, parse_floats, validate_integers
 
@@ -44,7 +44,7 @@ def parse(file_path,
         sheet = sheet.dropna(axis='index', how='all')
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {misc_constants.DATABASE_CONFIG['schema_name']}.{database_table_name}", con=misc_constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {misc_constants.SQL_ALCH_CONFIG['schema_name']}.{database_table_name}", con=misc_constants.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
    

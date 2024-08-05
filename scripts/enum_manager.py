@@ -32,11 +32,11 @@ def add_enum_values(cursor, enum_name, schema_name, values):
         
 def run(enum_name, values, schema_name):    
     connection = psycopg2.connect(
-            dbname=misc_constants.DATABASE_CONFIG["database"],
+            dbname=misc_constants.SQL_ALCH_CONFIG["database"],
             user="",
             password="",
-            host=misc_constants.DATABASE_CONFIG["host"],
-            port=misc_constants.DATABASE_CONFIG["port"]
+            host=misc_constants.SQL_ALCH_CONFIG["host"],
+            port=misc_constants.SQL_ALCH_CONFIG["port"]
         )
     connection.autocommit = True
     

@@ -9,8 +9,8 @@ def parse(sheet,
           decimal_point, 
           thousands_seperator):
     
-    database_name = misc_constants.DATABASE_CONFIG["database"]
-    schema_name = misc_constants.DATABASE_CONFIG["schema_name"]
+    database_name = misc_constants.SQL_ALCH_CONFIG["database"]
+    schema_name = misc_constants.SQL_ALCH_CONFIG["schema_name"]
     tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
     
     if not database_table_name in tables:

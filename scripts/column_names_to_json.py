@@ -4,11 +4,11 @@ sys.path.append(parent_dir)
 import psycopg2
 import json
 import os
-from constants.misc_constants import DATABASE_CONFIG_2
+from constants.misc_constants import PSYCON_CONFIG
 from getpass import getpass
 
 # Database connection parameters
-db_params = DATABASE_CONFIG_2
+db_params = PSYCON_CONFIG
 
 schema_name = "test_1"
 

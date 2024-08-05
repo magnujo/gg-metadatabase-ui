@@ -36,7 +36,7 @@ import pandas as pd
 import numpy as np
 from pandas import testing
 import logging
-from constants.misc_constants import ENGINE, DATABASE_CONFIG, UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
+from constants.misc_constants import ENGINE, SQL_ALCH_CONFIG, UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
 from utils import parsers
@@ -207,7 +207,7 @@ def upload_file():
             
                 
                 # Adds rows about which user was responsible for the upload:
-                clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+                clean_sheet['database_insert_by'] = SQL_ALCH_CONFIG['user']
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
@@ -223,9 +223,9 @@ def upload_file():
                     clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
                 
                 
-                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
+                db_table_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
-                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
+                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
             
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
@@ -317,7 +317,7 @@ def confirmed():
             session['upload_id'] = upload_id
             upload_time = pd.Timestamp.now(tz='UTC')
 
-            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=DATABASE_CONFIG['database'], schema=DATABASE_CONFIG['schema_name'], upload_id=session.get('upload_id'))
+            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=SQL_ALCH_CONFIG['database'], schema=SQL_ALCH_CONFIG['schema_name'], upload_id=session.get('upload_id'))
             if len(tables_with_uid) != 0:
                 raise Exception(f"Found upload_id already in {tables_with_uid}")            
             
@@ -355,11 +355,11 @@ def confirmed():
                     upload_id = upload_id[0]
                     if str(session.get("upload_id")) != str(upload_id):
                         raise Exception("Upload ID discreprancy accross parsed sheet and session variable")
-                    uid_exists = queries.check_if_upload_id_exists_in_table(schema=DATABASE_CONFIG["schema_name"], table=table_name, upload_id=upload_id)
+                    uid_exists = queries.check_if_upload_id_exists_in_table(schema=SQL_ALCH_CONFIG["schema_name"], table=table_name, upload_id=upload_id)
                     if uid_exists:
                         raise Exception(f"Found upload id already in {table_name}")
         
-                row_count_before_upload = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+                row_count_before_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 row_counts_before_upload[table_name] = row_count_before_upload
             
             except Exception as e:
@@ -371,7 +371,7 @@ def confirmed():
                 try:
                     for i, table_name in enumerate(table_splits):    
                         clean_sheets[table_name].to_sql(name=table_name, 
-                                            schema=DATABASE_CONFIG['schema_name'], 
+                                            schema=SQL_ALCH_CONFIG['schema_name'], 
                                             con=conn, 
                                             if_exists='append', 
                                             index=False)
@@ -381,7 +381,7 @@ def confirmed():
                         # Rolling back to conn.begin()
                         trans.rollback()
                         for table in tables_uploaded_to:
-                            row_count_after_rollback = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table)
+                            row_count_after_rollback = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table)
                             if row_count_after_rollback != row_counts_before_upload[table]:
                                 # TODO: Remove only rows that were not rolled back?
                                 raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. CLICK BELOW TO NOTIFY ADMIN.")
@@ -398,11 +398,11 @@ def confirmed():
                     
         try:
             for i, table_name in enumerate(table_splits):
-                row_count_after_upload = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+                row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 row_counts_after_upload[table_name] = row_count_after_upload
                 expected_rows = len(clean_sheets[table_name])
                 num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
-                q = queries.upload_id_filter(schema=DATABASE_CONFIG['schema_name'], table=table_name, upload_id=upload_id)
+                q = queries.upload_id_filter(schema=SQL_ALCH_CONFIG['schema_name'], table=table_name, upload_id=upload_id)
                 num_of_upload_ids_in_db[table_name] = len(pd.read_sql(q, con=ENGINE))
             
         except Exception as e: 
@@ -528,7 +528,7 @@ def success():
 
         all_tables = []
         for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
-            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
+            uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
             all_tables.append(uploaded_data)
@@ -549,7 +549,7 @@ def error():
     return render_template('error_basic.html', email_send=session.get('email_send'), error_messages=error_messages, error_message_admin=error_message_admin, admin=ADMIN_EMAIL)
 
 def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
-    uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
+    uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
 
     uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
     clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
@@ -889,8 +889,8 @@ def download_all_individual_tables():
         
         path_zip = os.path.join(directory_path, 'all_tables.zip')
         
-        schema_name = misc_constants.DATABASE_CONFIG["schema_name"]
-        database_name = misc_constants.DATABASE_CONFIG["database"]
+        schema_name = misc_constants.SQL_ALCH_CONFIG["schema_name"]
+        database_name = misc_constants.SQL_ALCH_CONFIG["database"]
         
         tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
         
@@ -957,7 +957,7 @@ if __name__ == '__main__':
             raise Exception(f'Unknown value for RUN_MODE')
     print(f"RUNMODE:{misc_constants.RUN_MODE}")
     
-    deleted_schema_management.copy_or_generate(misc_constants.DATABASE_CONFIG["schema_name"], database_name=misc_constants.DATABASE_CONFIG["database"], alch_engine=ENGINE, psy_conn=misc_constants.PSY_CONN)
+    deleted_schema_management.copy_or_generate(misc_constants.SQL_ALCH_CONFIG["schema_name"], database_name=misc_constants.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=misc_constants.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])
     
     if misc_constants.RUN_MODE == 'production':

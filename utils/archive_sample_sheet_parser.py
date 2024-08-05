@@ -1,4 +1,4 @@
-from constants.misc_constants import DATABASE_CONFIG, ADMIN_EMAIL, ENGINE
+from constants.misc_constants import SQL_ALCH_CONFIG, ADMIN_EMAIL, ENGINE
 import pandas as pd
 from utils.parsers import parse_dates, parse_floats
 import numpy as np
@@ -23,7 +23,7 @@ def parse(file_path, date_format, decimal_point, thousands_seperator):
                 'SubmissionDate': str,
                 'NotesSubmitter': str}
     
-    expected_columns = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.archive_sample", con=ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.archive_sample", con=ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
     expected_columns2 = expected_columns.copy().drop('SampledBy2')

@@ -70,7 +70,7 @@ pw = os.environ.get('DB_PASSWORD')
 ALLOWED_PRIVILIGES = ["INSERT", "DELETE", "SELECT"]
  
 if RUN_MODE == 'production':
-    DATABASE_CONFIG = {
+    SQL_ALCH_CONFIG = {
         'host': 'dandyweb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
@@ -80,7 +80,7 @@ if RUN_MODE == 'production':
     }
 
 elif RUN_MODE == 'development':
-    DATABASE_CONFIG = {
+    SQL_ALCH_CONFIG = {
         'host': 'dandyweb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
@@ -89,34 +89,34 @@ elif RUN_MODE == 'development':
         'schema_name': 'test_1'
     }
 
-DATABASE_CONFIG_2 = {
-    'host': DATABASE_CONFIG['host'],
-    'dbname': DATABASE_CONFIG['database'],
-    'port': DATABASE_CONFIG['port'],
-    'user': DATABASE_CONFIG['user'],
-    'password': DATABASE_CONFIG['password'],
+PSYCON_CONFIG = {
+    'host': SQL_ALCH_CONFIG['host'],
+    'dbname': SQL_ALCH_CONFIG['database'],
+    'port': SQL_ALCH_CONFIG['port'],
+    'user': SQL_ALCH_CONFIG['user'],
+    'password': SQL_ALCH_CONFIG['password'],
 }
 
 DATABASE_CONFIG_READ_ONLY = {
-    'host': DATABASE_CONFIG['host'],
-    'dbname': DATABASE_CONFIG['database'],
-    'port': DATABASE_CONFIG['port'],
+    'host': SQL_ALCH_CONFIG['host'],
+    'dbname': SQL_ALCH_CONFIG['database'],
+    'port': SQL_ALCH_CONFIG['port'],
     'user': 'read_user',
-    'password': DATABASE_CONFIG['password'],
+    'password': SQL_ALCH_CONFIG['password'],
 }
 
 ENGINE = create_engine(
-    f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
+    f"postgresql://{SQL_ALCH_CONFIG['user']}:{SQL_ALCH_CONFIG['password']}@{SQL_ALCH_CONFIG['host']}:{SQL_ALCH_CONFIG['port']}/{SQL_ALCH_CONFIG['database']}")
 
 ENGINE_READ_ONLY = create_engine(
-    f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}")
+    f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{SQL_ALCH_CONFIG['host']}:{SQL_ALCH_CONFIG['port']}/{SQL_ALCH_CONFIG['database']}")
 
 PSY_CONN = psycopg2.connect(
-            dbname=DATABASE_CONFIG["database"],
-            user=DATABASE_CONFIG["user"],
-            password=DATABASE_CONFIG["password"],
-            host=DATABASE_CONFIG["host"],
-            port=DATABASE_CONFIG["port"]
+            dbname=SQL_ALCH_CONFIG["database"],
+            user=SQL_ALCH_CONFIG["user"],
+            password=SQL_ALCH_CONFIG["password"],
+            host=SQL_ALCH_CONFIG["host"],
+            port=SQL_ALCH_CONFIG["port"]
         )
 
 # If you add to this, make sure to include the table information in dbtable class

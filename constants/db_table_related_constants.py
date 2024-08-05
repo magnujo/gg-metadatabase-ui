@@ -1,4 +1,4 @@
-from constants.misc_constants import SHEET_TYPES, DATABASE_CONFIG
+from constants.misc_constants import SHEET_TYPES, SQL_ALCH_CONFIG
 from utils import queries, misc
 import inspect
 
@@ -57,7 +57,7 @@ class DBTableRelated:
         else:
             raise Exception("Sheet types doesnt match table splitter")
         
-        table_names = queries.get_table_names(schema_name=DATABASE_CONFIG["schema_name"], database_name=DATABASE_CONFIG["database"])
+        table_names = queries.get_table_names(schema_name=SQL_ALCH_CONFIG["schema_name"], database_name=SQL_ALCH_CONFIG["database"])
         TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES = sum(list(misc.extract_leaf_values_from_dict(DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION)), [])
         if set(table_names) != set(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES):
             raise Exception("TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema")

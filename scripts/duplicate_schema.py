@@ -83,11 +83,11 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
         super_user = input("Enter your database super username: ")
         super_password = getpass.getpass("Enter your super password: ")
         super_psy_conn = psycopg2.connect(
-            dbname=misc_constants.DATABASE_CONFIG["database"],
+            dbname=misc_constants.SQL_ALCH_CONFIG["database"],
             user=str(super_user),
             password=str(super_password),
-            host=misc_constants.DATABASE_CONFIG["host"],
-            port=misc_constants.DATABASE_CONFIG["port"]
+            host=misc_constants.SQL_ALCH_CONFIG["host"],
+            port=misc_constants.SQL_ALCH_CONFIG["port"]
         )
        
         # Create a new schema
