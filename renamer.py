@@ -26,26 +26,43 @@ def rename_sheet_column():
     pass
 
 
-def rename_db_column(schema_name, table_name):
+def rename_db_column():
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_renamer.json")
     
     # If rename file is not empty: ask user if they really want to rename
     
     
-    
     # Load renamer file
     with open(file_path, 'r') as file:
         rename_file = json.load(file)
-    
-    print(rename_file)
-    
+        
     full_query = ""
     
     for key in rename_file:
         id = str(key)
         new_name = rename_file[key]
-        print(key)
+        
+        nm = name_maps()
+        table_names = name_maps.table_names()
+        column_names = name_maps.column_names()
+        schema_names = name_maps.schema_names()
+        
+        q1 = f'''
+        select "{schema_names.schema_name}", "{table_names.table_name}" 
+        from "{name_maps()}"."{column_names}" cn 
+        join "{nm}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
+        join "{nm}"."{schema_names}" sn on sn."{schema_names.schema_id}" = tn."{table_names.schema_id}"
+        where {column_names.column_id} = '{id}';
+        '''
+                
+        res = queries.execute_query(q1, connection)
+        
+        if len(res) != 1 or len(res[0]) != 2:
+            raise Exception("res not the expected size")
+        
+        schema_name, table_name = res[0]
+        
     
         column_names = name_maps.column_names()
         
@@ -70,20 +87,12 @@ def rename_db_column(schema_name, table_name):
         
         full_query = full_query + table_update_q
 
-    print(full_query)
     
     queries.execute_query(full_query, connection)
-    # queries.execute_query(table_update_q, connection)
     
     # update translater:
     # from excel name to db name
 
-rename_db_column("test_1", "initials_translator")
-
-
-
-def change_name_in_db(old_name, new_name):
-    pass
 
 
 # Change name in mapper
