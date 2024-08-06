@@ -90,13 +90,6 @@ elif RUN_MODE == 'development':
         'schema_name': 'test_1'
     }
 
-RENAME_CONFIG = {
-    'host': SQL_ALCH_CONFIG['host'],
-    'dbname': SQL_ALCH_CONFIG['database'],
-    'port': SQL_ALCH_CONFIG['port'],
-    'user': 'rename_user',
-    'password': SQL_ALCH_CONFIG['password'],
-}
 
 PSYCON_CONFIG = {
     'host': SQL_ALCH_CONFIG['host'],

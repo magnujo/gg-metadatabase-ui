@@ -124,7 +124,7 @@ def get_column_name(column_id):
         select_col = table.column_name_db
         filter_col = table.column_id
         
-        query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = '%s' '''
+        query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = %s '''
 
         result = queries.execute_query(query, PSY_CONN, params=(column_id,))
         
@@ -683,5 +683,3 @@ def print_class_structure():
         
             print(f"\t{var} = get_column_name({id})")
     print()
-print(db_names.data.field_sample.age_estimate_from)
-print("Done")
