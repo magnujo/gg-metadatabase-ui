@@ -162,13 +162,12 @@ def get_schema_names(database):
     df = pd.read_sql(q, con=ENGINE)
     
 
-def execute_query(query, params=None):
+def execute_query(query, connection, params=None):
     # Connection parameters
-    conn_config = PSYCON_CONFIG
 
     try:
         # Establish a connection
-        with psycopg2.connect(**conn_config) as conn:
+        with connection as conn:
             # Create a cursor
             with conn.cursor() as cur:
                 # Execute the query

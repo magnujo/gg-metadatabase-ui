@@ -18,6 +18,7 @@ To make name callable without parentheses use a meta class like this:
 import re
 import pandas as pd
 from utils import queries
+from constants.misc_constants import PSY_CONN
 
     
 
@@ -44,7 +45,8 @@ class name_maps(NamedEntity):
         # name = get_table_name(id)
         
         column_id = "column_id"
-        column_name = "column_name"
+        column_name_db = "column_name_db"
+        column_name_sheet = "column_name_sheet"
         table_id = "table_id"
         
         
@@ -79,8 +81,9 @@ def get_schema_name(schema_id):
         
         
         query = f'''SELECT "{select_col}" FROM "{schema_name}"."{table_name}" WHERE "{filter_col}" = '%s' '''
-
-        result = queries.execute_query(query, params=(schema_id,))
+        
+        
+        result = queries.execute_query(query, PSY_CONN, params=(schema_id,))
         
         if len(result) != 1:
             raise Exception("Admin error: Length of result not as expected")
@@ -102,7 +105,7 @@ def get_table_name(table_id):
         
         query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = '%s' '''
 
-        result = queries.execute_query(query, params=(table_id,))
+        result = queries.execute_query(query, PSY_CONN, params=(table_id,))
         
         if len(result) != 1:
             raise Exception("Admin error: Length of result not as expected")
@@ -114,17 +117,16 @@ def get_table_name(table_id):
         return str(result[0][0])
         
 
-
 def get_column_name(column_id):
     
         schema = name_maps()
         table = schema.column_names()
-        select_col = table.column_name
+        select_col = table.column_name_db
         filter_col = table.column_id
         
         query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = '%s' '''
 
-        result = queries.execute_query(query, params=(column_id,))
+        result = queries.execute_query(query, PSY_CONN, params=(column_id,))
         
         if len(result) != 1:
             raise Exception("Admin error: Length of result not as expected")
@@ -361,7 +363,7 @@ class db_names:
                 flowcell_id = get_column_name(160)
                 clusters = get_column_name(161)
                 clusters = get_column_name(162)
-                yield_ = get_column_name(163)
+                yield_2 = get_column_name(163)
                 database_insert_by = get_column_name(164)
                 from_spreadsheet = get_column_name(165)
                 database_insert_datetime_utc = get_column_name(166)
@@ -635,8 +637,6 @@ class db_names:
                 column_name = get_column_name(362)
                 table_id = get_column_name(363)
             
-print(db_names.data.field_sample.museum_institution)
-
 
 def print_class_structure():
     '''
@@ -683,3 +683,5 @@ def print_class_structure():
         
             print(f"\t{var} = get_column_name({id})")
     print()
+print(db_names.data.field_sample.age_estimate_from)
+print("Done")

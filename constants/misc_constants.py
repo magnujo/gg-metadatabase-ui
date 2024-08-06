@@ -20,6 +20,7 @@ else:
     
 GEO_DATA_NETWORK_DIR = os.path.join("SUN-GI-metadb-test", "Field Sample Projects")
 GEO_DATA_NETWORK_DIR_DELETIONS = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
+RENAME_DB_FILE = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'
@@ -88,6 +89,14 @@ elif RUN_MODE == 'development':
         'password': pw,
         'schema_name': 'test_1'
     }
+
+RENAME_CONFIG = {
+    'host': SQL_ALCH_CONFIG['host'],
+    'dbname': SQL_ALCH_CONFIG['database'],
+    'port': SQL_ALCH_CONFIG['port'],
+    'user': 'rename_user',
+    'password': SQL_ALCH_CONFIG['password'],
+}
 
 PSYCON_CONFIG = {
     'host': SQL_ALCH_CONFIG['host'],
