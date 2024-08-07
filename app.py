@@ -196,14 +196,11 @@ def upload_file():
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
-                                            thousands_seperator=thousands_seperator)
-                
-                # Rename columns
-                for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
-                    if old_name in clean_sheet.columns:
-                        clean_sheet = clean_sheet.rename(columns={old_name: new_name})
+                                            thousands_seperator=thousands_seperator)                
                 
                 clean_sheet.columns = clean_sheet.columns.str.strip()
+                
+                # TODO: Check that no two columns are the same with lower()
             
                 
                 # Adds rows about which user was responsible for the upload:

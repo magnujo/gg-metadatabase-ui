@@ -10,6 +10,10 @@ from db_names import db_names, name_maps, get_column_name, get_schema_name, get_
 import os
 import psycopg2
 import getpass
+from threading import Lock
+
+lock = Lock()
+
 
 db_config = PSYCON_CONFIG
 
@@ -421,4 +425,5 @@ Do you want to proceed with the renaming that the file specifies? (y/n) ")
 
     # Run renaming
 
-run()
+with lock:
+    run()
