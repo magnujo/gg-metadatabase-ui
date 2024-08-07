@@ -115,11 +115,13 @@ def get_schema_name(schema_id: int):
 
 
 
-def get_table_name(table_id: int):
+def get_table_name(table_id: int, template=False):
 
         schema = name_maps()
         table = schema.table_names()
         select_col = table.table_name
+        if template:
+            select_col = table.sheet_template_name
         filter_col = table.table_id
 
         query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = '%s' '''

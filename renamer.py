@@ -26,9 +26,76 @@ import json
     # TODO: If rename file is empty: error
 
 
+def rename_templates():
+    file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_renamer.json")
+    
+    # TODO: If rename file is not empty: ask user if they really want to rename
+    # TODO: If rename file is empty: error
+    
+    # Load renamer file
+    with open(file_path, 'r') as file:
+        rename_file = json.load(file)
+        
+    full_query = ""
+    
+    for key in rename_file:
+        id = int(key)
+        new_name = rename_file[key]
+        
+        nm = name_maps()
+        table_names = name_maps.table_names()
+        schema_names = name_maps.schema_names()
+        
+        q1 = f'''
+        select "{schema_names.schema_name}", {table_names.sheet_template_name}  
+        from "{nm}"."{table_names}" tn 
+        join "{nm}"."{schema_names}" sn on sn."{schema_names.schema_id}" = tn."{table_names.schema_id}"
+        where {table_names.table_id} = '{id}';
+        '''
+         
+        res = queries.execute_query(q1, connection)
+        
+        if len(res) != 1 or len(res[0]) != 2:
+            raise Exception("res not the expected size")
+        
+        schema_name, template_name = res[0]
+            
+        #TODO: Make queries safe from sql injection
+        
+        # Rename table_name in map
+        mapper_update_q = f'''
+        UPDATE "{name_maps()}"."{table_names}"
+        SET "{table_names.sheet_template_name}"='{new_name}'
+        WHERE "{table_names.table_id}"='{id}';
+        '''
+        old_name = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "standard_spreadsheet_templates", template_name)
+        new_name = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "standard_spreadsheet_templates", new_name)
+        
+        full_query = full_query + mapper_update_q
+        
+        # Rename template file
+        os.rename(old_name, new_name)
+        
+        full_query = full_query
+    
+    
+    tables_before = {key: get_table_name(int(key), template=True) for key in rename_file}
+    queries.execute_query(full_query, connection)
+    tables_after = {key: get_table_name(int(key), template=True) for key in rename_file}
+    
+    errors = []
+    for key in rename_file:
+        if tables_before[key] == tables_after[key]:
+            errors.append(key)
+    
+    if len(errors) != 0:
+        raise Exception(f"The following columns where not renamed correctly: {errors}")
+
+rename_templates()
+
 # TODO: Implement this:
 def rename_template_column():
-    # TODO: Send email notifying people of renaming.
+    # TODO: notify people of renaming.
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_column_renamer.json")
     
