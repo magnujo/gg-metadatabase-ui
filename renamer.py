@@ -1,5 +1,9 @@
-import pandas as pd
+# TODO: Translate
+# TODO: Implement
+# TODO: Make queries safe from sql injection
 
+import pandas as pd
+import json
 from utils import queries
 from constants.misc_constants import PSYCON_CONFIG, PATH_TO_MOUNT
 from db_names import db_names, name_maps, get_column_name, get_schema_name, get_table_name
@@ -9,28 +13,14 @@ import getpass
 
 db_config = PSYCON_CONFIG
 
-# user = input("Enter your database username: ")
-db_config["user"] = "glj523"
-# password = getpass.getpass("Enter your database password: ")
-db_config["password"] = "Wtcantfw36c!"
 
+connection = None
 
-connection = psycopg2.connect(**db_config)
-
-import json
-
-# TODO: Only allow one rename file to be not empty
-# TODO: Dont allow rename of anything inside name_maps
-#TODO: Make queries safe from sql injection
-# TODO: If rename file is not empty: ask user if they really want to rename
-    # TODO: If rename file is empty: error
-
+    
 
 def rename_templates():
-    file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_renamer.json")
     
-    # TODO: If rename file is not empty: ask user if they really want to rename
-    # TODO: If rename file is empty: error
+    file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_renamer.json")
     
     # Load renamer file
     with open(file_path, 'r') as file:
@@ -60,6 +50,9 @@ def rename_templates():
         
         schema_name, template_name = res[0]
             
+        if str(schema_name) == str(name_maps()):
+            raise Exception(f"Altering table {schema_name} is not allowed.")
+        
         #TODO: Make queries safe from sql injection
         
         # Rename table_name in map
@@ -91,16 +84,12 @@ def rename_templates():
     if len(errors) != 0:
         raise Exception(f"The following columns where not renamed correctly: {errors}")
 
-rename_templates()
 
-# TODO: Implement this:
 def rename_template_column():
     # TODO: notify people of renaming.
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_column_renamer.json")
-    
-    # TODO: If rename file is not empty: ask user if they really want to rename
-    # TODO: If rename file is empty: error
+ 
     
     
     # Load renamer file
@@ -133,10 +122,12 @@ def rename_template_column():
         
         schema_name, template_name = res[0]
         
+        if str(schema_name) == str(name_maps()):
+            raise Exception(f"Altering table {schema_name} is not allowed.")
+        
     
         column_names = name_maps.column_names()
         
-        #TODO: Make queries safe from sql injection
         
         # Rename column in map
         mapper_update_q = f'''
@@ -206,6 +197,9 @@ def rename_db_schema():
         
         schema_name = get_schema_name(id)
         
+        if str(schema_name) == str(name_maps()):
+            raise Exception(f"Altering table {schema_name} is not allowed.")
+        
         table_update_q = f'''
         ALTER SCHEMA "{schema_name}"
         RENAME TO "{new_name}";
@@ -261,9 +255,10 @@ def rename_db_tables():
             raise Exception("res not the expected size")
         
         schema_name, table_name = res[0]
-            
-        #TODO: Make queries safe from sql injection
         
+        if str(schema_name) == str(name_maps()):
+            raise Exception(f"Altering table {schema_name} is not allowed.")
+                    
         # Rename table_name in map
         mapper_update_q = f'''
         UPDATE "{name_maps()}"."{table_names}"
@@ -298,10 +293,6 @@ def rename_db_column():
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_column_renamer.json")
     
-    # TODO: If rename file is not empty: ask user if they really want to rename
-    # TODO: If rename file is empty: error
-    
-    
     # Load renamer file
     with open(file_path, 'r') as file:
         rename_file = json.load(file)
@@ -309,7 +300,7 @@ def rename_db_column():
     full_query = ""
     
     for key in rename_file:
-        id = int(key) #  TODO: Int?
+        id = int(key) 
         new_name = rename_file[key]
         
         nm = name_maps()
@@ -332,11 +323,12 @@ def rename_db_column():
         
         schema_name, table_name = res[0]
         
+        if str(schema_name) == str(name_maps()):
+            raise Exception(f"Altering table {schema_name} is not allowed.")
+        
     
         column_names = name_maps.column_names()
-        
-        #TODO: Make queries safe from sql injection
-        
+                
         # Rename column in map
         mapper_update_q = f'''
         UPDATE "{name_maps()}"."{column_names}"
@@ -368,16 +360,65 @@ def rename_db_column():
     
     if len(errors) != 0:
         raise Exception(f"The following columns where not renamed correctly: {errors}")
-    
-   
-    
 
-# rename_db_column()
+
+def run():
+    rename_files = {
+        "db_column_renamer.json": rename_db_column,
+        "db_schema_renamer.json": rename_db_schema,
+        "db_table_renamer.json": rename_db_tables,
+        "template_column_renamer.json": rename_template_column,
+        "template_renamer.json": rename_templates
+    }
+    
+    renamer_dir_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer")
+    file_names = os.listdir(renamer_dir_path)
+    
+    if set(rename_files.keys()) != set(file_names):
+        raise Exception("Files names not as expected")
+    
+    if len(file_names) != 5:
+        raise Exception("number og renamer files not as expected")
+    
+    active_rename_files = []
+    
+    for file_name in file_names:
+        file_path = os.path.join(renamer_dir_path, file_name)
+        with open(file_path, 'r') as file:
+            rename_file = json.load(file)
+            if len(rename_file) > 0:    
+                active_rename_files.append((file_name, rename_file))                            
+    
+    if len(active_rename_files) == 1:
+        # prompt user to confirm and user info 
+        # do rename
+        file_name = active_rename_files[0][0]
+        rename_file = active_rename_files[0][1]
         
-    # update translater:
-    # from excel name to db name
+        confirmation = input(f"IMPORTANT: Found non-empty renaming file: {file_path}. \
+Do you want to proceed with the renaming that the file specifies? (y/n) ")
+        
+        if confirmation == "y":
+            user = input("Enter your database username: ")
+            password = getpass.getpass("Enter your database password: ")
+            
+            db_config["user"] = user
+            db_config["password"] = password
 
+            global connection
+            connection = psycopg2.connect(**db_config)   
+            
+            rename_files[file_name]()
+                
+    
+    elif len(active_rename_files) == 0:
+        raise Exception("All renaming files are empty")    
+    
+    else:
+        raise Exception("Only one rename file can be non empty at a time")
+        
+    # Prompt user: Are you sure you want to rename?
 
+    # Run renaming
 
-# Change name in mapper
-# change name in database
+run()
