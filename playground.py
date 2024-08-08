@@ -1,16 +1,17 @@
-def run_match():
-    num = int(input("Enter a number between 1 and 3: "))
-    one = 1
-    two = 2
-    three = 3
-    match num:
-        case one:
-            print("One")
-        case two:
-            print("Two")
-        case three:
-            print("Three")
-        case _:
-            print("Number not between 1 and 3")
 
-run_match()
+
+d: dict[int, list[str]] = {
+
+    15: ["test", 2]
+
+}
+
+for key, value in d.items():
+    if not isinstance(key, int):
+        raise TypeError(f"Expected key of type int, but got {type(key).__name__}")
+    if not isinstance(value, list):
+        raise TypeError(f"Expected value of type list, but got {type(value).__name__}")
+    for item in value:
+        if not isinstance(item, str):
+            raise TypeError(f"Expected value of type str, but got {type(item).__name__}")
+    print(f"Key: {key}, Value: {value}")

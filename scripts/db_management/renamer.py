@@ -2,12 +2,15 @@
 # TODO: Implement
 # TODO: Make queries safe from sql injection
 
+
+import os, sys
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
 import pandas as pd
 import json
 from utils import queries
 from constants.misc_constants import PSYCON_CONFIG, PATH_TO_MOUNT
 from db_names import db_names, name_maps, get_column_name, get_schema_name, get_table_name
-import os
 import psycopg2
 import getpass
 from threading import Lock
