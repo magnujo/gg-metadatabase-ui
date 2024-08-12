@@ -1,7 +1,36 @@
+'''
+This script is used for renaming db columns, tables and schemas as well as upload sheet templates and their columns. 
+
+How to:
+To use it go to N:\SUN-GI-metadb-test\renamer and edit the relevant json. For example if you want to rename a 
+table/tables open n:\SUN-GI-metadb-test\renamer\db_table_renamer.json and insert the 
+table id(s) of the table(s) you want to rename and the new name you want to give them as follows:
+
+{
+    "<table_id_1>": "<new_name_1>",
+    "<table_id_2>": "<new_name_2>",
+    .
+    .
+    .
+    "<table_id_N>": "<new_name_N>"
+}
+
+Example:
+{
+    "15": "geological_sampling"
+}
+
+This will rename the table with the ID of 15 in name_maps.table_names to "geological_sampling" and it will update
+table_name in name_maps.table_names where ID = 15 to "geological_sampling". 
+
+NOTE: Table IDs can be found in the database under name_maps.
+
+
+'''
+
 # TODO: Translate
 # TODO: Implement
 # TODO: Make queries safe from sql injection
-
 
 import os, sys
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
