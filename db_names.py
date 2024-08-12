@@ -26,10 +26,13 @@ from constants.db_connections import ENGINE, PSY_CONN
 class NamedEntity():
 	def __init__(self, db_id, db_name=None) -> None:
 		self.__db_id = db_id
-		self.__db_name = db_name
+		self.__db_name = str(db_name)
 
 	def __str__(self):
-		return self.__db_name
+		return str(self.__db_name)
+
+	# def __repr__(self) -> str:
+	# 	return str(self.__db_name)
 
 	def get_id(self):
 		return self.__db_id
@@ -205,19 +208,31 @@ def print_class_structure(schema_id):
 class Table(NamedEntity):
 	def __str__(self):
 		id = self.get_id()
-		return get_table_name(id)
+		return str(get_table_name(id))
+
+	def __repr__(self) -> str:
+		id = self.get_id()
+		return str(get_table_name(id))
 
 
 class Schema(NamedEntity):
 	def __str__(self):
 		id = self.get_id()
-		return get_schema_name(id)
+		return str(get_schema_name(id))
+
+	def __repr__(self) -> str:
+		id = self.get_id()
+		return str(get_schema_name(id))
 
 
 class Column(NamedEntity):
 	def __str__(self):
 		id = self.get_id()
-		return get_column_name(id)
+		return str(get_column_name(id))
+
+	def __repr__(self) -> str:
+		id = self.get_id()
+		return str(get_column_name(id))
 
 
 class db_names:
