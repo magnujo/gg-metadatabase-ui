@@ -23,7 +23,7 @@ from constants.db_connections import ENGINE, PSY_CONN
 
 
 
-class NamedEntity():
+class NamedEntity(str):
 	def __init__(self, db_id, db_name=None) -> None:
 		self.__db_id = db_id
 		self.__db_name = str(db_name)
@@ -31,8 +31,8 @@ class NamedEntity():
 	def __str__(self):
 		return str(self.__db_name)
 
-	# def __repr__(self) -> str:
-	# 	return str(self.__db_name)
+	def __repr__(self) -> str:
+		return repr(self.__db_name)
 
 	def get_id(self):
 		return self.__db_id
@@ -96,7 +96,6 @@ def get_schema_name(schema_id: int):
 
 
 	return str(result[0][0])
-
 
 
 def get_table_name(table_id: int, template=False):
@@ -199,520 +198,106 @@ def print_class_structure(schema_id):
 
 			print(f"{tab}{var} = Column({id})")
 		print()
+  
+def print_class_structure_2(schema_id):
+	'''
+	Prints the class structure above by scraping the database
+	'''
 
+	nm = name_maps()
+	columns = f"{nm.column_names.column_id}, {nm.column_names.column_name_db}, cn.{nm.column_names.table_id}, tn.{nm.table_names.table_id}, {nm.table_names.table_name}, {nm.table_names.schema_id}"
+
+
+	q = f'''
+	select {columns} from "{nm}"."{nm.column_names()}" cn
+	join "{nm}"."{nm.table_names()}" tn on cn."{nm.column_names.table_id}" = tn."{nm.table_names.table_id}"
+	where "{nm.table_names.schema_id}" = '{schema_id}'
+ 	order by cn.{nm.column_names.table_id}, cn.{nm.column_names.column_id};
+
+	'''
+	res = queries.execute_query(q, PSY_CONN)
+ 
+	d = {}
+
+	for ele in res:
+		col_id = ele[0]
+		col_name = ele[1]
+		table_id = ele[2]
+		table_name = ele[4]
+		schema_id = ele[5]
+
+		if table_name not in d:
+			d[table_name] = {"id": table_id, "cols": []}
+
+		d[table_name]["cols"].append((col_name, col_id))
+
+	tab = "    "
+	for key in d:
+		table_id = d[key]["id"]
+		print(f"class {key}(Table):")
+		print(f"{tab}_db_id = {table_id}")
+		print()
+		print(f"{tab}#  Columns:")
+		for ele in d[key]["cols"]:
+
+			var: str = re.sub(r'\(.*?\)', '', ele[0].lower()).strip()
+			var = re.sub(r'[^a-z]', ' ', var).strip()
+			var = var.replace(" ", "_").lower().strip("_")
+
+			id = ele[1]
+
+			print(f"{tab}{var} = lambda: get_column_name({id})")
+		print()
 
 # @classmethod
 # def __str__(cls):
 # 	return cls.__name
 
-class Table(NamedEntity):
-	def __str__(self):
-		id = self.get_id()
-		return str(get_table_name(id))
+class Table(str):
+	def __new__(cls):
+		return super().__new__(cls, get_table_name(cls._db_id))
 
-	def __repr__(self) -> str:
-		id = self.get_id()
-		return str(get_table_name(id))
+	# def __new__(self):
+	# 	return super().__new__(self, get_table_name(get_id(self)))
+    # def __init__(self, db_id):
+    #     self.string = 
+    
+  
+	# def __str__(self) -> str:
+	# 	id = self.get_id()
+	# 	return str(get_table_name(id))
 
+	# def __repr__(self) -> str:
+	# 	id = self.get_id()
+	# 	name = get_table_name(id)
+	# 	return repr(name)
 
-class Schema(NamedEntity):
-	def __str__(self):
-		id = self.get_id()
-		return str(get_schema_name(id))
+class Schema(str):
+	def __new__(cls):
+		return super().__new__(cls, get_schema_name(cls._db_id))
 
-	def __repr__(self) -> str:
-		id = self.get_id()
-		return str(get_schema_name(id))
+	# def __str__(self):
+	# 	id = self.get_id()
+	# 	return str(get_schema_name(id))
 
-
-class Column(NamedEntity):
-	def __str__(self):
-		id = self.get_id()
-		return str(get_column_name(id))
-
-	def __repr__(self) -> str:
-		id = self.get_id()
-		return str(get_column_name(id))
-
-
-class db_names:
-	'''
-	Helper class that gets column names from a mapper that maps column ids to names.
-	This doesn't necessarily contain all column names, as it only needs to contiain
- the ones that are used in the code. 
-	The names are stored in variables that can be used in the code.
-	The class (and therefore the app) expects column names in DB to be equal to column names in upload sheet template.'
-	Usage example: To access a latitude column using the class simply do df[db_names.field_sample.latitude] 
-	'''
-
-	class data(Schema):
-		def __init__(self) -> None:
-			super().__init__(db_id=1)
-
-		class edna_robot_sample(Table):
-			def __init__(self):
-				super().__init__(db_id=1)
-
-			#  Columns:
-			subsampleid = Column(1)
-			rackname = Column(2)
-			rackid = Column(3)
-			positioninrack = Column(4)
-			mass = Column(5)
-			sampledby = Column(6)
-			samplingdate = Column(7)
-			remarkssubsampling = Column(8)
-			archivesampleid = Column(9)
-			submitter = Column(10)
-			submissiondate = Column(11)
-			remarkssubmission = Column(12)
-			database_insert_by = Column(13)
-			from_spreadsheet = Column(14)
-			database_insert_datetime_utc = Column(15)
-			upload_uuid = Column(16)
-
-		class age_depth_model(Table):
-			def __init__(self):
-				super().__init__(db_id=2)
-
-			#  Columns:
-			depth = Column(17)
-			min = Column(18)
-			max = Column(19)
-			mean = Column(20)
-			database_insert_by = Column(21)
-			from_spreadsheet = Column(22)
-			database_insert_datetime_utc = Column(23)
-			upload_uuid = Column(24)
-			master_field_sample_id = Column(25)
-			median = Column(26)
-
-		class master_depth(Table):
-			def __init__(self):
-				super().__init__(db_id=3)
-
-			#  Columns:
-			archive_sample_id = Column(27)
-			master_depth = Column(28)
-			field_sample_id = Column(29)
-			master_field_sample_id = Column(30)
-			database_insert_by = Column(31)
-			from_spreadsheet = Column(32)
-			database_insert_datetime_utc = Column(33)
-			upload_uuid = Column(34)
-
-		class field_sample_types(Table):
-			def __init__(self):
-				super().__init__(db_id=4)
-
-			#  Columns:
-			name = Column(35)
-
-		class cgg_animal_plant(Table):
-			def __init__(self):
-				super().__init__(db_id=5)
-
-			#  Columns:
-			cgg_id = Column(36)
-			museum_id_sample_id = Column(37)
-			lab_no = Column(38)
-			stock_sample_left = Column(39)
-			extraction = Column(40)
-			extraction_date = Column(41)
-			kind_of_library = Column(42)
-			library_date = Column(43)
-			intern_provider = Column(44)
-			type = Column(45)
-			class_ = Column(46)
-			order = Column(47)
-			genus = Column(48)
-			species = Column(49)
-			common_name = Column(50)
-			sex = Column(51)
-			age = Column(52)
-			geological_age = Column(53)
-			material_group = Column(54)
-			material_type = Column(55)
-			material_condition = Column(56)
-			site = Column(57)
-			site_info = Column(58)
-			city_town_location = Column(59)
-			state_province_region = Column(60)
-			country = Column(61)
-			continent = Column(62)
-			lat = Column(63)
-			lon = Column(64)
-			gps = Column(65)
-			sample_provider = Column(66)
-			museum_institution = Column(67)
-			contact_info = Column(68)
-			return_date = Column(69)
-			return_details = Column(70)
-			date_excavated = Column(71)
-			date_collected = Column(72)
-			date_recieved = Column(73)
-			date_returned = Column(74)
-			cites_permit_needed = Column(75)
-			cites_permit_obtained = Column(76)
-			sample_location = Column(77)
-			extraction_location = Column(78)
-			in_care_of = Column(79)
-			date_out = Column(80)
-			project_name = Column(81)
-			supervisor = Column(82)
-			analyses_history = Column(83)
-			genbank_ref = Column(84)
-			publications = Column(85)
-			references = Column(86)
-			notes = Column(87)
-			thawed_up = Column(88)
-			database_insert_by = Column(89)
-			from_spreadsheet = Column(90)
-			database_insert_datetime_utc = Column(91)
-			upload_uuid = Column(92)
-
-		class country_ocean(Table):
-			def __init__(self):
-				super().__init__(db_id=6)
-
-			#  Columns:
-			name = Column(93)
-
-		class field_sample_environment_types(Table):
-			def __init__(self):
-				super().__init__(db_id=7)
-
-			#  Columns:
-			name = Column(94)
-
-		class edna_wetlab_report(Table):
-			def __init__(self):
-				super().__init__(db_id=8)
-
-			#  Columns:
-			customer_name = Column(95)
-			order_date = Column(96)
-			order_id = Column(97)
-			no = Column(98)
-			total_sample_quantity = Column(99)
-			robot_sample_rack_name = Column(100)
-			robot_sample_rack_barcode = Column(101)
-			robot_sample_rack_position = Column(102)
-			robot_sample_id = Column(103)
-			archive_sample_id = Column(104)
-			edna_lysate_plate_id = Column(105)
-			edna_lysate_position = Column(106)
-			lysis_date = Column(107)
-			edna_plate_id = Column(108)
-			edna_plate_position = Column(109)
-			edna_id = Column(110)
-			edna_concentration = Column(111)
-			cleanup_date = Column(112)
-			customer_attention_to_extraction = Column(113)
-			library_plate_id = Column(114)
-			library_plate_barcode = Column(115)
-			library_plate_position = Column(116)
-			library_id = Column(117)
-			library_concentration = Column(118)
-			library_peak_size = Column(119)
-			library_leftover_volume = Column(120)
-			library_qc_result = Column(121)
-			library_start_date = Column(122)
-			ct = Column(123)
-			qpcr_date = Column(124)
-			idt_index_no = Column(125)
-			i__bases_in_adapter = Column(126)
-			i__bases_in_adapter = Column(127)
-			pcr_cycle = Column(128)
-			indexing_pcr_date = Column(129)
-			library_cleanup_date = Column(130)
-			library_qc_date = Column(131)
-			customer_attention_to_library_prep = Column(132)
-			tube_tag_submitted_to_seqc = Column(133)
-			dna_pooled = Column(134)
-			expected_sequencing_data = Column(135)
-			submitting_date = Column(136)
-			return_dna = Column(137)
-			return_library = Column(138)
-			return_pool = Column(139)
-			pool_to_seqc = Column(140)
-			project_done_date = Column(141)
-			database_insert_by = Column(142)
-			from_spreadsheet = Column(143)
-			database_insert_datetime_utc = Column(144)
-			fastq_file_id = Column(145)
-			upload_uuid = Column(146)
-			library_prep_method = Column(147)
-
-		class flowcell(Table):
-			def __init__(self):
-				super().__init__(db_id=9)
-
-			#  Columns:
-			lane = Column(148)
-			project = Column(149)
-			sample = Column(150)
-			barcode_sequence = Column(151)
-			pf_clusters = Column(152)
-			of_the_lane = Column(153)
-			perfect_barcode = Column(154)
-			one_mismatch_barcode = Column(155)
-			yield_1 = Column(156)
-			pf_clusters = Column(157)
-			q___bases = Column(158)
-			mean_quality_score = Column(159)
-			flowcell_id = Column(160)
-			clusters = Column(161)
-			clusters = Column(162)
-			yield_2 = Column(163)
-			database_insert_by = Column(164)
-			from_spreadsheet = Column(165)
-			database_insert_datetime_utc = Column(166)
-			upload_uuid = Column(167)
-
-		class cgg_sediment_water(Table):
-			def __init__(self):
-				super().__init__(db_id=10)
-
-			#  Columns:
-			cgg_id = Column(168)
-			museum_id_sample_id = Column(169)
-			lab_no = Column(170)
-			stock_sample_left = Column(171)
-			extraction = Column(172)
-			extraction_date = Column(173)
-			kind_of_library = Column(174)
-			library_date = Column(175)
-			intern_provider = Column(176)
-			sample_type = Column(177)
-			depth = Column(178)
-			height__asl = Column(179)
-			material_type = Column(180)
-			sampled_as = Column(181)
-			sample_size = Column(182)
-			depositional_environment = Column(183)
-			age = Column(184)
-			geological_age = Column(185)
-			site = Column(186)
-			site_info = Column(187)
-			city_town_location = Column(188)
-			state_province_region = Column(189)
-			country = Column(190)
-			continent = Column(191)
-			lat = Column(192)
-			lon = Column(193)
-			gps = Column(194)
-			sample_provider = Column(195)
-			museum_institution = Column(196)
-			contact_info = Column(197)
-			date_collected = Column(198)
-			date_recieved = Column(199)
-			date_returned = Column(200)
-			sample_location = Column(201)
-			extraction_location = Column(202)
-			in_care_of = Column(203)
-			date_out = Column(204)
-			project_name = Column(205)
-			supervisor = Column(206)
-			analyses_history = Column(207)
-			genbank_ref = Column(208)
-			publications = Column(209)
-			references = Column(210)
-			notes = Column(211)
-			thawed_up = Column(212)
-			database_insert_by = Column(213)
-			from_spreadsheet = Column(214)
-			database_insert_datetime_utc = Column(215)
-
-		class adna_wetlab_report(Table):
-			def __init__(self):
-				super().__init__(db_id=11)
-
-			#  Columns:
-			customer_name = Column(216)
-			order_date = Column(217)
-			order_id = Column(218)
-			sample_number = Column(219)
-			adna_plate_name = Column(220)
-			no = Column(221)
-			sample_position = Column(222)
-			adna_sample_name = Column(223)
-			library_plate_id = Column(224)
-			library_plate_position = Column(225)
-			library_id = Column(226)
-			library_concentration = Column(227)
-			library_volume = Column(228)
-			library_qc_result = Column(229)
-			library_start_date = Column(230)
-			ct = Column(231)
-			qpcr_date = Column(232)
-			idt_index_no = Column(233)
-			i__bases_in_adapter = Column(234)
-			i__bases_in_adapter = Column(235)
-			pcr_cycle = Column(236)
-			indexing_pcr_date = Column(237)
-			library_cleanup_date = Column(238)
-			library_qc_date = Column(239)
-			tube_tag_submitted_to_seqc = Column(240)
-			dna_pooled = Column(241)
-			expected_sequencing_data = Column(242)
-			submitting_date = Column(243)
-			return_library = Column(244)
-			pool_to_seqc = Column(245)
-			project_done_date = Column(246)
-			database_insert_by = Column(247)
-			from_spreadsheet = Column(248)
-			database_insert_datetime_utc = Column(249)
-			sequencing_file_id = Column(250)
-			upload_uuid = Column(251)
-
-		class field_sample_material_type(Table):
-			def __init__(self):
-				super().__init__(db_id=12)
-
-			#  Columns:
-			name = Column(252)
-
-		class field_sample_setting_types(Table):
-			def __init__(self):
-				super().__init__(db_id=13)
-
-			#  Columns:
-			name = Column(253)
-
-		class edna_archive_sample(Table):
-			def __init__(self):
-				super().__init__(db_id=14)
-
-			#  Columns:
-			archivesampleid = Column(254)
-			positioninrack = Column(255)
-			rackname = Column(256)
-			rackid = Column(257)
-			bulksampleid = Column(258)
-			depthsampledcaltape = Column(259)
-			depthorderedcaltape = Column(260)
-			organiccontent = Column(261)
-			surfaceexposed = Column(262)
-			remarksarchivesampling = Column(263)
-			sampledby = Column(264)
-			samplingdate = Column(265)
-			submitter = Column(266)
-			submissiondate = Column(267)
-			remarkssubmission = Column(268)
-			database_insert_by = Column(269)
-			from_spreadsheet = Column(270)
-			database_insert_datetime_utc = Column(271)
-			upload_uuid = Column(272)
-
-		class initials_translator(Table):
-			def __init__(self):
-				super().__init__(db_id=15)
-
-			#  Columns:
-			initials = Column(273)
-			full_name = Column(274)
-			database_insert_by = Column(275)
-			from_spreadsheet = Column(276)
-			database_insert_datetime_utc = Column(277)
-			upload_uuid = Column(278)
-
-		class seq_sample_sheet(Table):
-			def __init__(self):
-				super().__init__(db_id=16)
-
-			#  Columns:
-			sample_id = Column(279)
-			sample_name = Column(280)
-			sample_plate = Column(281)
-			sample_well = Column(282)
-			i__index_id = Column(283)
-			index = Column(284)
-			i__index_id = Column(285)
-			index = Column(286)
-			sample_project = Column(287)
-			iemfileversion = Column(288)
-			date = Column(289)
-			workflow = Column(290)
-			application = Column(291)
-			instrument_type = Column(292)
-			assay = Column(293)
-			index_adapters = Column(294)
-			description = Column(295)
-			chemistry = Column(296)
-			reads = Column(297)
-			reads = Column(298)
-			database_insert_by = Column(299)
-			from_spreadsheet = Column(300)
-			database_insert_datetime_utc = Column(301)
-			upload_uuid = Column(302)
-
-		class field_sample(Table):
-			def __init__(self):
-				super().__init__(db_id=17)
-
-			#  Columns:
-			unique_sample_id = Column(303)
-			country_ocean = Column(304)
-			site_name = Column(305)
-			latitude = Column(306)
-			longitude = Column(307)
-			sample_date = Column(308)
-			sample_provider = Column(309)
-			running_project_title = Column(310)
-			sampling_depth = Column(311)
-			sampling_interval___to = Column(312)
-			water_depth = Column(313)
-			sample_type = Column(314)
-			sample_environment = Column(315)
-			sample_context = Column(316)
-			age_estimate___from = Column(317)
-			elevation = Column(318)
-			sample_storage_address = Column(319)
-			sample_storage_setting = Column(320)
-			sample_storage_location = Column(321)
-			miscellaneous_sample_measurement_or_observation = Column(322)
-			miscellaneous_environmental_measurement_or_observation = Column(323)
-			link_to_images = Column(324)
-			link_to_other_relevant_information = Column(325)
-			comments = Column(326)
-			database_insert_by = Column(327)
-			from_spreadsheet = Column(328)
-			database_insert_datetime_utc = Column(329)
-			upload_uuid = Column(330)
-			sampling_interval___from = Column(331)
-			age_estimate___to = Column(332)
-			sample_material = Column(333)
-			alias = Column(334)
-			cultural_affiliation = Column(335)
-			museum_institution = Column(336)
-			other_relevant_information = Column(337)
-			pi = Column(338)
-			sample_provider = Column(339)
-			site_grid_elev = Column(340)
-			site_grid_latitude = Column(341)
-			site_grid_longitude = Column(342)
-			master_id_parent_sample_id = Column(343)
-			field_label = Column(344)
-			sample_type_in_storage_at_gm = Column(345)
-			permit_for_dna_analysis = Column(346)
-
-		class top_unknown_seq_barcodes(Table):
-			def __init__(self):
-				super().__init__(db_id=18)
-
-			#  Columns:
-			lane = Column(347)
-			count = Column(348)
-			sequence = Column(349)
-			flowcell_id = Column(350)
-			database_insert_by = Column(351)
-			from_spreadsheet = Column(352)
-			database_insert_datetime_utc = Column(353)
-			uid = Column(354)
-			upload_uuid = Column(355)
+	# def __repr__(self) -> str:
+	# 	id = self.get_id()
+	# 	return repr((get_schema_name(id)))
 
 
+# class Column(str):
+
+
+	# def __str__(self):
+	# 	id = self.get_id()
+	# 	return str(get_column_name(id))
+
+	# def __repr__(self) -> str:
+	# 	id = self.get_id()
+	# 	name = get_column_name(id)
+	# 	return f"'{name}'"
+ 
+ 
 def get_full_name_map():
 
     column_names = name_maps().column_names()
@@ -749,4 +334,945 @@ def get_rename_map(schema_name, table_name):
     d = {key: value for (key, value) in df.values}
 
     return d
+
+
+class db_names:
+    class data(Schema):
+        _db_id = 1
+        
+        class edna_robot_sample(Table):
+            _db_id = 1
+
+            #  Columns:
+            subsampleid = lambda: get_column_name(1)
+            rackname = lambda: get_column_name(2)
+            rackid = lambda: get_column_name(3)
+            positioninrack = lambda: get_column_name(4)
+            mass = lambda: get_column_name(5)
+            sampledby = lambda: get_column_name(6)
+            samplingdate = lambda: get_column_name(7)
+            remarkssubsampling = lambda: get_column_name(8)
+            archivesampleid = lambda: get_column_name(9)
+            submitter = lambda: get_column_name(10)
+            submissiondate = lambda: get_column_name(11)
+            remarkssubmission = lambda: get_column_name(12)
+            database_insert_by = lambda: get_column_name(13)
+            from_spreadsheet = lambda: get_column_name(14)
+            database_insert_datetime_utc = lambda: get_column_name(15)
+            upload_uuid = lambda: get_column_name(16)
+
+        class age_depth_model(Table):
+            _db_id = 2
+
+            #  Columns:
+            depth = lambda: get_column_name(17)
+            min = lambda: get_column_name(18)
+            max = lambda: get_column_name(19)
+            mean = lambda: get_column_name(20)
+            database_insert_by = lambda: get_column_name(21)
+            from_spreadsheet = lambda: get_column_name(22)
+            database_insert_datetime_utc = lambda: get_column_name(23)
+            upload_uuid = lambda: get_column_name(24)
+            master_field_sample_id = lambda: get_column_name(25)
+            median = lambda: get_column_name(26)
+
+        class master_depth(Table):
+            _db_id = 3
+
+            #  Columns:
+            archive_sample_id = lambda: get_column_name(27)
+            master_depth = lambda: get_column_name(28)
+            database_insert_by = lambda: get_column_name(31)
+            from_spreadsheet = lambda: get_column_name(32)
+            database_insert_datetime_utc = lambda: get_column_name(33)
+            upload_uuid = lambda: get_column_name(34)
+
+        class field_sample_types(Table):
+            _db_id = 4
+
+            #  Columns:
+            name = lambda: get_column_name(35)
+
+        class cgg_animal_plant(Table):
+            _db_id = 5
+
+            #  Columns:
+            cgg_id = lambda: get_column_name(36)
+            museum_id_sample_id = lambda: get_column_name(37)
+            lab_no = lambda: get_column_name(38)
+            stock_sample_left = lambda: get_column_name(39)
+            extraction = lambda: get_column_name(40)
+            extraction_date = lambda: get_column_name(41)
+            kind_of_library = lambda: get_column_name(42)
+            library_date = lambda: get_column_name(43)
+            intern_provider = lambda: get_column_name(44)
+            type = lambda: get_column_name(45)
+            class_ = lambda: get_column_name(46)
+            order = lambda: get_column_name(47)
+            genus = lambda: get_column_name(48)
+            species = lambda: get_column_name(49)
+            common_name = lambda: get_column_name(50)
+            sex = lambda: get_column_name(51)
+            age = lambda: get_column_name(52)
+            geological_age = lambda: get_column_name(53)
+            material_group = lambda: get_column_name(54)
+            material_type = lambda: get_column_name(55)
+            material_condition = lambda: get_column_name(56)
+            site = lambda: get_column_name(57)
+            site_info = lambda: get_column_name(58)
+            city_town_location = lambda: get_column_name(59)
+            state_province_region = lambda: get_column_name(60)
+            country = lambda: get_column_name(61)
+            continent = lambda: get_column_name(62)
+            lat = lambda: get_column_name(63)
+            lon = lambda: get_column_name(64)
+            gps = lambda: get_column_name(65)
+            sample_provider = lambda: get_column_name(66)
+            museum_institution = lambda: get_column_name(67)
+            contact_info = lambda: get_column_name(68)
+            return_date = lambda: get_column_name(69)
+            return_details = lambda: get_column_name(70)
+            date_excavated = lambda: get_column_name(71)
+            date_collected = lambda: get_column_name(72)
+            date_recieved = lambda: get_column_name(73)
+            date_returned = lambda: get_column_name(74)
+            cites_permit_needed = lambda: get_column_name(75)
+            cites_permit_obtained = lambda: get_column_name(76)
+            sample_location = lambda: get_column_name(77)
+            extraction_location = lambda: get_column_name(78)
+            in_care_of = lambda: get_column_name(79)
+            date_out = lambda: get_column_name(80)
+            project_name = lambda: get_column_name(81)
+            supervisor = lambda: get_column_name(82)
+            analyses_history = lambda: get_column_name(83)
+            genbank_ref = lambda: get_column_name(84)
+            publications = lambda: get_column_name(85)
+            references = lambda: get_column_name(86)
+            notes = lambda: get_column_name(87)
+            thawed_up = lambda: get_column_name(88)
+            database_insert_by = lambda: get_column_name(89)
+            from_spreadsheet = lambda: get_column_name(90)
+            database_insert_datetime_utc = lambda: get_column_name(91)
+            upload_uuid = lambda: get_column_name(92)
+
+        class country_ocean(Table):
+            _db_id = 6
+
+            #  Columns:
+            name = lambda: get_column_name(93)
+
+        class field_sample_environment_types(Table):
+            _db_id = 7
+
+            #  Columns:
+            name = lambda: get_column_name(94)
+
+        class edna_wetlab_report(Table):
+            _db_id = 8
+
+            #  Columns:
+            customer_name = lambda: get_column_name(95)
+            order_date = lambda: get_column_name(96)
+            order_id = lambda: get_column_name(97)
+            no = lambda: get_column_name(98)
+            total_sample_quantity = lambda: get_column_name(99)
+            robot_sample_rack_name = lambda: get_column_name(100)
+            robot_sample_rack_barcode = lambda: get_column_name(101)
+            robot_sample_rack_position = lambda: get_column_name(102)
+            robot_sample_id = lambda: get_column_name(103)
+            archive_sample_id = lambda: get_column_name(104)
+            edna_lysate_plate_id = lambda: get_column_name(105)
+            edna_lysate_position = lambda: get_column_name(106)
+            lysis_date = lambda: get_column_name(107)
+            edna_plate_id = lambda: get_column_name(108)
+            edna_plate_position = lambda: get_column_name(109)
+            edna_id = lambda: get_column_name(110)
+            edna_concentration = lambda: get_column_name(111)
+            cleanup_date = lambda: get_column_name(112)
+            customer_attention_to_extraction = lambda: get_column_name(113)
+            library_plate_id = lambda: get_column_name(114)
+            library_plate_barcode = lambda: get_column_name(115)
+            library_plate_position = lambda: get_column_name(116)
+            library_id = lambda: get_column_name(117)
+            library_concentration = lambda: get_column_name(118)
+            library_peak_size = lambda: get_column_name(119)
+            library_leftover_volume = lambda: get_column_name(120)
+            library_qc_result = lambda: get_column_name(121)
+            library_start_date = lambda: get_column_name(122)
+            ct = lambda: get_column_name(123)
+            qpcr_date = lambda: get_column_name(124)
+            idt_index_no = lambda: get_column_name(125)
+            i__bases_in_adapter = lambda: get_column_name(126)
+            i__bases_in_adapter = lambda: get_column_name(127)
+            pcr_cycle = lambda: get_column_name(128)
+            indexing_pcr_date = lambda: get_column_name(129)
+            library_cleanup_date = lambda: get_column_name(130)
+            library_qc_date = lambda: get_column_name(131)
+            customer_attention_to_library_prep = lambda: get_column_name(132)
+            tube_tag_submitted_to_seqc = lambda: get_column_name(133)
+            dna_pooled = lambda: get_column_name(134)
+            expected_sequencing_data = lambda: get_column_name(135)
+            submitting_date = lambda: get_column_name(136)
+            return_dna = lambda: get_column_name(137)
+            return_library = lambda: get_column_name(138)
+            return_pool = lambda: get_column_name(139)
+            pool_to_seqc = lambda: get_column_name(140)
+            project_done_date = lambda: get_column_name(141)
+            database_insert_by = lambda: get_column_name(142)
+            from_spreadsheet = lambda: get_column_name(143)
+            database_insert_datetime_utc = lambda: get_column_name(144)
+            fastq_file_id = lambda: get_column_name(145)
+            upload_uuid = lambda: get_column_name(146)
+            library_prep_method = lambda: get_column_name(147)
+
+        class flowcell(Table):
+            _db_id = 9
+
+            #  Columns:
+            lane = lambda: get_column_name(148)
+            project = lambda: get_column_name(149)
+            sample = lambda: get_column_name(150)
+            barcode_sequence = lambda: get_column_name(151)
+            pf_clusters = lambda: get_column_name(152)
+            of_the_lane = lambda: get_column_name(153)
+            perfect_barcode = lambda: get_column_name(154)
+            one_mismatch_barcode = lambda: get_column_name(155)
+            yield_1 = lambda: get_column_name(156)
+            pf_clusters = lambda: get_column_name(157)
+            q___bases = lambda: get_column_name(158)
+            mean_quality_score = lambda: get_column_name(159)
+            flowcell_id = lambda: get_column_name(160)
+            clusters = lambda: get_column_name(161)
+            clusters = lambda: get_column_name(162)
+            yield_2 = lambda: get_column_name(163)
+            database_insert_by = lambda: get_column_name(164)
+            from_spreadsheet = lambda: get_column_name(165)
+            database_insert_datetime_utc = lambda: get_column_name(166)
+            upload_uuid = lambda: get_column_name(167)
+
+        class cgg_sediment_water(Table):
+            _db_id = 10
+
+            #  Columns:
+            cgg_id = lambda: get_column_name(168)
+            museum_id_sample_id = lambda: get_column_name(169)
+            lab_no = lambda: get_column_name(170)
+            stock_sample_left = lambda: get_column_name(171)
+            extraction = lambda: get_column_name(172)
+            extraction_date = lambda: get_column_name(173)
+            kind_of_library = lambda: get_column_name(174)
+            library_date = lambda: get_column_name(175)
+            intern_provider = lambda: get_column_name(176)
+            sample_type = lambda: get_column_name(177)
+            depth = lambda: get_column_name(178)
+            height__asl = lambda: get_column_name(179)
+            material_type = lambda: get_column_name(180)
+            sampled_as = lambda: get_column_name(181)
+            sample_size = lambda: get_column_name(182)
+            depositional_environment = lambda: get_column_name(183)
+            age = lambda: get_column_name(184)
+            geological_age = lambda: get_column_name(185)
+            site = lambda: get_column_name(186)
+            site_info = lambda: get_column_name(187)
+            city_town_location = lambda: get_column_name(188)
+            state_province_region = lambda: get_column_name(189)
+            country = lambda: get_column_name(190)
+            continent = lambda: get_column_name(191)
+            lat = lambda: get_column_name(192)
+            lon = lambda: get_column_name(193)
+            gps = lambda: get_column_name(194)
+            sample_provider = lambda: get_column_name(195)
+            museum_institution = lambda: get_column_name(196)
+            contact_info = lambda: get_column_name(197)
+            date_collected = lambda: get_column_name(198)
+            date_recieved = lambda: get_column_name(199)
+            date_returned = lambda: get_column_name(200)
+            sample_location = lambda: get_column_name(201)
+            extraction_location = lambda: get_column_name(202)
+            in_care_of = lambda: get_column_name(203)
+            date_out = lambda: get_column_name(204)
+            project_name = lambda: get_column_name(205)
+            supervisor = lambda: get_column_name(206)
+            analyses_history = lambda: get_column_name(207)
+            genbank_ref = lambda: get_column_name(208)
+            publications = lambda: get_column_name(209)
+            references = lambda: get_column_name(210)
+            notes = lambda: get_column_name(211)
+            thawed_up = lambda: get_column_name(212)
+            database_insert_by = lambda: get_column_name(213)
+            from_spreadsheet = lambda: get_column_name(214)
+            database_insert_datetime_utc = lambda: get_column_name(215)
+
+        class adna_wetlab_report(Table):
+            _db_id = 11
+
+            #  Columns:
+            customer_name = lambda: get_column_name(216)
+            order_date = lambda: get_column_name(217)
+            order_id = lambda: get_column_name(218)
+            sample_number = lambda: get_column_name(219)
+            adna_plate_name = lambda: get_column_name(220)
+            no = lambda: get_column_name(221)
+            sample_position = lambda: get_column_name(222)
+            adna_sample_name = lambda: get_column_name(223)
+            library_plate_id = lambda: get_column_name(224)
+            library_plate_position = lambda: get_column_name(225)
+            library_id = lambda: get_column_name(226)
+            library_concentration = lambda: get_column_name(227)
+            library_volume = lambda: get_column_name(228)
+            library_qc_result = lambda: get_column_name(229)
+            library_start_date = lambda: get_column_name(230)
+            ct = lambda: get_column_name(231)
+            qpcr_date = lambda: get_column_name(232)
+            idt_index_no = lambda: get_column_name(233)
+            i__bases_in_adapter = lambda: get_column_name(234)
+            i__bases_in_adapter = lambda: get_column_name(235)
+            pcr_cycle = lambda: get_column_name(236)
+            indexing_pcr_date = lambda: get_column_name(237)
+            library_cleanup_date = lambda: get_column_name(238)
+            library_qc_date = lambda: get_column_name(239)
+            tube_tag_submitted_to_seqc = lambda: get_column_name(240)
+            dna_pooled = lambda: get_column_name(241)
+            expected_sequencing_data = lambda: get_column_name(242)
+            submitting_date = lambda: get_column_name(243)
+            return_library = lambda: get_column_name(244)
+            pool_to_seqc = lambda: get_column_name(245)
+            project_done_date = lambda: get_column_name(246)
+            database_insert_by = lambda: get_column_name(247)
+            from_spreadsheet = lambda: get_column_name(248)
+            database_insert_datetime_utc = lambda: get_column_name(249)
+            sequencing_file_id = lambda: get_column_name(250)
+            upload_uuid = lambda: get_column_name(251)
+
+        class field_sample_material_type(Table):
+            _db_id = 12
+
+            #  Columns:
+            name = lambda: get_column_name(252)
+
+        class field_sample_setting_types(Table):
+            _db_id = 13
+
+            #  Columns:
+            name = lambda: get_column_name(253)
+
+        class edna_archive_sample(Table):
+            _db_id = 14
+
+            #  Columns:
+            archivesampleid = lambda: get_column_name(254)
+            positioninrack = lambda: get_column_name(255)
+            rackname = lambda: get_column_name(256)
+            rackid = lambda: get_column_name(257)
+            bulksampleid = lambda: get_column_name(258)
+            depthsampledcaltape = lambda: get_column_name(259)
+            depthorderedcaltape = lambda: get_column_name(260)
+            organiccontent = lambda: get_column_name(261)
+            surfaceexposed = lambda: get_column_name(262)
+            remarksarchivesampling = lambda: get_column_name(263)
+            sampledby = lambda: get_column_name(264)
+            samplingdate = lambda: get_column_name(265)
+            submitter = lambda: get_column_name(266)
+            submissiondate = lambda: get_column_name(267)
+            remarkssubmission = lambda: get_column_name(268)
+            database_insert_by = lambda: get_column_name(269)
+            from_spreadsheet = lambda: get_column_name(270)
+            database_insert_datetime_utc = lambda: get_column_name(271)
+            upload_uuid = lambda: get_column_name(272)
+
+        class initials_translator(Table):
+            _db_id = 15
+
+            #  Columns:
+            initials = lambda: get_column_name(273)
+            full_name = lambda: get_column_name(274)
+            database_insert_by = lambda: get_column_name(275)
+            from_spreadsheet = lambda: get_column_name(276)
+            database_insert_datetime_utc = lambda: get_column_name(277)
+            upload_uuid = lambda: get_column_name(278)
+
+        class seq_sample_sheet(Table):
+            _db_id = 16
+
+            #  Columns:
+            sample_id = lambda: get_column_name(279)
+            sample_name = lambda: get_column_name(280)
+            sample_plate = lambda: get_column_name(281)
+            sample_well = lambda: get_column_name(282)
+            i__index_id = lambda: get_column_name(283)
+            index = lambda: get_column_name(284)
+            i__index_id = lambda: get_column_name(285)
+            index = lambda: get_column_name(286)
+            sample_project = lambda: get_column_name(287)
+            iemfileversion = lambda: get_column_name(288)
+            date = lambda: get_column_name(289)
+            workflow = lambda: get_column_name(290)
+            application = lambda: get_column_name(291)
+            instrument_type = lambda: get_column_name(292)
+            assay = lambda: get_column_name(293)
+            index_adapters = lambda: get_column_name(294)
+            description = lambda: get_column_name(295)
+            chemistry = lambda: get_column_name(296)
+            reads = lambda: get_column_name(297)
+            reads = lambda: get_column_name(298)
+            database_insert_by = lambda: get_column_name(299)
+            from_spreadsheet = lambda: get_column_name(300)
+            database_insert_datetime_utc = lambda: get_column_name(301)
+            upload_uuid = lambda: get_column_name(302)
+
+        class field_sample(Table):
+            _db_id = 17
+
+            #  Columns:
+            unique_sample_id = lambda: get_column_name(303)
+            country_ocean = lambda: get_column_name(304)
+            site_name = lambda: get_column_name(305)
+            latitude = lambda: get_column_name(306)
+            longitude = lambda: get_column_name(307)
+            sample_date = lambda: get_column_name(308)
+            sample_provider = lambda: get_column_name(309)
+            running_project_title = lambda: get_column_name(310)
+            sampling_depth = lambda: get_column_name(311)
+            sampling_interval___to = lambda: get_column_name(312)
+            water_depth = lambda: get_column_name(313)
+            sample_type = lambda: get_column_name(314)
+            sample_environment = lambda: get_column_name(315)
+            sample_context = lambda: get_column_name(316)
+            age_estimate___from = lambda: get_column_name(317)
+            elevation = lambda: get_column_name(318)
+            sample_storage_address = lambda: get_column_name(319)
+            sample_storage_setting = lambda: get_column_name(320)
+            sample_storage_location = lambda: get_column_name(321)
+            miscellaneous_sample_measurement_or_observation = lambda: get_column_name(322)
+            miscellaneous_environmental_measurement_or_observation = lambda: get_column_name(323)
+            link_to_images = lambda: get_column_name(324)
+            link_to_other_relevant_information = lambda: get_column_name(325)
+            comments = lambda: get_column_name(326)
+            database_insert_by = lambda: get_column_name(327)
+            from_spreadsheet = lambda: get_column_name(328)
+            database_insert_datetime_utc = lambda: get_column_name(329)
+            upload_uuid = lambda: get_column_name(330)
+            sampling_interval___from = lambda: get_column_name(331)
+            age_estimate___to = lambda: get_column_name(332)
+            sample_material = lambda: get_column_name(333)
+            alias = lambda: get_column_name(334)
+            cultural_affiliation = lambda: get_column_name(335)
+            museum_institution = lambda: get_column_name(336)
+            other_relevant_information = lambda: get_column_name(337)
+            pi = lambda: get_column_name(338)
+            sample_provider = lambda: get_column_name(339)
+            site_grid_elev = lambda: get_column_name(340)
+            site_grid_latitude = lambda: get_column_name(341)
+            site_grid_longitude = lambda: get_column_name(342)
+            master_id_parent_sample_id = lambda: get_column_name(343)
+            field_label = lambda: get_column_name(344)
+            sample_type_in_storage_at_gm = lambda: get_column_name(345)
+            permit_for_dna_analysis = lambda: get_column_name(346)
+
+        class top_unknown_seq_barcodes(Table):
+            _db_id = 18
+
+            #  Columns:
+            lane = lambda: get_column_name(347)
+            count = lambda: get_column_name(348)
+            sequence = lambda: get_column_name(349)
+            flowcell_id = lambda: get_column_name(350)
+            database_insert_by = lambda: get_column_name(351)
+            from_spreadsheet = lambda: get_column_name(352)
+            database_insert_datetime_utc = lambda: get_column_name(353)
+            uid = lambda: get_column_name(354)
+            upload_uuid = lambda: get_column_name(355)
+        
+        
+
+# class db_names:
+# 	'''
+# 	Helper class that gets column names from a mapper that maps column ids to names.
+# 	This doesn't necessarily contain all column names, as it only needs to contiain
+#  the ones that are used in the code. 
+# 	The names are stored in variables that can be used in the code.
+# 	The class (and therefore the app) expects column names in DB to be equal to column names in upload sheet template.'
+# 	Usage example: To access a latitude column using the class simply do df[db_names.field_sample.latitude] 
+# 	'''
+
+# 	class data(Schema):
+# 		def __init__(self) -> None:
+# 			super().__init__(db_id=1)
+
+# 		class edna_robot_sample(Table):
+# 			_db_id = 1
+
+# 			# def __new__(cls):
+# 			# 	return super().__new__(cls, get_table_name(table_id=1))
+# 			# def __init__(self):
+# 			# 	super().__init__(db_id=1)
+
+# 			# def __new__(cls):
+# 			# 	return super().__new__(cls, get_table_name(1))
+# 			# def __init__(self):
+# 			# 	print(get_table_name(1))
+# 			# 	print(type(get_table_name(1)))
+# 			# 	self.string = get_table_name(1)
+
+# 			#  Columns:
+# 			subsampleid = Column(1)
+# 			rackname = Column(2)
+# 			rackid = Column(3)
+# 			positioninrack = Column(4)
+# 			mass = Column(5)
+# 			sampledby = Column(6)
+# 			samplingdate = Column(7)
+# 			remarkssubsampling = Column(8)
+# 			archivesampleid = Column(9)
+# 			submitter = Column(10)
+# 			submissiondate = Column(11)
+# 			remarkssubmission = Column(12)
+# 			database_insert_by = Column(13)
+# 			from_spreadsheet = Column(14)
+# 			database_insert_datetime_utc = Column(15)
+# 			upload_uuid = Column(16)
+
+# 		class age_depth_model(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=2)
+
+# 			#  Columns:
+# 			depth = Column(17)
+# 			min = Column(18)
+# 			max = Column(19)
+# 			mean = Column(20)
+# 			database_insert_by = Column(21)
+# 			from_spreadsheet = Column(22)
+# 			database_insert_datetime_utc = Column(23)
+# 			upload_uuid = Column(24)
+# 			master_field_sample_id = Column(25)
+# 			median = Column(26)
+
+# 		class master_depth(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=3)
+
+# 			#  Columns:
+# 			archive_sample_id = Column(27)
+# 			master_depth = Column(28)
+# 			field_sample_id = Column(29)
+# 			master_field_sample_id = Column(30)
+# 			database_insert_by = Column(31)
+# 			from_spreadsheet = Column(32)
+# 			database_insert_datetime_utc = Column(33)
+# 			upload_uuid = Column(34)
+
+# 		class field_sample_types(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=4)
+
+# 			#  Columns:
+# 			name = Column(35)
+
+# 		class cgg_animal_plant(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=5)
+
+# 			#  Columns:
+# 			cgg_id = Column(36)
+# 			museum_id_sample_id = Column(37)
+# 			lab_no = Column(38)
+# 			stock_sample_left = Column(39)
+# 			extraction = Column(40)
+# 			extraction_date = Column(41)
+# 			kind_of_library = Column(42)
+# 			library_date = Column(43)
+# 			intern_provider = Column(44)
+# 			type = Column(45)
+# 			class_ = Column(46)
+# 			order = Column(47)
+# 			genus = Column(48)
+# 			species = Column(49)
+# 			common_name = Column(50)
+# 			sex = Column(51)
+# 			age = Column(52)
+# 			geological_age = Column(53)
+# 			material_group = Column(54)
+# 			material_type = Column(55)
+# 			material_condition = Column(56)
+# 			site = Column(57)
+# 			site_info = Column(58)
+# 			city_town_location = Column(59)
+# 			state_province_region = Column(60)
+# 			country = Column(61)
+# 			continent = Column(62)
+# 			lat = Column(63)
+# 			lon = Column(64)
+# 			gps = Column(65)
+# 			sample_provider = Column(66)
+# 			museum_institution = Column(67)
+# 			contact_info = Column(68)
+# 			return_date = Column(69)
+# 			return_details = Column(70)
+# 			date_excavated = Column(71)
+# 			date_collected = Column(72)
+# 			date_recieved = Column(73)
+# 			date_returned = Column(74)
+# 			cites_permit_needed = Column(75)
+# 			cites_permit_obtained = Column(76)
+# 			sample_location = Column(77)
+# 			extraction_location = Column(78)
+# 			in_care_of = Column(79)
+# 			date_out = Column(80)
+# 			project_name = Column(81)
+# 			supervisor = Column(82)
+# 			analyses_history = Column(83)
+# 			genbank_ref = Column(84)
+# 			publications = Column(85)
+# 			references = Column(86)
+# 			notes = Column(87)
+# 			thawed_up = Column(88)
+# 			database_insert_by = Column(89)
+# 			from_spreadsheet = Column(90)
+# 			database_insert_datetime_utc = Column(91)
+# 			upload_uuid = Column(92)
+
+# 		class country_ocean(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=6)
+
+# 			#  Columns:
+# 			name = Column(93)
+
+# 		class field_sample_environment_types(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=7)
+
+# 			#  Columns:
+# 			name = Column(94)
+
+# 		class edna_wetlab_report(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=8)
+
+# 			#  Columns:
+# 			customer_name = Column(95)
+# 			order_date = Column(96)
+# 			order_id = Column(97)
+# 			no = Column(98)
+# 			total_sample_quantity = Column(99)
+# 			robot_sample_rack_name = Column(100)
+# 			robot_sample_rack_barcode = Column(101)
+# 			robot_sample_rack_position = Column(102)
+# 			robot_sample_id = Column(103)
+# 			archive_sample_id = Column(104)
+# 			edna_lysate_plate_id = Column(105)
+# 			edna_lysate_position = Column(106)
+# 			lysis_date = Column(107)
+# 			edna_plate_id = Column(108)
+# 			edna_plate_position = Column(109)
+# 			edna_id = Column(110)
+# 			edna_concentration = Column(111)
+# 			cleanup_date = Column(112)
+# 			customer_attention_to_extraction = Column(113)
+# 			library_plate_id = Column(114)
+# 			library_plate_barcode = Column(115)
+# 			library_plate_position = Column(116)
+# 			library_id = Column(117)
+# 			library_concentration = Column(118)
+# 			library_peak_size = Column(119)
+# 			library_leftover_volume = Column(120)
+# 			library_qc_result = Column(121)
+# 			library_start_date = Column(122)
+# 			ct = Column(123)
+# 			qpcr_date = Column(124)
+# 			idt_index_no = Column(125)
+# 			i__bases_in_adapter = Column(126)
+# 			i__bases_in_adapter = Column(127)
+# 			pcr_cycle = Column(128)
+# 			indexing_pcr_date = Column(129)
+# 			library_cleanup_date = Column(130)
+# 			library_qc_date = Column(131)
+# 			customer_attention_to_library_prep = Column(132)
+# 			tube_tag_submitted_to_seqc = Column(133)
+# 			dna_pooled = Column(134)
+# 			expected_sequencing_data = Column(135)
+# 			submitting_date = Column(136)
+# 			return_dna = Column(137)
+# 			return_library = Column(138)
+# 			return_pool = Column(139)
+# 			pool_to_seqc = Column(140)
+# 			project_done_date = Column(141)
+# 			database_insert_by = Column(142)
+# 			from_spreadsheet = Column(143)
+# 			database_insert_datetime_utc = Column(144)
+# 			fastq_file_id = Column(145)
+# 			upload_uuid = Column(146)
+# 			library_prep_method = Column(147)
+
+# 		class flowcell(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=9)
+
+# 			#  Columns:
+# 			lane = Column(148)
+# 			project = Column(149)
+# 			sample = Column(150)
+# 			barcode_sequence = Column(151)
+# 			pf_clusters = Column(152)
+# 			of_the_lane = Column(153)
+# 			perfect_barcode = Column(154)
+# 			one_mismatch_barcode = Column(155)
+# 			yield_1 = Column(156)
+# 			pf_clusters = Column(157)
+# 			q___bases = Column(158)
+# 			mean_quality_score = Column(159)
+# 			flowcell_id = Column(160)
+# 			clusters = Column(161)
+# 			clusters = Column(162)
+# 			yield_2 = Column(163)
+# 			database_insert_by = Column(164)
+# 			from_spreadsheet = Column(165)
+# 			database_insert_datetime_utc = Column(166)
+# 			upload_uuid = Column(167)
+
+# 		class cgg_sediment_water(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=10)
+
+# 			#  Columns:
+# 			cgg_id = Column(168)
+# 			museum_id_sample_id = Column(169)
+# 			lab_no = Column(170)
+# 			stock_sample_left = Column(171)
+# 			extraction = Column(172)
+# 			extraction_date = Column(173)
+# 			kind_of_library = Column(174)
+# 			library_date = Column(175)
+# 			intern_provider = Column(176)
+# 			sample_type = Column(177)
+# 			depth = Column(178)
+# 			height__asl = Column(179)
+# 			material_type = Column(180)
+# 			sampled_as = Column(181)
+# 			sample_size = Column(182)
+# 			depositional_environment = Column(183)
+# 			age = Column(184)
+# 			geological_age = Column(185)
+# 			site = Column(186)
+# 			site_info = Column(187)
+# 			city_town_location = Column(188)
+# 			state_province_region = Column(189)
+# 			country = Column(190)
+# 			continent = Column(191)
+# 			lat = Column(192)
+# 			lon = Column(193)
+# 			gps = Column(194)
+# 			sample_provider = Column(195)
+# 			museum_institution = Column(196)
+# 			contact_info = Column(197)
+# 			date_collected = Column(198)
+# 			date_recieved = Column(199)
+# 			date_returned = Column(200)
+# 			sample_location = Column(201)
+# 			extraction_location = Column(202)
+# 			in_care_of = Column(203)
+# 			date_out = Column(204)
+# 			project_name = Column(205)
+# 			supervisor = Column(206)
+# 			analyses_history = Column(207)
+# 			genbank_ref = Column(208)
+# 			publications = Column(209)
+# 			references = Column(210)
+# 			notes = Column(211)
+# 			thawed_up = Column(212)
+# 			database_insert_by = Column(213)
+# 			from_spreadsheet = Column(214)
+# 			database_insert_datetime_utc = Column(215)
+
+# 		class adna_wetlab_report(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=11)
+
+# 			#  Columns:
+# 			customer_name = Column(216)
+# 			order_date = Column(217)
+# 			order_id = Column(218)
+# 			sample_number = Column(219)
+# 			adna_plate_name = Column(220)
+# 			no = Column(221)
+# 			sample_position = Column(222)
+# 			adna_sample_name = Column(223)
+# 			library_plate_id = Column(224)
+# 			library_plate_position = Column(225)
+# 			library_id = Column(226)
+# 			library_concentration = Column(227)
+# 			library_volume = Column(228)
+# 			library_qc_result = Column(229)
+# 			library_start_date = Column(230)
+# 			ct = Column(231)
+# 			qpcr_date = Column(232)
+# 			idt_index_no = Column(233)
+# 			i__bases_in_adapter = Column(234)
+# 			i__bases_in_adapter = Column(235)
+# 			pcr_cycle = Column(236)
+# 			indexing_pcr_date = Column(237)
+# 			library_cleanup_date = Column(238)
+# 			library_qc_date = Column(239)
+# 			tube_tag_submitted_to_seqc = Column(240)
+# 			dna_pooled = Column(241)
+# 			expected_sequencing_data = Column(242)
+# 			submitting_date = Column(243)
+# 			return_library = Column(244)
+# 			pool_to_seqc = Column(245)
+# 			project_done_date = Column(246)
+# 			database_insert_by = Column(247)
+# 			from_spreadsheet = Column(248)
+# 			database_insert_datetime_utc = Column(249)
+# 			sequencing_file_id = Column(250)
+# 			upload_uuid = Column(251)
+
+# 		class field_sample_material_type(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=12)
+
+# 			#  Columns:
+# 			name = Column(252)
+
+# 		class field_sample_setting_types(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=13)
+
+# 			#  Columns:
+# 			name = Column(253)
+
+# 		class edna_archive_sample(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=14)
+
+# 			#  Columns:
+# 			archivesampleid = Column(254)
+# 			positioninrack = Column(255)
+# 			rackname = Column(256)
+# 			rackid = Column(257)
+# 			bulksampleid = Column(258)
+# 			depthsampledcaltape = Column(259)
+# 			depthorderedcaltape = Column(260)
+# 			organiccontent = Column(261)
+# 			surfaceexposed = Column(262)
+# 			remarksarchivesampling = Column(263)
+# 			sampledby = Column(264)
+# 			samplingdate = Column(265)
+# 			submitter = Column(266)
+# 			submissiondate = Column(267)
+# 			remarkssubmission = Column(268)
+# 			database_insert_by = Column(269)
+# 			from_spreadsheet = Column(270)
+# 			database_insert_datetime_utc = Column(271)
+# 			upload_uuid = Column(272)
+
+# 		class initials_translator(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=15)
+
+# 			#  Columns:
+# 			initials = Column(273)
+# 			full_name = Column(274)
+# 			database_insert_by = Column(275)
+# 			from_spreadsheet = Column(276)
+# 			database_insert_datetime_utc = Column(277)
+# 			upload_uuid = Column(278)
+
+# 		class seq_sample_sheet(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=16)
+
+# 			#  Columns:
+# 			sample_id = Column(279)
+# 			sample_name = Column(280)
+# 			sample_plate = Column(281)
+# 			sample_well = Column(282)
+# 			i__index_id = Column(283)
+# 			index = Column(284)
+# 			i__index_id = Column(285)
+# 			index = Column(286)
+# 			sample_project = Column(287)
+# 			iemfileversion = Column(288)
+# 			date = Column(289)
+# 			workflow = Column(290)
+# 			application = Column(291)
+# 			instrument_type = Column(292)
+# 			assay = Column(293)
+# 			index_adapters = Column(294)
+# 			description = Column(295)
+# 			chemistry = Column(296)
+# 			reads = Column(297)
+# 			reads = Column(298)
+# 			database_insert_by = Column(299)
+# 			from_spreadsheet = Column(300)
+# 			database_insert_datetime_utc = Column(301)
+# 			upload_uuid = Column(302)
+
+# 		class field_sample(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=17)
+
+# 			#  Columns:
+# 			unique_sample_id = Column(303)
+# 			country_ocean = Column(304)
+# 			site_name = Column(305)
+# 			latitude = Column(306)
+# 			longitude = Column(307)
+# 			sample_date = Column(308)
+# 			sample_provider = Column(309)
+# 			running_project_title = Column(310)
+# 			sampling_depth = Column(311)
+# 			sampling_interval___to = Column(312)
+# 			water_depth = Column(313)
+# 			sample_type = Column(314)
+# 			sample_environment = Column(315)
+# 			sample_context = Column(316)
+# 			age_estimate___from = Column(317)
+# 			elevation = Column(318)
+# 			sample_storage_address = Column(319)
+# 			sample_storage_setting = Column(320)
+# 			sample_storage_location = Column(321)
+# 			miscellaneous_sample_measurement_or_observation = Column(322)
+# 			miscellaneous_environmental_measurement_or_observation = Column(323)
+# 			link_to_images = Column(324)
+# 			link_to_other_relevant_information = Column(325)
+# 			comments = Column(326)
+# 			database_insert_by = Column(327)
+# 			from_spreadsheet = Column(328)
+# 			database_insert_datetime_utc = Column(329)
+# 			upload_uuid = Column(330)
+# 			sampling_interval___from = Column(331)
+# 			age_estimate___to = Column(332)
+# 			sample_material = Column(333)
+# 			alias = Column(334)
+# 			cultural_affiliation = Column(335)
+# 			museum_institution = Column(336)
+# 			other_relevant_information = Column(337)
+# 			pi = Column(338)
+# 			sample_provider = Column(339)
+# 			site_grid_elev = Column(340)
+# 			site_grid_latitude = Column(341)
+# 			site_grid_longitude = Column(342)
+# 			master_id_parent_sample_id = Column(343)
+# 			field_label = Column(344)
+# 			sample_type_in_storage_at_gm = Column(345)
+# 			permit_for_dna_analysis = Column(346)
+
+# 		class top_unknown_seq_barcodes(Table):
+# 			def __init__(self):
+# 				super().__init__(db_id=18)
+
+# 			#  Columns:
+# 			lane = Column(347)
+# 			count = Column(348)
+# 			sequence = Column(349)
+# 			flowcell_id = Column(350)
+# 			database_insert_by = Column(351)
+# 			from_spreadsheet = Column(352)
+# 			database_insert_datetime_utc = Column(353)
+# 			uid = Column(354)
+# 			upload_uuid = Column(355)
+
+
+
   

@@ -18,7 +18,7 @@ class DBTableRelated:
 
     # Load tables from schema and check that they are all here:
     TABLE_SPLITTER = {
-                        'field_sample': [db_names.data.field_sample()],
+                        'field_sample': [data_schema.field_sample()],
                         'edna_archive_sample': [data_schema.edna_archive_sample()],
                         'edna_robot_sample': [data_schema.edna_robot_sample()],
                         'edna_wetlab_report': [data_schema.edna_wetlab_report()],
@@ -68,7 +68,10 @@ class DBTableRelated:
             print("TABLE_TYPES_FOR_ENUM_VALIDATION contains all tables from schema")
         
         TABLE_SPLITTER_VALUES = sum(DBTableRelated.TABLE_SPLITTER.values(), [])
-        TABLE_SPLITTER_VALUES = [str(val) for val in TABLE_SPLITTER_VALUES]
+        # TABLE_SPLITTER_VALUES = [str(val) for val in TABLE_SPLITTER_VALUES]
+        
+        print(TABLE_SPLITTER_VALUES)
+        print(table_names)
        
         if set(table_names) != set(TABLE_SPLITTER_VALUES):
             raise Exception("TABLE_SPLITTER needs to contain all tables from schema")

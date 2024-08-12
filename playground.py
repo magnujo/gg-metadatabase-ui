@@ -2,14 +2,26 @@
 from db_names import db_names
 import pandas as pd
 
-df = pd.DataFrame({"field_sample": [1,2,3]})
 
-print(db_names.data.field_sample())
-print([db_names.data.field_sample()])
-print(db_names.data())
-print([db_names.data()])
-print(db_names.data.field_sample.alias)
-print([db_names.data.field_sample.alias])
+d = {"edna_robot_sample": [1,3,3]}
 
-{'master_depth', 'adna_wetlab_report', 'field_sample', 'cgg_sediment_water', 'top_unknown_seq_barcodes', 'age_depth_model', 'cgg_animal_plant', 'edna_archive_sample', 'initials_translator', 'seq_sample_sheet', 'flowcell', 'edna_wetlab_report', 'edna_robot_sample'}
-{edna_wetlab_report, cgg_animal_plant, seq_sample_sheet, initials_translator, edna_robot_sample, cgg_sediment_water, top_unknown_seq_barcodes, age_depth_model, field_sample, flowcell, master_depth, edna_archive_sample, adna_wetlab_report}
+
+
+# instance = SubClass()
+# print(instance)  # This will print '1'
+   
+print([db_names.data.edna_robot_sample()])
+
+print(d[db_names.data.edna_robot_sample()])
+
+# print(str("hej"))
+
+# class MyClass(str):
+#     def __init__(self, name: str):
+#         self.string = name
+
+# my_dict = {'My Key': 1}
+# print(MyClass('My Key'))
+
+# print(my_dict[MyClass('My Key')])  # This will now print 1
+
