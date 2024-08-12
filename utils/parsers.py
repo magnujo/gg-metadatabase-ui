@@ -1,4 +1,5 @@
 import sys
+import constants.db_connections
 import constants.misc_constants as misc_constants
 import pandas as pd
 from utils import queries
@@ -9,8 +10,8 @@ def parse(sheet,
           decimal_point, 
           thousands_seperator):
     
-    database_name = misc_constants.SQL_ALCH_CONFIG["database"]
-    schema_name = misc_constants.SQL_ALCH_CONFIG["schema_name"]
+    database_name = constants.db_connections.SQL_ALCH_CONFIG["database"]
+    schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
     tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
     
     if not database_table_name in tables:
@@ -31,11 +32,11 @@ def parse(sheet,
                                           schema_name=schema_name, 
                                           database_name=database_name)
     
-    if not misc_constants.RUN_MODE == 'production':
+    if not constants.db_connections.RUN_MODE == 'production':
         sheet = sheet.dropna(axis='index', how='all')
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {schema_name}.{database_table_name}", con=misc_constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {schema_name}.{database_table_name}", con=constants.db_connections.ENGINE).columns
     expected_columns = list(expected_columns)
     
     # if 'uid' in expected_columns:

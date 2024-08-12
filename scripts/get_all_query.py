@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 import pandas as pd
-import constants.misc_constants as misc_constants
+import constants.db_connections as misc_constants
 import numpy as np
 from scripts import fid_query
 ENGINE = misc_constants.ENGINE_READ_ONLY

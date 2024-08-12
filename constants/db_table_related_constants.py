@@ -1,7 +1,10 @@
-from constants.misc_constants import SHEET_TYPES, SQL_ALCH_CONFIG
+from constants.db_connections import SQL_ALCH_CONFIG
+from db_names import db_names
+from constants.misc_constants import SHEET_TYPES
 from utils import queries, misc
 import inspect
 
+data_schema = db_names.data
 
 class DBTableRelated:
     '''
@@ -15,18 +18,18 @@ class DBTableRelated:
 
     # Load tables from schema and check that they are all here:
     TABLE_SPLITTER = {
-                        'field_sample': ['field_sample'],
-                        'edna_archive_sample': ['edna_archive_sample'],
-                        'edna_robot_sample': ['edna_robot_sample'],
-                        'edna_wetlab_report': ['edna_wetlab_report'],
-                        'adna_wetlab_report': ['adna_wetlab_report'],
-                        'cgg_sediment_water': ['cgg_sediment_water'],
-                        'cgg_animal_plant': ['cgg_animal_plant'],
-                        'lane_barcode_html': ['flowcell', 'top_unknown_seq_barcodes'],
-                        'seq_sample_sheet': ['seq_sample_sheet'],
-                        'master_depth': ['master_depth'],
-                        'age_depth_model': ['age_depth_model'],
-                        'initials_translator': ['initials_translator']
+                        'field_sample': [data_schema.field_sample()],
+                        'edna_archive_sample': [data_schema.edna_archive_sample()],
+                        'edna_robot_sample': [data_schema.edna_robot_sample()],
+                        'edna_wetlab_report': [data_schema.edna_wetlab_report()],
+                        'adna_wetlab_report': [data_schema.adna_wetlab_report()],
+                        'cgg_sediment_water': [data_schema.cgg_sediment_water()],
+                        'cgg_animal_plant': [data_schema.cgg_animal_plant()],
+                        'lane_barcode_html': [data_schema.flowcell(), data_schema.top_unknown_seq_barcodes()],
+                        'seq_sample_sheet': [data_schema.seq_sample_sheet()],
+                        'master_depth': [data_schema.master_depth()],
+                        'age_depth_model': [data_schema.age_depth_model()],
+                        'initials_translator': [data_schema.initials_translator()]
                     }
 
     DB_GENERATED_COLUMNS = {'top_unknown_seq_barcodes': ['uid']}

@@ -1,3 +1,4 @@
+from constants.db_connections import ENGINE, PSYCON_CONFIG, SQL_ALCH_CONFIG
 from utils import queries
 import logging
 from utils.CustomExceptions import DontTriggerFileDeletion
@@ -5,7 +6,7 @@ from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
-from constants.misc_constants import DELETED_SESSION_DATA, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, SQL_ALCH_CONFIG, PSYCON_CONFIG, ENGINE
+from constants.misc_constants import DELETED_SESSION_DATA, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES
 import psycopg2
 from scripts import deleted_schema_management
 import shutil

@@ -2,6 +2,7 @@
 Run by calling run() in the bottom
 '''
 
+import constants.db_connections
 import constants.misc_constants as misc_constants
 import psycopg2
 import getpass
@@ -83,11 +84,11 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
         super_user = input("Enter your database super username: ")
         super_password = getpass.getpass("Enter your super password: ")
         super_psy_conn = psycopg2.connect(
-            dbname=misc_constants.SQL_ALCH_CONFIG["database"],
+            dbname=constants.db_connections.SQL_ALCH_CONFIG["database"],
             user=str(super_user),
             password=str(super_password),
-            host=misc_constants.SQL_ALCH_CONFIG["host"],
-            port=misc_constants.SQL_ALCH_CONFIG["port"]
+            host=constants.db_connections.SQL_ALCH_CONFIG["host"],
+            port=constants.db_connections.SQL_ALCH_CONFIG["port"]
         )
        
         # Create a new schema

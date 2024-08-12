@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 import pandas as pd
-from constants.misc_constants import ENGINE_READ_ONLY as ENGINE
+from constants.db_connections import ENGINE_READ_ONLY as ENGINE
 import numpy as np
 from utils.db_utils import get_ordinal_position_maps
 

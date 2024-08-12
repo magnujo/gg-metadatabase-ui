@@ -1,7 +1,10 @@
+from constants.db_connections import ENGINE, SQL_ALCH_CONFIG
+import constants.db_connections
+import constants.db_connections
 from utils import parsers
 import constants.misc_constants as misc_constants
 import pandas as pd
-from constants.misc_constants import SQL_ALCH_CONFIG, ADMIN_EMAIL, ENGINE
+from constants.misc_constants import ADMIN_EMAIL
 import pandas as pd
 from utils.parsers import parse_dates, validate_integers
 
@@ -15,7 +18,7 @@ def parse(sheet, date_format, database_table_name, decimal_point, thousands_sepe
         raise Exception(f"Did not expect decimal numbers. Please contact contact {ADMIN_EMAIL} if you think this is a mistake.")
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {misc_constants.SQL_ALCH_CONFIG['schema_name']}.{database_table_name}", con=misc_constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {constants.db_connections.SQL_ALCH_CONFIG['schema_name']}.{database_table_name}", con=constants.db_connections.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
     

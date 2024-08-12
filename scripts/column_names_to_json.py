@@ -4,7 +4,7 @@ sys.path.append(parent_dir)
 import psycopg2
 import json
 import os
-from constants.misc_constants import PSYCON_CONFIG
+from constants.db_connections import PSYCON_CONFIG
 from getpass import getpass
 
 # Database connection parameters

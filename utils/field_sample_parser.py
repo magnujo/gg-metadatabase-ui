@@ -1,9 +1,13 @@
 import os
 import sys
+from constants.db_connections import ENGINE, SQL_ALCH_CONFIG
+import constants.db_connections
+import constants.db_connections
+import constants.db_connections
 from utils import parsers
 import constants.misc_constants as misc_constants
 import pandas as pd
-from constants.misc_constants import SQL_ALCH_CONFIG, ADMIN_EMAIL, ENGINE
+from constants.misc_constants import ADMIN_EMAIL
 import pandas as pd
 from utils.parsers import parse_dates, parse_floats, validate_integers
 
@@ -40,18 +44,18 @@ def parse(file_path,
     
     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
     
-    if not misc_constants.RUN_MODE == 'production':
+    if not constants.db_connections.RUN_MODE == 'production':
         sheet = sheet.dropna(axis='index', how='all')
 
     # check for expected cols
-    expected_columns = pd.read_sql(sql=f"SELECT * from {misc_constants.SQL_ALCH_CONFIG['schema_name']}.{database_table_name}", con=misc_constants.ENGINE).columns
+    expected_columns = pd.read_sql(sql=f"SELECT * from {constants.db_connections.SQL_ALCH_CONFIG['schema_name']}.{database_table_name}", con=constants.db_connections.ENGINE).columns
     
     expected_columns = expected_columns[:-3] 
    
     # TODO: Make unit test with mock data.
     assert list(expected_columns) == list(sheet.columns), ("Column names and/or positions not as expected")
 
-    if not misc_constants.RUN_MODE == 'production':
+    if not constants.db_connections.RUN_MODE == 'production':
         # For drop testing. Counts the number of rows where primary key is not null.
         num_of_not_null_rows = len(sheet[sheet[primary_key].notnull()]) 
 

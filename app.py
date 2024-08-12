@@ -1,3 +1,6 @@
+import constants.db_connections
+from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG
+from db_names import get_rename_map
 from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
@@ -29,14 +32,14 @@ from utils import queries
 from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
+from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
 from constants import paths
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
 from pandas import testing
 import logging
-from constants.misc_constants import ENGINE, SQL_ALCH_CONFIG, UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
+from constants.misc_constants import UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
 from utils import parsers
@@ -332,6 +335,11 @@ def confirmed():
                 parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
                 clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
+                
+                #  Rename columns to DB columns
+                rename_map = get_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
+                
+                clean_sheet = clean_sheet.rename(columns=rename_map)
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
@@ -886,8 +894,8 @@ def download_all_individual_tables():
         
         path_zip = os.path.join(directory_path, 'all_tables.zip')
         
-        schema_name = misc_constants.SQL_ALCH_CONFIG["schema_name"]
-        database_name = misc_constants.SQL_ALCH_CONFIG["database"]
+        schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
+        database_name = constants.db_connections.SQL_ALCH_CONFIG["database"]
         
         tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
         
@@ -949,17 +957,17 @@ if __name__ == '__main__':
     current_date = datetime.now().strftime('%Y%m%d')
 
     if os.environ.get('RUN_MODE'):
-        misc_constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
-        if not misc_constants.RUN_MODE in misc_constants.RUN_MODE_OPTIONS:
+        constants.db_connections.RUN_MODE = os.environ.get('RUN_MODE').lower()
+        if not constants.db_connections.RUN_MODE in constants.db_connections.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    print(f"RUNMODE:{misc_constants.RUN_MODE}")
+    print(f"RUNMODE:{constants.db_connections.RUN_MODE}")
     
-    deleted_schema_management.copy_or_generate(misc_constants.SQL_ALCH_CONFIG["schema_name"], database_name=misc_constants.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=misc_constants.PSY_CONN)
+    deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])
     
-    if misc_constants.RUN_MODE == 'production':
+    if constants.db_connections.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)
-    elif misc_constants.RUN_MODE == 'development':
+    elif constants.db_connections.RUN_MODE == 'development':
         app.run(debug=True)
     else:
         raise Exception('Error')    

@@ -16,9 +16,10 @@ To make name callable without parentheses use a meta class like this:
 
 '''
 import re
+
 import pandas as pd
 from utils import queries
-from constants.misc_constants import PSY_CONN
+from constants.db_connections import ENGINE, PSY_CONN
 
 
 
@@ -37,31 +38,12 @@ class NamedEntity():
 	def get_class_variables(cls):
 		return {k: v for k, v in cls.__dict__.items() if not callable(v) and not k.startswith('__')}
 
-	# @classmethod
-	# def __str__(cls):
-	# 	return cls.__name
-
-class Table(NamedEntity):
-	def __str__(self):
-		id = self.get_id()		
-		return get_table_name(id)
-
-class Schema(NamedEntity):
-	def __str__(self):
-		id = self.get_id()		
-		return get_schema_name(id)
-
-class Column(NamedEntity):
-	def __str__(self):
-		id = self.get_id()		
-		return get_column_name(id)
-
 
 
 class name_maps(NamedEntity):
 	def __init__(self):
 		super().__init__(db_name="name_maps", db_id=2)
-
+  
 	class column_names(NamedEntity):
 		def __init__(self):
 			super().__init__(db_name="column_names", db_id=20)
@@ -91,7 +73,6 @@ class name_maps(NamedEntity):
 		# Columns:
 		schema_name = "schema_name"
 		schema_id = "schema_id"
-
 
 def get_schema_name(schema_id: int):
 
@@ -215,7 +196,30 @@ def print_class_structure(schema_id):
 
 			print(f"{tab}{var} = Column({id})")
 		print()
-  
+
+
+# @classmethod
+# def __str__(cls):
+# 	return cls.__name
+
+class Table(NamedEntity):
+	def __str__(self):
+		id = self.get_id()
+		return get_table_name(id)
+
+
+class Schema(NamedEntity):
+	def __str__(self):
+		id = self.get_id()
+		return get_schema_name(id)
+
+
+class Column(NamedEntity):
+	def __str__(self):
+		id = self.get_id()
+		return get_column_name(id)
+
+
 class db_names:
 	'''
 	Helper class that gets column names from a mapper that maps column ids to names.
@@ -229,7 +233,7 @@ class db_names:
 	class data(Schema):
 		def __init__(self) -> None:
 			super().__init__(db_id=1)
-   
+
 		class edna_robot_sample(Table):
 			def __init__(self):
 				super().__init__(db_id=1)
@@ -692,3 +696,42 @@ class db_names:
 			database_insert_datetime_utc = Column(353)
 			uid = Column(354)
 			upload_uuid = Column(355)
+
+
+def get_full_name_map():
+
+    column_names = name_maps().column_names()
+    table_names = name_maps().table_names()
+    schema_names = name_maps().schema_names()
+
+    q = f'''
+	select * from "{name_maps()}"."{column_names}" cn 
+	join "{name_maps()}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
+	join "{name_maps()}"."{schema_names}" sn on tn."{table_names.schema_id}" = sn."{schema_names.schema_id}";
+	'''
+
+    df = pd.read_sql(q, ENGINE)
+
+    return df
+
+
+def get_rename_map(schema_name, table_name):
+    column_names = name_maps().column_names()
+    table_names = name_maps().table_names()
+    schema_names = name_maps().schema_names()
+
+    q = f'''
+	select "{column_names.column_name_sheet}", "{column_names.column_name_db}" from "{name_maps()}"."{column_names}" cn 
+	join "{name_maps()}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
+	join "{name_maps()}"."{schema_names}" sn on tn."{table_names.schema_id}" = sn."{schema_names.schema_id}"
+ 	where sn."{schema_names.schema_name}" = '{schema_name}' and tn."{table_names.table_name}" = '{table_name}' 
+  	and cn."{column_names.column_name_sheet}" is not null;
+	'''
+ 
+
+
+    df = pd.read_sql(q, ENGINE)
+    d = {key: value for (key, value) in df.values}
+
+    return d
+  

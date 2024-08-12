@@ -1,7 +1,9 @@
 import os, sys
+
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
-from constants.misc_constants import SQL_ALCH_CONFIG, PSYCON_CONFIG, ENGINE
+from constants.db_connections import ENGINE
+from constants.db_connections import SQL_ALCH_CONFIG
 import pandas as pd
 import psycopg2
 
@@ -188,3 +190,16 @@ def execute_query(query, connection, params=None):
     
     except (Exception, psycopg2.Error) as error:
         raise
+
+def get_table_as_df(schema_name: str, table_name: str):
+    
+    q = f'''
+    select * from "{schema_name}"."{table_name}";
+    '''
+    
+    df = pd.read_sql(q, SQL_ALCH_CONFIG)
+    
+    return df
+
+
+    
