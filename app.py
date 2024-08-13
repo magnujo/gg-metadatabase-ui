@@ -5,6 +5,7 @@ from constants.db_names.name_maps import sheet_to_db_rename_map, db_to_sheet_ren
 from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
+from utils.misc import make_dir_on_network_mount
 from validation_tools import validate_enum_columns
 from scripts import deleted_schema_management
 import zipfile
@@ -130,6 +131,12 @@ def upload_file():
                 
             database_table_name = request.form.get('database_table_name')
             session['database_table_name'] = database_table_name
+            table_splits = db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)
+            
+            if database_table_name == 'field_sample':
+                if len(table_splits) != 1:
+                    raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
+            
             date_format = request.form.get('date_format')
             decimal_point = request.form.get('decimal_point')
             thousands_seperator = request.form.get('thousands_seperator')
@@ -148,6 +155,7 @@ def upload_file():
             
             if database_table_name == "no_choice" or not database_table_name:
                 raise DontTriggerFileDeletion('Please select a spreadsheet type')
+            
 
             os.mkdir(session_dir)
         
@@ -195,6 +203,8 @@ def upload_file():
             
             clean_sheets = []
             
+            
+            
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
                 clean_sheet = parsers.parse(sheet=sheet,
@@ -221,9 +231,69 @@ def upload_file():
                 
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
-                if split_database_table_name == db_names.age_depth_model():
-                    clean_sheet[db_names.age_depth_model.master_field_sample_id()] = str(Path(str(file_name)).stem)
+                if split_database_table_name == "age_depth_model":
+                    master_ids = {str(Path(str(file_name)).stem).lower()}
                 
+                if split_database_table_name == "master_depth":
+                    master_ids: set = set(clean_sheet["Master Field Sample ID"].apply(lambda x: x.lower()).unique())
+                
+                
+                
+                if split_database_table_name == "age_depth_model" or split_database_table_name == "master_depth":
+                    if master_ids == None or len(master_ids) < 1:
+                        raise Exception("master_ids is None or empty")
+                    
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column="Master ID/Parent sample ID", 
+                                                                                      engine=ENGINE, 
+                                                                                      schema=DATABASE_CONFIG["schema_name"], 
+                                                                                      table="field_sample")
+                    
+                    for master_id in master_ids:
+                        print(master_id)
+                        if master_id == None or unique_master_IDs_in_db == None:
+                            raise Exception("master_id or master_ids_in_database is None")
+                        
+                        if master_id in unique_master_IDs_in_db and master_id != "unknown":
+                            clean_sheet['Master Field Sample ID'] = master_id
+                        
+                        else:
+                            raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
+                
+                if split_database_table_name == 'field_sample':
+                    parent_col = "Master ID/Parent sample ID"
+                    project_col = "Running Project Title"
+                    
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=parent_col, 
+                                                                                      engine=ENGINE, 
+                                                                                      schema=DATABASE_CONFIG["schema_name"], 
+                                                                                      table="field_sample")
+                    
+                    unique_project_IDs_in_db = queries.get_unique_values_from_db_column(column=project_col, 
+                                                                                      engine=ENGINE, 
+                                                                                      schema=DATABASE_CONFIG["schema_name"], 
+                                                                                      table="field_sample")
+                    
+  
+                    if not parent_col in clean_sheet.columns:
+                        raise Exception(f"Expected column {parent_col}, but column was not found in the uploaded file")
+                    
+                    
+                    if not project_col in clean_sheet.columns:
+                        raise Exception(f"Expected column {project_col}, but column was not found in the uploaded file")
+                        
+                    unique_master_IDs_in_parsed_sheet = set(clean_sheet[parent_col].str.lower().unique())
+                    unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
+                        
+                    
+                    bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
+                    
+                    bad_project_ids = [id for id in unique_project_IDs_in_parsed_sheet if id in unique_project_IDs_in_db]
+                    
+                    if len(bad_master_ids) > 0 or len(bad_project_ids) > 0:
+                        raise Exception(f''' The data cannot be uploaded because the following '{parent_col}' values already exists in the database: {bad_master_ids} \n
+                                        and/or the following '{project_col}' values already exist in the database {bad_project_ids}. \n
+                                        If you want to add the data anyways, contact {ADMIN_EMAIL}
+                                        ''') 
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
@@ -340,7 +410,9 @@ def confirmed():
                 stem = str(Path(str(file_name)).stem)
                 parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
                 clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
-                clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
+               
+                
+                # clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                 
                 #  Rename columns to DB columns
                 rename_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
@@ -380,6 +452,9 @@ def confirmed():
         with ENGINE.connect() as conn:
             with conn.begin() as trans:
                 try:
+                    # Everything that is created, uploaded etc, should be done within this try block.
+                    # The rest of this view function is for validation.
+                    
                     for i, table_name in enumerate(table_splits):    
                         clean_sheets[table_name].to_sql(name=table_name, 
                                             schema=SQL_ALCH_CONFIG['schema_name'], 
@@ -395,7 +470,7 @@ def confirmed():
                             row_count_after_rollback = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table)
                             if row_count_after_rollback != row_counts_before_upload[table]:
                                 # TODO: Remove only rows that were not rolled back?
-                                raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. CLICK BELOW TO NOTIFY ADMIN.")
+                                raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. Contact admin.")
                     except Exception as e:
                         return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload']) 
                     else:
@@ -406,7 +481,8 @@ def confirmed():
                 # Commit if no exception happened
                 else:
                     trans.commit() 
-                    
+        
+        # The following is validation only. Nothing should be created, only moved.           
         try:
             for i, table_name in enumerate(table_splits):
                 row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
@@ -434,7 +510,7 @@ def confirmed():
                         row_count_errors[table_name].append(f"Error happened during upload. Expected to find {expected_rows} added rows in {table_name} but {num_of_uploaded_rows[table_name]} were found. Rolling back...")
              
         except ValueError as e:
-            return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload'])  
+            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])  
         
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])                          
@@ -473,28 +549,20 @@ def confirmed():
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
         
-        try:       
-            if database_table_name == db_names.field_sample():
-                if len(table_splits) != 1:
-                    raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
-                else:
-                    for table_name in table_splits:
-                            clean_sheet = clean_sheets[table_name]
-                            project_names = list(clean_sheet[db_names.field_sample.running_project_title()].unique())
-                            if len(project_names) < 1:
-                                raise Exception(f"Please fill in {db_names.field_sample.running_project_title()}")
-                            else:
-                                created_dirs = []
-                                
-                                for project_name in project_names:                      
-                                    path_to_dir = os.path.join(misc_constants.GEO_DATA_NETWORK_DIR, str(project_name))
-                                    created_dir = make_dir_on_network_mount(network_drive="N", path_to_dir=path_to_dir, error_if_exists=False)
-                                    created_dirs.append(created_dir)
-        
-                                       
-        
-        except FileExistsError as e:
-            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])                       
+        try:                        
+            if database_table_name == 'field_sample':
+                for table_name in table_splits:
+                        clean_sheet = clean_sheets[table_name]
+                        dirs_to_create = misc.generate_field_sample_dir_paths(clean_sheet, projects_root_dir=misc_constants.GEO_DATA_PROJECTS_DIR_PATH, 
+                                                                                          samples_root_dir=misc_constants.GEO_DATA_SAMPLES_DIR)
+                        created_dirs = []
+                        for path in dirs_to_create:
+                            os.makedirs(path)
+                            created_dirs.append(path)
+                                              
+                        
+        # except FileExistsError as e:
+        #     return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])                       
         
         except Exception as e:
             
@@ -520,9 +588,6 @@ def confirmed():
 @decorators.log_info(app)
 def cancel_upload():
     return redirect(url_for("index"))
-
-
-    
 
 @app.route('/success', methods=['GET'])
 @decorators.log_info(app)
@@ -923,27 +988,6 @@ def download_individual_unfiltered_tables():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
-def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
-    '''
-    Only set error_if_exists = True if you want to raise an error and cancel the creation, if the dir already exists. 
-    '''
-     
-    path_on_server = os.path.join(misc_constants.PATH_TO_MOUNT, path_to_dir)    
-    path_on_network = os.path.join(f"{network_drive}:", path_to_dir)
-    print(f"Trying to create dir at {path_on_server} corresponding to {path_on_network}...")
-    
-    
-    if os.path.exists(path_on_server):
-        if error_if_exists:
-            raise FileExistsError(f"The server tried to make a directory on {path_on_network}, but the directory already exists.")
-        else:
-            return None
-    else:
-        # Only makes the directory if it does'nt already exist.
-        os.mkdir(path_on_server)
-        print(f"Created dir at {path_on_server} corresponding to {path_on_network} succefully")
-        return path_on_server
-    
 if __name__ == '__main__':
     print("Start")
     db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()

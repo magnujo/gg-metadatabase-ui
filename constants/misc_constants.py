@@ -17,9 +17,10 @@ if str(platform.system()) == "Windows":
 else:
     PATH_TO_MOUNT = os.path.join("/", "mnt")
     
-GEO_DATA_NETWORK_DIR = os.path.join("SUN-GI-metadb-test", "Field Sample Projects")
+GEO_DATA_NETWORK_DIR = os.path.join("SUN-GI-metadb-test", "Field Sample Geo Files")
 GEO_DATA_NETWORK_DIR_DELETIONS = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
-RENAME_DB_FILE = os.path.join("SUN-GI-metadb-test", "Deleted (DO NOT TOUCH)")
+GEO_DATA_PROJECTS_DIR_PATH = os.path.join(PATH_TO_MOUNT, GEO_DATA_NETWORK_DIR, "Project specific files")
+GEO_DATA_SAMPLES_DIR = os.path.join(PATH_TO_MOUNT, GEO_DATA_NETWORK_DIR, "Sample specific files")
 
 ADMIN_EMAIL = "magnus.johannsen@sund.ku.dk"
 UPLOADED_FILES = 'uploaded_sheets'

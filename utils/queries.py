@@ -28,6 +28,9 @@ def check_if_upload_id_exists_in_table(schema, table, upload_id):
             return False
     else:
         return False
+
+def get_unique_values_from_db_column(schema: str, table: str, column: str, engine) -> set:
+    return set(get_table_as_dataframe(engine, schema_name=schema, table_name=table)[column].astype(str).apply(lambda x: x.lower()).unique())
     
 def check_if_upload_id_exists_in_schema(database, schema, upload_id):
     cases = []
@@ -108,9 +111,17 @@ def get_table_dtypes(table_name, schema_name):
 
 def get_possible_datatypes(category):
     
-    if category == "date":
-        code = 'D'
-        
+    
+    match(category):
+        case "date":
+            code = "D"
+        case "boolean":
+            code = "B"
+        case "string":
+            code = "S"
+        case _:
+            raise Exception("Unknown category")
+
     q = f'''
     SELECT typname
     FROM pg_catalog.pg_type
@@ -162,7 +173,15 @@ def get_schema_names(database):
     '''
     
     df = pd.read_sql(q, con=ENGINE)
+
+def get_table_as_dataframe(engine, schema_name: str, table_name: str, dtype=None):
+    q = f'''
+    SELECT *
+    FROM "{schema_name}"."{table_name}";
+    '''
     
+    df = pd.read_sql(q, con=engine, dtype=dtype)
+    return df
 
 def execute_query(query, connection, params=None):
     # Connection parameters
