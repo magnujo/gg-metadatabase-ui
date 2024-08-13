@@ -1,17 +1,19 @@
 from sqlalchemy import create_engine
 import pandas as pd
-from constants.misc_constants import ENGINE_READ_ONLY as ENGINE
+from constants.db_connections import ENGINE_READ_ONLY as ENGINE
 import numpy as np
 from utils.db_utils import get_ordinal_position_maps
+from constants.db_names.names import db_names
 
-def get_meta_data(field_sample_IDs, ordinal_position_maps):
+def get_meta_data(field_sample_IDs):
     '''
     Gets all meta data connected to fIDs across WetLab, Archive and CGG sediment table
     '''
     
-    wldf_q = "select * from test_1.edna_wetlab_report;"
-    asdf_q = "select * from test_1.edna_archive_sample;"
-    cgg_q = "select * from test_1.cgg_sediment_water;"
+    wldf_q = f'select * from "{db_names()}"."{db_names.edna_wetlab_report()}";'
+    asdf_q = f'select * from "{db_names()}"."{db_names.edna_archive_sample()}";'
+    cgg_q = f'select * from "{db_names()}"."{db_names.cgg_sediment_water()}";'
+
     wet_lab_reports = pd.read_sql(wldf_q, dtype=str, con=ENGINE)
     archive_samples = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
     cgg_3 = pd.read_sql(cgg_q, dtype=str, con=ENGINE)
@@ -19,33 +21,33 @@ def get_meta_data(field_sample_IDs, ordinal_position_maps):
     
     
     # Renames all columns to their corresponding ordinal position in Postgres. To be renamed back before returned.
-    # wet_lab_reports = wet_lab_reports.rename(columns=ordinal_position_maps["edna_wetlab_report"].col_to_pos)
+    # wet_lab_reports = wet_lab_reports.rename(columns=ordinal_position_maps[db_names.edna_wetlab_report()].col_to_pos)
     # archive_samples = archive_samples.rename(columns=ordinal_position_maps["edna_archive_sample"].col_to_pos)
-    # cgg_3 = cgg_3.rename(columns=ordinal_position_maps["cgg_sediment_water"].col_to_pos)
+    # cgg_3 = cgg_3.rename(columns=ordinal_position_maps[db_names.cgg_sediment_water()].col_to_pos)
     
     # Dynamic column names Wetlab Report
-    library_id = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(23)
-    fastq_file_id = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(51)
-    robot_sample_ID = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(9)
-    extraction_ID = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(16)
-    aID_wlr = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(10)
+    library_id = db_names.edna_wetlab_report.library_id()
+    fastq_file_id = db_names.edna_wetlab_report.fastq_file_id() 
+    robot_sample_ID = db_names.edna_wetlab_report.robot_sample_id() 
+    extraction_ID = db_names.edna_wetlab_report.edna_id() 
+    aID_wlr = db_names.edna_wetlab_report.archive_sample_id() 
     
     # Dynamic col names Archive Samples
-    aID_as = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(1)
-    field_sample_ID = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(5)
-    depth_as = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(6)
+    aID_as = db_names.edna_archive_sample.archivesampleid() 
+    field_sample_ID = db_names.edna_archive_sample.field_sample_id() 
+    depth_as = db_names.edna_archive_sample.depthsampledcaltape() 
     
     # Dynamic col names CGG
-    cgg_ID = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(1)
-    museum_ID = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(2)
-    depth_cgg = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(11)
-    height = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(12)
-    age = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(17)
-    geological_age = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(18)
-    country = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(23)
-    lat = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(25)
-    lon = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(26)
-    gps = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(27)
+    cgg_ID = db_names.cgg_sediment_water.cgg_id() 
+    museum_ID = db_names.cgg_sediment_water.museum_id_sample_id()
+    depth_cgg = db_names.cgg_sediment_water.depth()
+    height = db_names.cgg_sediment_water.height__asl()
+    age = db_names.cgg_sediment_water.age()
+    geological_age = db_names.cgg_sediment_water.geological_age()
+    country = db_names.cgg_sediment_water.country()
+    lat = db_names.cgg_sediment_water.lat()
+    lon = db_names.cgg_sediment_water.lon()
+    gps = db_names.cgg_sediment_water.gps()
     
     global_field_sample_id_col_name = "FieldSampleID"
 

@@ -10,7 +10,7 @@ from scripts import duplicate_schema
 def copy_or_generate(active_schema, database_name, alch_engine, psy_conn):
     
     """
-    Tries to copy data from the active schema to the active deleted schema. If they are equal not, 
+    Tries to copy data from the active schema to the active deleted schema. If they are not equal, 
     a new deleted schema that replicates the active schema is made with the current datetime appended.
 
     Parameters:
