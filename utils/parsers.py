@@ -3,6 +3,7 @@ import constants.db_connections
 import constants.misc_constants as misc_constants
 import pandas as pd
 from utils import queries
+from db_names import get_sheet_rename_map
 
 def parse(sheet, 
           date_format, 
@@ -63,11 +64,20 @@ def parse(sheet,
     # TODO: Make unit test with mock data.
     # assert expected_columns == list(sheet.columns), ("Column names and/or positions not as expected")
     
+    
+    print(schema_name, database_table_name)
+    rename_map = get_sheet_rename_map(schema_name=schema_name, table_name=database_table_name)
+    
+    
+    
+    print(rename_map)
+    print(primary_key)
+    
     for i, ele in enumerate(primary_key):
         if ele in misc_constants.AUTO_GENERATED_COLUMNS:
             pass
         
-        elif not ele in sheet.columns:
+        elif not ele in sheet.rename(columns=rename_map).columns:
             raise Exception (f"Upload failed. Expected column {primary_key[i]} not found. Are you sure you uploaded the correct spreadsheet?")
 
     # if not constants.RUN_MODE == 'production' and 'uid' not in primary_key:

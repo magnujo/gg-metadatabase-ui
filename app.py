@@ -1,6 +1,6 @@
 import constants.db_connections
 from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG
-from db_names import get_rename_map
+from db_names import get_sheet_rename_map, get_db_rename_map
 from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
@@ -227,7 +227,11 @@ def upload_file():
 
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
-            
+                
+                rename_map = get_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                
+                db_table_data = db_table_data.rename(columns=rename_map)
+                
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -337,7 +341,7 @@ def confirmed():
                 clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                 
                 #  Rename columns to DB columns
-                rename_map = get_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
+                rename_map = get_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 
                 clean_sheet = clean_sheet.rename(columns=rename_map)
                             

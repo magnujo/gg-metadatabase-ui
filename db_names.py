@@ -315,7 +315,7 @@ def get_full_name_map():
     return df
 
 
-def get_rename_map(schema_name, table_name):
+def get_sheet_rename_map(schema_name, table_name):
     column_names = name_maps().column_names()
     table_names = name_maps().table_names()
     schema_names = name_maps().schema_names()
@@ -336,6 +336,10 @@ def get_rename_map(schema_name, table_name):
     return d
 
 
+def get_db_rename_map(schema_name, table_name):
+    rm = get_sheet_rename_map(schema_name, table_name)
+    return {val: key for (key, val) in rm.items()}
+    
 class db_names:
     class data(Schema):
         _db_id = 1
