@@ -65,13 +65,9 @@ def parse(sheet,
     # assert expected_columns == list(sheet.columns), ("Column names and/or positions not as expected")
     
     
-    print(schema_name, database_table_name)
     rename_map = sheet_to_db_rename_map(schema_name=schema_name, table_name=database_table_name)
     
-    
-    
-    print(rename_map)
-    print(primary_key)
+
     
     for i, ele in enumerate(primary_key):
         if ele in misc_constants.AUTO_GENERATED_COLUMNS:

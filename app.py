@@ -177,7 +177,6 @@ def upload_file():
                 # TODO: Make more general:
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
 
-                
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
@@ -766,13 +765,8 @@ def search():
             directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
             db_names.edna_archive_sample()
             
-            ordinal_position_maps = {db_names.edna_wetlab_report(): get_ordinal_position_maps(db_names.edna_wetlab_report(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
-                        db_names.edna_archive_sample(): get_ordinal_position_maps(db_names.edna_archive_sample(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
-                        db_names.cgg_sediment_water(): get_ordinal_position_maps(db_names.cgg_sediment_water(), SQL_ALCH_CONFIG['schema_name'], ENGINE)}
-            
-            library_id_col_name = ordinal_position_maps[db_names.edna_wetlab_report()].pos_to_col.get(23)
-            country_col_name = ordinal_position_maps[db_names.cgg_sediment_water()].pos_to_col.get(23)
-            
+            library_id_col_name = db_names.edna_wetlab_report.library_id() 
+            country_col_name = db_names.cgg_sediment_water.country()
             
             try:
                 match input_dropdown:
@@ -781,12 +775,12 @@ def search():
                     case "no_choice":
                         raise Exception("You need to choose a search type in the dropdown menu")
                     case "fID":
-                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list), ordinal_position_maps)
+                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list))
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                  
                     case "lID":
-                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
                         essential_merged_df = essential_merged_df[essential_merged_df[library_id_col_name].str.upper().isin(list(values_list))] 
                         full_merged_df = full_merged_df[full_merged_df[library_id_col_name].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
@@ -797,7 +791,7 @@ def search():
                         # path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
                     case "country":
-                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
                         essential_merged_df = essential_merged_df[essential_merged_df[country_col_name].str.upper().isin(list(values_list))] 
                         full_merged_df = full_merged_df[full_merged_df[country_col_name].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
@@ -844,11 +838,8 @@ def get_all_data():
         
         zip_paths = []
         
-        ordinal_position_maps = {db_names.edna_wetlab_report(): get_ordinal_position_maps(db_names.edna_wetlab_report(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
-                        db_names.edna_archive_sample(): get_ordinal_position_maps(db_names.edna_archive_sample(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
-                        db_names.cgg_sediment_water(): get_ordinal_position_maps(db_names.cgg_sediment_water(), SQL_ALCH_CONFIG['schema_name'], ENGINE)}
         
-        essential, full, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+        essential, full, raws = get_all_query.get_all_meta_data_using_fids()
         
         global search_id 
         search_id = search_id + 1

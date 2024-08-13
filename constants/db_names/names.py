@@ -5,7 +5,7 @@ sys.path.append(parent_dir)
 
 import re
 from constants.db_connections import PSY_CONN
-from name_maps import get_column_name, get_schema_name, get_table_name, name_maps
+from constants.db_names.name_maps import get_column_name, get_schema_name, get_table_name, name_maps
 from utils import queries
 
 
@@ -384,7 +384,7 @@ class db_names(Schema):
         positioninrack = lambda template=False: get_column_name(255, template=template)
         rackname = lambda template=False: get_column_name(256, template=template)
         rackid = lambda template=False: get_column_name(257, template=template)
-        bulksampleid = lambda template=False: get_column_name(258, template=template)
+        field_sample_id = lambda template=False: get_column_name(258, template=template)
         depthsampledcaltape = lambda template=False: get_column_name(259, template=template)
         depthorderedcaltape = lambda template=False: get_column_name(260, template=template)
         organiccontent = lambda template=False: get_column_name(261, template=template)
@@ -606,4 +606,3 @@ def print_class_structure_2(schema_id):
 			print(f"{tab}{var} = lambda template=False: get_column_name({id}, template=template)")
 		print()
 
-print_class_structure_2(1)

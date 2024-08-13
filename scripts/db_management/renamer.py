@@ -77,7 +77,7 @@ def rename_templates():
         schema_names = name_maps.schema_names()
         
         q1 = f'''
-        select "{schema_names.schema_name}", {table_names.sheet_template_name}  
+        select sn."{schema_names.schema_name}", tn.{table_names.sheet_template_name}  
         from "{nm}"."{table_names}" tn 
         join "{nm}"."{schema_names}" sn on sn."{schema_names.schema_id}" = tn."{table_names.schema_id}"
         where {table_names.table_id} = '{id}';
@@ -148,7 +148,7 @@ def rename_template_column():
         schema_names = name_maps.schema_names()
         
         q1 = f'''
-        select "{schema_names.schema_name}", "{table_names.sheet_template_name}" 
+        select sn."{schema_names.schema_name}", tn."{table_names.sheet_template_name}" 
         from "{name_maps()}"."{column_names}" cn 
         join "{nm}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
         join "{nm}"."{schema_names}" sn on sn."{schema_names.schema_id}" = tn."{table_names.schema_id}"
@@ -283,7 +283,7 @@ def rename_db_tables():
         schema_names = name_maps.schema_names()
         
         q1 = f'''
-        select "{schema_names.schema_name}", {table_names.table_name}  
+        select sn."{schema_names.schema_name}", tn.{table_names.table_name}  
         from "{nm}"."{table_names}" tn 
         join "{nm}"."{schema_names}" sn on sn."{schema_names.schema_id}" = tn."{table_names.schema_id}"
         where {table_names.table_id} = '{id}';
