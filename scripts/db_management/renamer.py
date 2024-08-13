@@ -31,13 +31,14 @@ NOTE: Table IDs can be found in the database under name_maps.
 # TODO: Translate
 # TODO: Implement
 # TODO: Make queries safe from sql injection
-
 import os, sys
 
-from constants.db_connections import PSYCON_CONFIG
-from db_names import db_names
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(parent_dir)
+
+
+from constants.db_connections import PSYCON_CONFIG
+
 import pandas as pd
 import json
 from utils import queries
@@ -348,7 +349,7 @@ def rename_db_column():
         schema_names = name_maps.schema_names()
         
         q1 = f'''
-        select "{schema_names.schema_name}", "{table_names.table_name}" 
+        select sn."{schema_names.schema_name}", tn."{table_names.table_name}" 
         from "{name_maps()}"."{column_names}" cn 
         join "{nm}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
         join "{nm}"."{schema_names}" sn on sn."{schema_names.schema_id}" = tn."{table_names.schema_id}"
@@ -417,7 +418,7 @@ def run():
         raise Exception("Files names not as expected")
     
     if len(file_names) != 5:
-        raise Exception("number og renamer files not as expected")
+        raise Exception("number of renamer files not as expected")
     
     active_rename_files = []
     
@@ -434,7 +435,7 @@ def run():
         file_name = active_rename_files[0][0]
         rename_file = active_rename_files[0][1]
         
-        confirmation = input(f"IMPORTANT: Found non-empty renaming file: {file_path}. \
+        confirmation = input(f"IMPORTANT: Found non-empty renaming file: {file_name}. \
 Do you want to proceed with the renaming that the file specifies? (y/n) ")
         
         if confirmation == "y":
@@ -460,5 +461,4 @@ Do you want to proceed with the renaming that the file specifies? (y/n) ")
 
     # Run renaming
 
-with lock:
-    run()
+run()
