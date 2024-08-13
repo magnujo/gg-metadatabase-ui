@@ -1,4 +1,4 @@
-from db_names import get_sheet_rename_map
+from constants.db_names.name_maps import sheet_to_db_rename_map
 import os
 import constants.db_table_related_constants as db_table_related_constants
 from utils import queries

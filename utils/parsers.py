@@ -3,7 +3,7 @@ import constants.db_connections
 import constants.misc_constants as misc_constants
 import pandas as pd
 from utils import queries
-from db_names import get_sheet_rename_map
+from constants.db_names.name_maps import sheet_to_db_rename_map
 
 def parse(sheet, 
           date_format, 
@@ -66,7 +66,7 @@ def parse(sheet,
     
     
     print(schema_name, database_table_name)
-    rename_map = get_sheet_rename_map(schema_name=schema_name, table_name=database_table_name)
+    rename_map = sheet_to_db_rename_map(schema_name=schema_name, table_name=database_table_name)
     
     
     

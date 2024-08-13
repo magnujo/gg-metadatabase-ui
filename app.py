@@ -1,6 +1,7 @@
 import constants.db_connections
+from constants.db_names.names import db_names
 from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG
-from db_names import get_sheet_rename_map, get_db_rename_map
+from constants.db_names.name_maps import sheet_to_db_rename_map, db_to_sheet_rename_map
 from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
@@ -175,17 +176,19 @@ def upload_file():
             if database_table_name == "lane_barcode_html":
                 # TODO: Make more general:
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
+
+                
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
             else:       
-                if database_table_name == "seq_sample_sheet":
+                if database_table_name == db_names.seq_sample_sheet():
                     l = []
                     for i in range(10):
                         l.append(f"Column{i+1}")
                     sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
-                elif database_table_name == "age_depth_model":
+                elif database_table_name == db_names.age_depth_model():
                     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
                 else:
                     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
@@ -219,8 +222,8 @@ def upload_file():
                 
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
-                if split_database_table_name == "age_depth_model":
-                    clean_sheet['Master Field Sample ID'] = str(Path(str(file_name)).stem)
+                if split_database_table_name == db_names.age_depth_model():
+                    clean_sheet[db_names.age_depth_model.master_field_sample_id()] = str(Path(str(file_name)).stem)
                 
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
@@ -228,7 +231,7 @@ def upload_file():
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
-                rename_map = get_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                rename_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 
                 db_table_data = db_table_data.rename(columns=rename_map)
                 
@@ -341,7 +344,7 @@ def confirmed():
                 clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                 
                 #  Rename columns to DB columns
-                rename_map = get_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
+                rename_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 
                 clean_sheet = clean_sheet.rename(columns=rename_map)
                             
@@ -471,19 +474,16 @@ def confirmed():
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
         
-        try:
-            
-            
-                        
-            if database_table_name == 'field_sample':
+        try:       
+            if database_table_name == db_names.field_sample():
                 if len(table_splits) != 1:
                     raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
                 else:
                     for table_name in table_splits:
                             clean_sheet = clean_sheets[table_name]
-                            project_names = list(clean_sheet["Running Project Title"].unique())
+                            project_names = list(clean_sheet[db_names.field_sample.running_project_title()].unique())
                             if len(project_names) < 1:
-                                raise Exception("Please fill in Running Project Title")
+                                raise Exception(f"Please fill in {db_names.field_sample.running_project_title()}")
                             else:
                                 created_dirs = []
                                 
@@ -764,13 +764,14 @@ def search():
             session["search_id"] = str(search_id)
             
             directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+            db_names.edna_archive_sample()
             
-            ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
-                        "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
-                        "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
+            ordinal_position_maps = {db_names.edna_wetlab_report(): get_ordinal_position_maps(db_names.edna_wetlab_report(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
+                        db_names.edna_archive_sample(): get_ordinal_position_maps(db_names.edna_archive_sample(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
+                        db_names.cgg_sediment_water(): get_ordinal_position_maps(db_names.cgg_sediment_water(), SQL_ALCH_CONFIG['schema_name'], ENGINE)}
             
-            library_id_col_name = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(23)
-            country_col_name = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(23)
+            library_id_col_name = ordinal_position_maps[db_names.edna_wetlab_report()].pos_to_col.get(23)
+            country_col_name = ordinal_position_maps[db_names.cgg_sediment_water()].pos_to_col.get(23)
             
             
             try:
@@ -843,9 +844,9 @@ def get_all_data():
         
         zip_paths = []
         
-        ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
-                        "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
-                        "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
+        ordinal_position_maps = {db_names.edna_wetlab_report(): get_ordinal_position_maps(db_names.edna_wetlab_report(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
+                        db_names.edna_archive_sample(): get_ordinal_position_maps(db_names.edna_archive_sample(), SQL_ALCH_CONFIG['schema_name'], ENGINE),
+                        db_names.cgg_sediment_water(): get_ordinal_position_maps(db_names.cgg_sediment_water(), SQL_ALCH_CONFIG['schema_name'], ENGINE)}
         
         essential, full, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
         

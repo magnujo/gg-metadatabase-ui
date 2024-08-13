@@ -43,7 +43,7 @@ import pandas as pd
 import json
 from utils import queries
 from constants.misc_constants import PATH_TO_MOUNT
-from db_names import name_maps, get_column_name, get_schema_name, get_table_name
+from constants.db_names.name_maps import name_maps, get_column_name, get_schema_name, get_table_name
 import psycopg2
 import getpass
 from threading import Lock

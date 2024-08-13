@@ -59,19 +59,19 @@ def clean_up_advanced(tsv_file_path, database_table_name):
         if 'Submitter\n(initials)' in sheet.columns:
             sheet = sheet.rename(columns={'Submitter\n(initials)': 'Submitter(KU ID(s seperated by semicolon))'})
         
-    elif database_table_name == 'edna_wetlab_report':
+    elif database_table_name == data_names.edna_wetlab_report():
         pass
     
-    elif database_table_name == 'adna_wetlab_report':
+    elif database_table_name == data_names.adna_wetlab_report():
         pass
 
     elif database_table_name == 'cgg_sediment':
         pass
 
-    elif database_table_name == 'cgg_animal_plant':
+    elif database_table_name == data_names.cgg_animal_plant():
         pass
 
-    elif database_table_name == 'field_sample':
+    elif database_table_name == data_names.field_sample():
         pass
 
     else:

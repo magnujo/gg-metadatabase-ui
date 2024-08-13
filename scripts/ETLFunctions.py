@@ -17,35 +17,35 @@ def clean_up(tsv_file_path, database_table_name, date_format, decimal_point,
                                        decimal_point=decimal_point,
                                        thousands_seperator=thousands_seperator)
         
-    elif database_table_name == 'edna_wetlab_report':
+    elif database_table_name == data_names.edna_wetlab_report():
         sheet = edna_wetlab_report_parser.parse(file_path=tsv_file_path, 
                                        date_format=date_format, 
                                        database_table_name=database_table_name,
                                        decimal_point=decimal_point,
                                        thousands_seperator=thousands_seperator)
     
-    elif database_table_name == 'adna_wetlab_report':
+    elif database_table_name == data_names.adna_wetlab_report():
         sheet = adna_wetlab_report_parser.parse(file_path=tsv_file_path, 
                                                         date_format=date_format, 
                                                         database_table_name=database_table_name,
                                                         decimal_point=decimal_point,
                                                         thousands_seperator=thousands_seperator)
 
-    elif database_table_name == 'cgg_sediment_water':
+    elif database_table_name == data_names.cgg_sediment_water():
         sheet = cgg_sediment_water_parser.parse(file_path=tsv_file_path, 
                                                     date_format=date_format, 
                                                     database_table_name=database_table_name,
                                                     decimal_point=decimal_point,
                                                     thousands_seperator=thousands_seperator)
 
-    elif database_table_name == 'cgg_animal_plant':
+    elif database_table_name == data_names.cgg_animal_plant():
         sheet = cgg_animal_plant_parser.parse(file_path=tsv_file_path, 
                                                         date_format=date_format, 
                                                         database_table_name=database_table_name,
                                                         decimal_point=decimal_point,
                                                         thousands_seperator=thousands_seperator)
 
-    elif database_table_name == 'field_sample':
+    elif database_table_name == data_names.field_sample():
         sheet = field_sample_parser.parse(file_path=tsv_file_path, 
                                                         date_format=date_format, 
                                                         database_table_name=database_table_name,

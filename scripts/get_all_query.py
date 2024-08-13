@@ -16,7 +16,7 @@ def get_all_fids(ordinal_position_maps):
     
       
     field_sample_ID = ordinal_position_maps["edna_archive_sample"].pos_to_col.get(5)
-    museum_ID = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(2)
+    museum_ID = ordinal_position_maps[data_names.cgg_sediment_water()].pos_to_col.get(2)
 
     wldf = wldf.fillna(np.nan)
     wldf = wldf.replace("NONE", np.nan)

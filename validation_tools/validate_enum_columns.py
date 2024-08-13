@@ -8,9 +8,9 @@ from utils import misc
 import constants.misc_constants as misc_constants
 
 
-ALLOWED_VALUES = {"field_sample": {'sample type': ['osl', 'core', 'monolith', 'sample bag', 'tube']}}
+ALLOWED_VALUES = {data_names.field_sample(): {'sample type': ['osl', 'core', 'monolith', 'sample bag', 'tube']}}
 
-COLUMNS_TO_CHECK = {"field_sample": ["Country/Ocean", ""]}
+COLUMNS_TO_CHECK = {data_names.field_sample(): ["Country/Ocean", ""]}
 
 def validate_enum_columns(df, valid_enum_values):
     '''
