@@ -1,12 +1,15 @@
 import pandas as pd
 
-# Example DataFrame
-data = {'Name': ['Alice', 'Bob', 'Charlie'],
-        'Age': [25, 30, 35]}
-
+# Sample DataFrame
+data = {'A': [1, 2, None], 'B': [None, None, 6]}
 df = pd.DataFrame(data)
 
-# Iterate over a specific column (e.g., 'Name')
-column_name = 'Name'
-for index, value in df[column_name].items():
-    print(f"Index: {index}, Value: {value}")
+# Check for rows with no data
+no_data_rows = df
+
+# Return False if there are any rows with no data
+result = no_data_rows.any()
+
+print(result)  # This will print False if there are one or more empty rows
+print(df)
+

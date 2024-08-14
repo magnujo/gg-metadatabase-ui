@@ -111,18 +111,24 @@ def rename_templates():
         
         full_query = full_query
     
+    user_output = {get_table_name(int(key), template=True): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following template renaming? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    tables_before = {key: get_table_name(int(key), template=True) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    tables_after = {key: get_table_name(int(key), template=True) for key in rename_file}
+    if confirmation == 'y':
     
-    errors = []
-    for key in rename_file:
-        if tables_before[key] == tables_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+        tables_before = {key: get_table_name(int(key), template=True) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        tables_after = {key: get_table_name(int(key), template=True) for key in rename_file}
+        
+        errors = []
+        for key in rename_file:
+            if tables_before[key] == tables_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
 def rename_template_column():
@@ -195,19 +201,25 @@ def rename_template_column():
 
         full_query = full_query
 
-    cols_before = {key: get_column_name(int(key), template=True) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    cols_after = {key: get_column_name(int(key), template=True) for key in rename_file}
+    user_output = {get_column_name(int(key), template=True): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following renaming in template: {template_name}? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
+    
+    if confirmation == 'y':
+        cols_before = {key: get_column_name(int(key), template=True) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        cols_after = {key: get_column_name(int(key), template=True) for key in rename_file}
+            
+        # TODO: Check that names in db are the same as in template?
         
-    # TODO: Check that names in db are the same as in template?
-    
-    errors = []
-    for key in rename_file:
-        if cols_before[key] == cols_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+        errors = []
+        for key in rename_file:
+            if cols_before[key] == cols_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
 def rename_db_schema():
@@ -247,19 +259,24 @@ def rename_db_schema():
         
         full_query = full_query + table_update_q
     
-    print(full_query)
     
-    schemas_before = {key: get_schema_name(int(key)) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    schemas_after = {key: get_table_name(int(key)) for key in rename_file}
+    user_output = {get_table_name(int(key)): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the schema renaming? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    errors = []
-    for key in rename_file:
-        if schemas_before[key] == schemas_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+    if confirmation == 'y':
+        schemas_before = {key: get_schema_name(int(key)) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        schemas_after = {key: get_table_name(int(key)) for key in rename_file}
+        
+        errors = []
+        for key in rename_file:
+            if schemas_before[key] == schemas_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")        
 
 
 def rename_db_tables():
@@ -315,18 +332,24 @@ def rename_db_tables():
         
         full_query = full_query + table_update_q
     
+    user_output = {get_table_name(int(key)): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following renaming? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    tables_before = {key: get_table_name(int(key)) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    tables_after = {key: get_table_name(int(key)) for key in rename_file}
+    if confirmation == 'y':
     
-    errors = []
-    for key in rename_file:
-        if tables_before[key] == tables_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+        tables_before = {key: get_table_name(int(key)) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        tables_after = {key: get_table_name(int(key)) for key in rename_file}
+        
+        errors = []
+        for key in rename_file:
+            if tables_before[key] == tables_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
 def rename_db_column():
@@ -387,19 +410,26 @@ def rename_db_column():
         '''
         
         full_query = full_query + table_update_q
-
-    cols_before = {key: get_column_name(int(key)) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    cols_after = {key: get_column_name(int(key)) for key in rename_file}
         
+    user_output = {get_column_name(int(key)): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following renaming in {schema_name}.{table_name}? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    errors = []
-    for key in rename_file:
-        if cols_before[key] == cols_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+    if confirmation == 'y':
+
+        cols_before = {key: get_column_name(int(key)) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        cols_after = {key: get_column_name(int(key)) for key in rename_file}
+            
+        
+        errors = []
+        for key in rename_file:
+            if cols_before[key] == cols_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
 def run():
