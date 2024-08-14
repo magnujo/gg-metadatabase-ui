@@ -84,8 +84,7 @@ class DBTableRelated:
         TABLE_SPLITTER_VALUES = sum(DBTableRelated.TABLE_SPLITTER.values(), [])
         # TABLE_SPLITTER_VALUES = [str(val) for val in TABLE_SPLITTER_VALUES]
         
-        print(TABLE_SPLITTER_VALUES)
-        print(table_names)
+ 
        
         if set(table_names) != set(TABLE_SPLITTER_VALUES):
             raise Exception("TABLE_SPLITTER needs to contain all tables from schema")

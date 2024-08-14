@@ -37,7 +37,6 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__f
 sys.path.append(parent_dir)
 
 
-from constants.db_connections import PSYCON_CONFIG
 
 import pandas as pd
 import json
@@ -50,15 +49,9 @@ from threading import Lock
 
 lock = Lock()
 
-
-db_config = PSYCON_CONFIG
-
-
-connection = None
-
     
 
-def rename_templates():
+def rename_templates(connection):
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_renamer.json")
     
@@ -131,7 +124,7 @@ def rename_templates():
             raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
-def rename_template_column():
+def rename_template_column(connection):
     # TODO: notify people of renaming.
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_column_renamer.json")
@@ -222,7 +215,7 @@ def rename_template_column():
             raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
-def rename_db_schema():
+def rename_db_schema(connection):
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_schema_renamer.json")
     
     # Load renamer file
@@ -279,7 +272,7 @@ def rename_db_schema():
             raise Exception(f"The following columns where not renamed correctly: {errors}")        
 
 
-def rename_db_tables():
+def rename_db_tables(connection):
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_table_renamer.json")
     
     # TODO: If rename file is not empty: ask user if they really want to rename
@@ -352,7 +345,7 @@ def rename_db_tables():
             raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
-def rename_db_column():
+def rename_db_column(connection):
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_column_renamer.json")
     
@@ -433,6 +426,17 @@ def rename_db_column():
 
 
 def run():
+    user = input("Enter your database username: ")
+    password = getpass.getpass("Enter your database password: ")
+    
+    db_config = {
+        'host': "dandyweb01fl",
+        'dbname': "aedna_metadata_test",
+        'port': "5432",
+        'user': user,
+        'password': password
+    }
+    
     rename_files = {
         "db_column_renamer.json": rename_db_column,
         "db_schema_renamer.json": rename_db_schema,
@@ -464,21 +468,12 @@ def run():
         # do rename
         file_name = active_rename_files[0][0]
         rename_file = active_rename_files[0][1]
-        
-        confirmation = input(f"IMPORTANT: Found non-empty renaming file: {file_name}. \
-Do you want to proceed with the renaming that the file specifies? (y/n) ")
-        
-        if confirmation == "y":
-            user = input("Enter your database username: ")
-            password = getpass.getpass("Enter your database password: ")
-            
-            db_config["user"] = user
-            db_config["password"] = password
 
-            global connection
-            connection = psycopg2.connect(**db_config)   
-            
-            rename_files[file_name]()
+        
+    
+        connection = psycopg2.connect(**db_config)   
+        
+        rename_files[file_name](connection)
                 
     
     elif len(active_rename_files) == 0:

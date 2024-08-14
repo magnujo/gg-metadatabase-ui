@@ -156,7 +156,6 @@ def upload_file():
             if database_table_name == "no_choice" or not database_table_name:
                 raise DontTriggerFileDeletion('Please select a spreadsheet type')
             
-            print(session_dir)
             os.makedirs(session_dir)
         
         # Dont delete session dir on error before the session dir has been created. This might otherwise delete a dir by mistake.
