@@ -1,3 +1,4 @@
+from constants.db_names.name_maps import sheet_to_db_rename_map
 import os
 import constants.db_table_related_constants as db_table_related_constants
 from utils import queries
@@ -5,6 +6,7 @@ import constants.misc_constants as misc_constants
 import utils.queries as q
 import json
 import requests
+from constants.db_names.names import db_names
 
 def drop_auto_generated_columns(dataframe):
     '''
@@ -19,12 +21,13 @@ def match_column_positions(upload_file_df, db_data_df):
     Tries to rearrange the column positions of upload_file to match db_data. 
     If number of columns or column names differ an exception gets raised.
     '''
+    
   
     if len(upload_file_df.columns) == len(db_data_df.columns):
         try:
             upload_file_df = upload_file_df[db_data_df.columns]
         except KeyError as e:
-            raise Exception(f"The following columns where found in the database base table but not in the upload file: {e.args[0]}")
+            raise Exception(f"The following columns where found in the database table but not in the upload file: {e.args[0]}")
     else:
         raise Exception(f"Number of columns in database table does match number of columns in upload file. Columns found database: {db_data_df.columns}. Columns found in upload file: {upload_file_df.columns}")
     return upload_file_df
@@ -222,9 +225,10 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     
     
 def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_root_dir):
-    project_names = list(parsed_sheet["Running Project Title"].str.strip().unique())
+    col_names = db_names.field_sample
+    project_names = list(parsed_sheet[col_names.running_project_title()].str.strip().unique())
     if len(project_names) < 1:
-        raise Exception("Please fill in Running Project Title")
+        raise Exception(f"Please fill in {col_names.running_project_title()}")
     else:
         paths_to_create = []
         
@@ -243,8 +247,8 @@ def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_roo
                 paths_to_create.append(os.path.join(project_path_on_server, "Other"))
 
     # Make sample paths
-    parent_sample_id_col_name = "Master ID/Parent sample ID"
-    sample_id_col_name = "Unique Sample ID" 
+    parent_sample_id_col_name = col_names.master_id_parent_sample_id()
+    sample_id_col_name = col_names.unique_sample_id()
     root_sample_ids = \
         set(parsed_sheet[parent_sample_id_col_name].str.strip().unique()) - set(parsed_sheet[sample_id_col_name].str.strip().unique())
     sample_hierachy = extract_sample_hierachy(root_sample_ids, parsed_sheet, 

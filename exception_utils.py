@@ -1,3 +1,4 @@
+from constants.db_connections import ENGINE, PSYCON_CONFIG, SQL_ALCH_CONFIG
 from utils import queries
 import logging
 from utils.CustomExceptions import DontTriggerFileDeletion
@@ -5,7 +6,7 @@ from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
-from constants.misc_constants import DELETED_SESSION_DATA, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES, DATABASE_CONFIG, DATABASE_CONFIG_2, ENGINE
+from constants.misc_constants import DELETED_SESSION_DATA, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES
 import psycopg2
 from scripts import deleted_schema_management
 import shutil
@@ -43,14 +44,14 @@ def delete_files(file_name, session_dir, delete_session_dir, original=False, par
     
 # TODO: Make more secure: implement time check for example.
 def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):
-        schema = DATABASE_CONFIG['schema_name']
+        schema = SQL_ALCH_CONFIG['schema_name']
         deleted_schema = deleted_schema_management.get_active_deleted_schema(schema_name=schema, engine=ENGINE)
         print(f'\n Moving FROM "{schema}"."{database_table_name}" where upload_uuid = \'{upload_id}\' to {deleted_schema}.{database_table_name} \n')
-        in_db = pd.read_sql(queries.upload_id_filter(schema=DATABASE_CONFIG['schema_name'], table=database_table_name, upload_id=upload_id), con=ENGINE)
+        in_db = pd.read_sql(queries.upload_id_filter(schema=SQL_ALCH_CONFIG['schema_name'], table=database_table_name, upload_id=upload_id), con=ENGINE)
         if len(in_db) != num_of_rows_to_del:
                 raise Exception("Failed deleting data because of shape mismatch between uploaded data and file. Make sure to notify admin so we can fix this")
         else:
-                connection = psycopg2.connect(**DATABASE_CONFIG_2)
+                connection = psycopg2.connect(**PSYCON_CONFIG)
                 cursor = connection.cursor()
                 q = f'''
                 BEGIN;

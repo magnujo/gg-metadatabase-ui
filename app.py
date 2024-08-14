@@ -1,3 +1,7 @@
+import constants.db_connections
+from constants.db_names.names import db_names
+from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG
+from constants.db_names.name_maps import sheet_to_db_rename_map, db_to_sheet_rename_map
 from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
@@ -30,14 +34,14 @@ from utils import queries
 from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, ENGINE_READ_ONLY
+from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
 from constants import paths
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
 from pandas import testing
 import logging
-from constants.misc_constants import ENGINE, DATABASE_CONFIG, UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
+from constants.misc_constants import UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
 from utils import parsers
@@ -152,8 +156,7 @@ def upload_file():
             if database_table_name == "no_choice" or not database_table_name:
                 raise DontTriggerFileDeletion('Please select a spreadsheet type')
             
-
-            os.mkdir(session_dir)
+            os.makedirs(session_dir)
         
         # Dont delete session dir on error before the session dir has been created. This might otherwise delete a dir by mistake.
         except Exception as e:
@@ -180,17 +183,18 @@ def upload_file():
             if database_table_name == "lane_barcode_html":
                 # TODO: Make more general:
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
+
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
             else:       
-                if database_table_name == "seq_sample_sheet":
+                if database_table_name == db_names.seq_sample_sheet():
                     l = []
                     for i in range(10):
                         l.append(f"Column{i+1}")
                     sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
-                elif database_table_name == "age_depth_model":
+                elif database_table_name == db_names.age_depth_model():
                     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
                 else:
                     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
@@ -206,18 +210,15 @@ def upload_file():
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
-                                            thousands_seperator=thousands_seperator)
-                
-                # Rename columns
-                for old_name, new_name in misc_constants.COLUMN_TRANSLATER.items():
-                    if old_name in clean_sheet.columns:
-                        clean_sheet = clean_sheet.rename(columns={old_name: new_name})
+                                            thousands_seperator=thousands_seperator)                
                 
                 clean_sheet.columns = clean_sheet.columns.str.strip()
+                
+                # TODO: Check that no two columns are the same with lower()
             
                 
                 # Adds rows about which user was responsible for the upload:
-                clean_sheet['database_insert_by'] = DATABASE_CONFIG['user']
+                clean_sheet['database_insert_by'] = SQL_ALCH_CONFIG['user']
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
@@ -229,47 +230,47 @@ def upload_file():
                 
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
-                if split_database_table_name == "age_depth_model":
+                if split_database_table_name == db_names.age_depth_model():
                     master_ids = {str(Path(str(file_name)).stem).lower()}
                 
-                if split_database_table_name == "master_depth":
-                    master_ids: set = set(clean_sheet["Master Field Sample ID"].apply(lambda x: x.lower()).unique())
+                if split_database_table_name == db_names.master_depth():
+                    master_ids: set = set(clean_sheet[db_names.master_depth.master_field_sample_id()].apply(lambda x: x.lower()).unique())
                 
                 
                 
-                if split_database_table_name == "age_depth_model" or split_database_table_name == "master_depth":
+                if split_database_table_name == db_names.age_depth_model() or split_database_table_name == db_names.master_depth():
                     if master_ids == None or len(master_ids) < 1:
                         raise Exception("master_ids is None or empty")
                     
-                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column="Master ID/Parent sample ID", 
+                    
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=db_names.field_sample.master_id_parent_sample_id(), 
                                                                                       engine=ENGINE, 
-                                                                                      schema=DATABASE_CONFIG["schema_name"], 
-                                                                                      table="field_sample")
+                                                                                      schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                      table=db_names.field_sample())
                     
                     for master_id in master_ids:
-                        print(master_id)
                         if master_id == None or unique_master_IDs_in_db == None:
                             raise Exception("master_id or master_ids_in_database is None")
                         
                         if master_id in unique_master_IDs_in_db and master_id != "unknown":
-                            clean_sheet['Master Field Sample ID'] = master_id
+                            clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
                         
                         else:
                             raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
                 
-                if split_database_table_name == 'field_sample':
-                    parent_col = "Master ID/Parent sample ID"
-                    project_col = "Running Project Title"
+                if split_database_table_name == db_names.field_sample():
+                    parent_col = db_names.field_sample.master_id_parent_sample_id()
+                    project_col = db_names.field_sample.running_project_title()
                     
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=parent_col, 
                                                                                       engine=ENGINE, 
-                                                                                      schema=DATABASE_CONFIG["schema_name"], 
-                                                                                      table="field_sample")
+                                                                                      schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                      table=db_names.field_sample())
                     
                     unique_project_IDs_in_db = queries.get_unique_values_from_db_column(column=project_col, 
                                                                                       engine=ENGINE, 
-                                                                                      schema=DATABASE_CONFIG["schema_name"], 
-                                                                                      table="field_sample")
+                                                                                      schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                      table=db_names.field_sample())
                     
   
                     if not parent_col in clean_sheet.columns:
@@ -293,11 +294,15 @@ def upload_file():
                                         If you want to add the data anyways, contact {ADMIN_EMAIL}
                                         ''') 
                 
-                db_table_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
+                db_table_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
-                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=DATABASE_CONFIG['schema_name'])
+                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
-            
+                
+                rename_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                
+                db_table_data = db_table_data.rename(columns=rename_map)
+                
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -387,7 +392,7 @@ def confirmed():
             session['upload_id'] = upload_id
             upload_time = pd.Timestamp.now(tz='UTC')
 
-            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=DATABASE_CONFIG['database'], schema=DATABASE_CONFIG['schema_name'], upload_id=session.get('upload_id'))
+            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=SQL_ALCH_CONFIG['database'], schema=SQL_ALCH_CONFIG['schema_name'], upload_id=session.get('upload_id'))
             if len(tables_with_uid) != 0:
                 raise Exception(f"Found upload_id already in {tables_with_uid}")            
             
@@ -407,6 +412,11 @@ def confirmed():
                
                 
                 # clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
+                
+                #  Rename columns to DB columns
+                rename_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
+                
+                clean_sheet = clean_sheet.rename(columns=rename_map)
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
@@ -427,11 +437,11 @@ def confirmed():
                     upload_id = upload_id[0]
                     if str(session.get("upload_id")) != str(upload_id):
                         raise Exception("Upload ID discreprancy accross parsed sheet and session variable")
-                    uid_exists = queries.check_if_upload_id_exists_in_table(schema=DATABASE_CONFIG["schema_name"], table=table_name, upload_id=upload_id)
+                    uid_exists = queries.check_if_upload_id_exists_in_table(schema=SQL_ALCH_CONFIG["schema_name"], table=table_name, upload_id=upload_id)
                     if uid_exists:
                         raise Exception(f"Found upload id already in {table_name}")
         
-                row_count_before_upload = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+                row_count_before_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 row_counts_before_upload[table_name] = row_count_before_upload
             
             except Exception as e:
@@ -446,7 +456,7 @@ def confirmed():
                     
                     for i, table_name in enumerate(table_splits):    
                         clean_sheets[table_name].to_sql(name=table_name, 
-                                            schema=DATABASE_CONFIG['schema_name'], 
+                                            schema=SQL_ALCH_CONFIG['schema_name'], 
                                             con=conn, 
                                             if_exists='append', 
                                             index=False)
@@ -456,7 +466,7 @@ def confirmed():
                         # Rolling back to conn.begin()
                         trans.rollback()
                         for table in tables_uploaded_to:
-                            row_count_after_rollback = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table)
+                            row_count_after_rollback = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table)
                             if row_count_after_rollback != row_counts_before_upload[table]:
                                 # TODO: Remove only rows that were not rolled back?
                                 raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. Contact admin.")
@@ -474,11 +484,11 @@ def confirmed():
         # The following is validation only. Nothing should be created, only moved.           
         try:
             for i, table_name in enumerate(table_splits):
-                row_count_after_upload = queries.count_rows(DATABASE_CONFIG['database'], DATABASE_CONFIG['schema_name'], table_name=table_name)
+                row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 row_counts_after_upload[table_name] = row_count_after_upload
                 expected_rows = len(clean_sheets[table_name])
                 num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
-                q = queries.upload_id_filter(schema=DATABASE_CONFIG['schema_name'], table=table_name, upload_id=upload_id)
+                q = queries.upload_id_filter(schema=SQL_ALCH_CONFIG['schema_name'], table=table_name, upload_id=upload_id)
                 num_of_upload_ids_in_db[table_name] = len(pd.read_sql(q, con=ENGINE))
             
         except Exception as e: 
@@ -590,7 +600,7 @@ def success():
 
         all_tables = []
         for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
-            uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
+            uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
             all_tables.append(uploaded_data)
@@ -611,7 +621,7 @@ def error():
     return render_template('error_basic.html', email_send=session.get('email_send'), error_messages=error_messages, error_message_admin=error_message_admin, admin=ADMIN_EMAIL)
 
 def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
-    uploaded_data = pd.read_sql(sql=f"SELECT * from {DATABASE_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
+    uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{database_table_name} where upload_uuid = \'{upload_id}\';", con=ENGINE)
 
     uploaded_data = uploaded_data.fillna(value=np.nan).reset_index(drop=True)
     clean_sheet = clean_sheet.fillna(value=np.nan).reset_index(drop=True)
@@ -817,14 +827,10 @@ def search():
             session["search_id"] = str(search_id)
             
             directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+            db_names.edna_archive_sample()
             
-            ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
-                        "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
-                        "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
-            
-            library_id_col_name = ordinal_position_maps["edna_wetlab_report"].pos_to_col.get(23)
-            country_col_name = ordinal_position_maps["cgg_sediment_water"].pos_to_col.get(23)
-            
+            library_id_col_name = db_names.edna_wetlab_report.library_id() 
+            country_col_name = db_names.cgg_sediment_water.country()
             
             try:
                 match input_dropdown:
@@ -833,12 +839,12 @@ def search():
                     case "no_choice":
                         raise Exception("You need to choose a search type in the dropdown menu")
                     case "fID":
-                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list), ordinal_position_maps)
+                        essential_merged_df, full_merged_df, raws = fid_query.get_meta_data(list(values_list))
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
                         path_all = os.path.join(directory_path, 'all_meta_data.csv')
                  
                     case "lID":
-                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
                         essential_merged_df = essential_merged_df[essential_merged_df[library_id_col_name].str.upper().isin(list(values_list))] 
                         full_merged_df = full_merged_df[full_merged_df[library_id_col_name].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
@@ -849,7 +855,7 @@ def search():
                         # path_all = os.path.join(directory_path, 'all_meta_data.csv')
                         
                     case "country":
-                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+                        essential_merged_df, full_merged_df, raws = get_all_query.get_all_meta_data_using_fids()
                         essential_merged_df = essential_merged_df[essential_merged_df[country_col_name].str.upper().isin(list(values_list))] 
                         full_merged_df = full_merged_df[full_merged_df[country_col_name].str.upper().isin(list(values_list))] 
                         path_essential = os.path.join(directory_path, 'essential_meta_data.csv')
@@ -896,11 +902,8 @@ def get_all_data():
         
         zip_paths = []
         
-        ordinal_position_maps = {"edna_wetlab_report": get_ordinal_position_maps("edna_wetlab_report", "test_1", ENGINE),
-                        "edna_archive_sample": get_ordinal_position_maps("edna_archive_sample", "test_1", ENGINE),
-                        "cgg_sediment_water": get_ordinal_position_maps("cgg_sediment_water", "test_1", ENGINE)}
         
-        essential, full, raws = get_all_query.get_all_meta_data_using_fids(ordinal_position_maps)
+        essential, full, raws = get_all_query.get_all_meta_data_using_fids()
         
         global search_id 
         search_id = search_id + 1
@@ -951,8 +954,8 @@ def download_all_individual_tables():
         
         path_zip = os.path.join(directory_path, 'all_tables.zip')
         
-        schema_name = misc_constants.DATABASE_CONFIG["schema_name"]
-        database_name = misc_constants.DATABASE_CONFIG["database"]
+        schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
+        database_name = constants.db_connections.SQL_ALCH_CONFIG["database"]
         
         tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
         
@@ -993,17 +996,17 @@ if __name__ == '__main__':
     current_date = datetime.now().strftime('%Y%m%d')
 
     if os.environ.get('RUN_MODE'):
-        misc_constants.RUN_MODE = os.environ.get('RUN_MODE').lower()
-        if not misc_constants.RUN_MODE in misc_constants.RUN_MODE_OPTIONS:
+        constants.db_connections.RUN_MODE = os.environ.get('RUN_MODE').lower()
+        if not constants.db_connections.RUN_MODE in constants.db_connections.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    print(f"RUNMODE:{misc_constants.RUN_MODE}")
+    print(f"RUNMODE:{constants.db_connections.RUN_MODE}")
     
-    deleted_schema_management.copy_or_generate(misc_constants.DATABASE_CONFIG["schema_name"], database_name=misc_constants.DATABASE_CONFIG["database"], alch_engine=ENGINE, psy_conn=misc_constants.PSY_CONN)
+    deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])
     
-    if misc_constants.RUN_MODE == 'production':
+    if constants.db_connections.RUN_MODE == 'production':
         app.run(host='0.0.0.0', port=5100)
-    elif misc_constants.RUN_MODE == 'development':
+    elif constants.db_connections.RUN_MODE == 'development':
         app.run(debug=True)
     else:
         raise Exception('Error')    

@@ -6,11 +6,12 @@ import pandas as pd
 import constants.db_table_related_constants as db_table_related_constants
 from utils import misc
 import constants.misc_constants as misc_constants
+from constants.db_names.names import db_names
 
 
-ALLOWED_VALUES = {"field_sample": {'sample type': ['osl', 'core', 'monolith', 'sample bag', 'tube']}}
+ALLOWED_VALUES = {db_names.field_sample(): {'sample type': ['osl', 'core', 'monolith', 'sample bag', 'tube']}}
 
-COLUMNS_TO_CHECK = {"field_sample": ["Country/Ocean", ""]}
+COLUMNS_TO_CHECK = {db_names.field_sample(): ["Country/Ocean", ""]}
 
 def validate_enum_columns(df, valid_enum_values):
     '''

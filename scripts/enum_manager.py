@@ -2,7 +2,7 @@ import psycopg2
 from psycopg2 import sql
 import sys
 sys.path.append(r'c:\Users\glj523\Documents\github repoes\upload_web_app')
-from constants import misc_constants
+from constants import db_connections
 
 def enum_exists(cursor, enum_name):
     cursor.execute(
@@ -32,11 +32,11 @@ def add_enum_values(cursor, enum_name, schema_name, values):
         
 def run(enum_name, values, schema_name):    
     connection = psycopg2.connect(
-            dbname=misc_constants.DATABASE_CONFIG["database"],
+            dbname=db_connections.SQL_ALCH_CONFIG["database"],
             user="",
             password="",
-            host=misc_constants.DATABASE_CONFIG["host"],
-            port=misc_constants.DATABASE_CONFIG["port"]
+            host=db_connections.SQL_ALCH_CONFIG["host"],
+            port=db_connections.SQL_ALCH_CONFIG["port"]
         )
     connection.autocommit = True
     

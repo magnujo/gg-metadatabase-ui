@@ -36,35 +36,16 @@
     <br>
     <br>
    
-    <p>PLEASE NOTE: As of now it this search function is still under development, and some data is missing and not standardized. Use it with care.</p>
+    <p><b>!!! PLEASE NOTE: This page is still under development, and some data is missing and not standardized. Use it with care !!!</b></p>
     <br>
 
-    <h2>Get all CGG data</h2>
-    <p>Use this functionality if you are interested in CGG data. This is old unstandardized data.</p>
-    
-    <form method="post" action="/get_all_data">
-        <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
-        <select name="encoding_type" id="encoding_type" required>
-            <option value="">Choose an option...</option> 
-            <option value="utf_8">UTF-8</option>  
-            <option value="utf_16">UTF-16</option>  
-            <option value="ascii">ASCII</option>  
-            </select>
-        <br>
-        Press to get meta data about all (reported) field samples and associated subsamples in a single csv: <input type="submit" value="Get all data...">
-    </form>
-
-    <br>
-
-    <br>
-    
     <h2>Download all tables</h2>
-    <p> Use this functionality if you want to download all the tables of the database</p>
+    <p> Press the "Download all tables..." button below if you want to download all the tables of the database. This includes both old unstandardized CGG tables and the new standardized field_sample data</p>
     <form method="post" action="/download_all_individual_tables">
         <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
         <select name="encoding_type" id="encoding_type" required>
             <option value="">Choose an option...</option> 
-            <option value="utf_8">UTF-8</option>  
+            <option value="utf_8">UTF-8</option>
             <option value="utf_16">UTF-16</option>  
             <option value="ascii">ASCII</option>  
             </select>
@@ -73,28 +54,47 @@
     </form>
     <br>
     <br>
-    <h2>Search for specific ID(s)</h2>
+    <br>
+    <h3>Merged data (NOTE: NOT CONSISTENT and the merges are done using the old non-standardized CGG data)</h3>
+    <h4> Use above method for most consistent result</h4>
+    <form method="post" action="/get_all_data">
+        
+        <br>
+        <input type="submit" value="Get all data...">
+        <label for="encoding_type"></label>
+        <select name="encoding_type" id="encoding_type" required>
+            <option value="">Choose encoding...</option> 
+            <option value="utf_8">UTF-8</option>  
+            <option value="utf_16">UTF-16</option>  
+            <option value="ascii">ASCII</option>  
+            </select> <- Choose UTF-8 if you are in doubt
+    </form>
+
+    <br>
+
+
+    <h5>Search for specific ID(s):</h5>
 
     <form method="post" action="/search">
-        <label for="search_type">Which id type do you want to search for?</label>
+        <label for="search_type"></label>
         <select name="search_type" id="search_type" required>
-            <option value="">Choose an option...</option> 
+            <option value="">Choose filter option...</option> 
             <option value="fID">Field Sample ID</option>  
             <option value="lID">Library ID</option>  
             <option value="country">Country</option>  
             </select>
-        <br>
-        <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
-        <select name="encoding_type" id="encoding_type" required>
-            <option value="">Choose an option...</option> 
-            <option value="utf_8">UTF-8</option>  
-            <option value="utf_16">UTF-16</option>  
-            <option value="ascii">ASCII</option>  
-            </select>
+        
         <br>
         <label for="input_values">Insert ID(s) that you want meta data about (seperated by new line):</label><br>
         <textarea id="input_values" name="input_values" rows="5" cols="50" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea><br>
         <input type="submit" value="Search">
+        <label for="encoding_type"></label>
+        <select name="encoding_type" id="encoding_type" required>
+            <option value="">Choose encoding...</option> 
+            <option value="utf_8">UTF-8</option>  
+            <option value="utf_16">UTF-16</option>  
+            <option value="ascii">ASCII</option>  
+            </select> <- Choose UTF-8 if in doubt
     </form>
     
     <br>
