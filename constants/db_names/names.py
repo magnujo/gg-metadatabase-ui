@@ -106,6 +106,8 @@ class db_names(Schema):
         from_spreadsheet = lambda template=False: get_column_name(32, template=template)
         database_insert_datetime_utc = lambda template=False: get_column_name(33, template=template)
         upload_uuid = lambda template=False: get_column_name(34, template=template)
+        master_field_sample_id = lambda template=False: get_column_name(376, template=template)
+        field_sample_id = lambda template=False: get_column_name(377, template=template)
 
     class field_sample_types(Table):
         _db_id = 4

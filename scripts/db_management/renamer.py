@@ -37,7 +37,6 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__f
 sys.path.append(parent_dir)
 
 
-from constants.db_connections import PSYCON_CONFIG
 
 import pandas as pd
 import json
@@ -50,15 +49,9 @@ from threading import Lock
 
 lock = Lock()
 
-
-db_config = PSYCON_CONFIG
-
-
-connection = None
-
     
 
-def rename_templates():
+def rename_templates(connection):
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_renamer.json")
     
@@ -111,21 +104,27 @@ def rename_templates():
         
         full_query = full_query
     
+    user_output = {get_table_name(int(key), template=True): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following template renaming? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    tables_before = {key: get_table_name(int(key), template=True) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    tables_after = {key: get_table_name(int(key), template=True) for key in rename_file}
+    if confirmation == 'y':
     
-    errors = []
-    for key in rename_file:
-        if tables_before[key] == tables_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+        tables_before = {key: get_table_name(int(key), template=True) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        tables_after = {key: get_table_name(int(key), template=True) for key in rename_file}
+        
+        errors = []
+        for key in rename_file:
+            if tables_before[key] == tables_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
-def rename_template_column():
+def rename_template_column(connection):
     # TODO: notify people of renaming.
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "template_column_renamer.json")
@@ -195,22 +194,28 @@ def rename_template_column():
 
         full_query = full_query
 
-    cols_before = {key: get_column_name(int(key), template=True) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    cols_after = {key: get_column_name(int(key), template=True) for key in rename_file}
+    user_output = {get_column_name(int(key), template=True): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following renaming in template: {template_name}? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
+    
+    if confirmation == 'y':
+        cols_before = {key: get_column_name(int(key), template=True) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        cols_after = {key: get_column_name(int(key), template=True) for key in rename_file}
+            
+        # TODO: Check that names in db are the same as in template?
         
-    # TODO: Check that names in db are the same as in template?
-    
-    errors = []
-    for key in rename_file:
-        if cols_before[key] == cols_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+        errors = []
+        for key in rename_file:
+            if cols_before[key] == cols_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
-def rename_db_schema():
+def rename_db_schema(connection):
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_schema_renamer.json")
     
     # Load renamer file
@@ -247,22 +252,27 @@ def rename_db_schema():
         
         full_query = full_query + table_update_q
     
-    print(full_query)
     
-    schemas_before = {key: get_schema_name(int(key)) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    schemas_after = {key: get_table_name(int(key)) for key in rename_file}
+    user_output = {get_table_name(int(key)): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the schema renaming? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    errors = []
-    for key in rename_file:
-        if schemas_before[key] == schemas_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+    if confirmation == 'y':
+        schemas_before = {key: get_schema_name(int(key)) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        schemas_after = {key: get_table_name(int(key)) for key in rename_file}
+        
+        errors = []
+        for key in rename_file:
+            if schemas_before[key] == schemas_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")        
 
 
-def rename_db_tables():
+def rename_db_tables(connection):
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_table_renamer.json")
     
     # TODO: If rename file is not empty: ask user if they really want to rename
@@ -315,21 +325,27 @@ def rename_db_tables():
         
         full_query = full_query + table_update_q
     
+    user_output = {get_table_name(int(key)): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following renaming? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    tables_before = {key: get_table_name(int(key)) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    tables_after = {key: get_table_name(int(key)) for key in rename_file}
+    if confirmation == 'y':
     
-    errors = []
-    for key in rename_file:
-        if tables_before[key] == tables_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+        tables_before = {key: get_table_name(int(key)) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        tables_after = {key: get_table_name(int(key)) for key in rename_file}
+        
+        errors = []
+        for key in rename_file:
+            if tables_before[key] == tables_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
-def rename_db_column():
+def rename_db_column(connection):
     
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_column_renamer.json")
     
@@ -387,22 +403,40 @@ def rename_db_column():
         '''
         
         full_query = full_query + table_update_q
-
-    cols_before = {key: get_column_name(int(key)) for key in rename_file}
-    queries.execute_query(full_query, connection)
-    cols_after = {key: get_column_name(int(key)) for key in rename_file}
         
+    user_output = {get_column_name(int(key)): val for key, val in rename_file.items()}
+    print(f"Do you want to complete the following renaming in {schema_name}.{table_name}? (y/n)")
+    print(f"{user_output}")
+    confirmation = input("")
     
-    errors = []
-    for key in rename_file:
-        if cols_before[key] == cols_after[key]:
-            errors.append(key)
-    
-    if len(errors) != 0:
-        raise Exception(f"The following columns where not renamed correctly: {errors}")
+    if confirmation == 'y':
+
+        cols_before = {key: get_column_name(int(key)) for key in rename_file}
+        queries.execute_query(full_query, connection)
+        cols_after = {key: get_column_name(int(key)) for key in rename_file}
+            
+        
+        errors = []
+        for key in rename_file:
+            if cols_before[key] == cols_after[key]:
+                errors.append(key)
+        
+        if len(errors) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors}")
 
 
 def run():
+    user = input("Enter your database username: ")
+    password = getpass.getpass("Enter your database password: ")
+    
+    db_config = {
+        'host': "dandyweb01fl",
+        'dbname': "aedna_metadata_test",
+        'port': "5432",
+        'user': user,
+        'password': password
+    }
+    
     rename_files = {
         "db_column_renamer.json": rename_db_column,
         "db_schema_renamer.json": rename_db_schema,
@@ -434,21 +468,12 @@ def run():
         # do rename
         file_name = active_rename_files[0][0]
         rename_file = active_rename_files[0][1]
-        
-        confirmation = input(f"IMPORTANT: Found non-empty renaming file: {file_name}. \
-Do you want to proceed with the renaming that the file specifies? (y/n) ")
-        
-        if confirmation == "y":
-            user = input("Enter your database username: ")
-            password = getpass.getpass("Enter your database password: ")
-            
-            db_config["user"] = user
-            db_config["password"] = password
 
-            global connection
-            connection = psycopg2.connect(**db_config)   
-            
-            rename_files[file_name]()
+        
+    
+        connection = psycopg2.connect(**db_config)   
+        
+        rename_files[file_name](connection)
                 
     
     elif len(active_rename_files) == 0:

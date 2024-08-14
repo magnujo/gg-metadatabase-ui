@@ -100,6 +100,9 @@ def parse(sheet,
     elif date_format != "My data doesn't contain dates" and date_format_required == False:
         raise Exception("You chose a date format, however the table you are trying to upload to does not expect dates. Please double check that you chose the correct upload option.")
     
+    if sheet.isnull().all(axis=1).any():
+        raise Exception("Empty rows are not allowed. Make sure to delete any empty rows before uploading.")
+    
     sheet = parse_dates(sheet, date_columns=date_columns, date_format=date_format)       
     sheet = parse_floats(sheet, float_columns, decimal_point, thousands_seperator)
     sheet = validate_integers(sheet, int_columns, thousands_seperator)
