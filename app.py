@@ -231,47 +231,47 @@ def upload_file():
                 
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
-                if split_database_table_name == "age_depth_model":
+                if split_database_table_name == db_names.age_depth_model():
                     master_ids = {str(Path(str(file_name)).stem).lower()}
                 
-                if split_database_table_name == "master_depth":
-                    master_ids: set = set(clean_sheet["Master Field Sample ID"].apply(lambda x: x.lower()).unique())
+                if split_database_table_name == db_names.master_depth():
+                    master_ids: set = set(clean_sheet[db_names.master_depth.master_field_sample_id()].apply(lambda x: x.lower()).unique())
                 
                 
                 
-                if split_database_table_name == "age_depth_model" or split_database_table_name == "master_depth":
+                if split_database_table_name == db_names.age_depth_model() or split_database_table_name == db_names.master_depth():
                     if master_ids == None or len(master_ids) < 1:
                         raise Exception("master_ids is None or empty")
                     
-                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column="Master ID/Parent sample ID", 
+                    
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=db_names.field_sample.master_id_parent_sample_id(), 
                                                                                       engine=ENGINE, 
-                                                                                      schema=DATABASE_CONFIG["schema_name"], 
-                                                                                      table="field_sample")
+                                                                                      schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                      table=db_names.field_sample())
                     
                     for master_id in master_ids:
-                        print(master_id)
                         if master_id == None or unique_master_IDs_in_db == None:
                             raise Exception("master_id or master_ids_in_database is None")
                         
                         if master_id in unique_master_IDs_in_db and master_id != "unknown":
-                            clean_sheet['Master Field Sample ID'] = master_id
+                            clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
                         
                         else:
                             raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
                 
-                if split_database_table_name == 'field_sample':
-                    parent_col = "Master ID/Parent sample ID"
-                    project_col = "Running Project Title"
+                if split_database_table_name == db_names.field_sample():
+                    parent_col = db_names.field_sample.master_id_parent_sample_id()
+                    project_col = db_names.field_sample.running_project_title()
                     
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=parent_col, 
                                                                                       engine=ENGINE, 
-                                                                                      schema=DATABASE_CONFIG["schema_name"], 
-                                                                                      table="field_sample")
+                                                                                      schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                      table=db_names.field_sample())
                     
                     unique_project_IDs_in_db = queries.get_unique_values_from_db_column(column=project_col, 
                                                                                       engine=ENGINE, 
-                                                                                      schema=DATABASE_CONFIG["schema_name"], 
-                                                                                      table="field_sample")
+                                                                                      schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                      table=db_names.field_sample())
                     
   
                     if not parent_col in clean_sheet.columns:
