@@ -31,7 +31,7 @@ import shutil
 import constants.misc_constants as misc_constants
 import log_util
 from utils import queries
-from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
+from flask import Flask, render_template, jsonify, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
 from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
@@ -339,6 +339,23 @@ def handle_enum_columns(parsed_sheet, table_name):
 
     return allowed_values, invalid_values
 
+@app.route('/pretty_data')
+def pretty_data():
+    return render_template('confirmation_request copy.html')
+
+@app.route('/data')
+def data():
+    # Sample DataFrame
+    data = {'Name': ['John', 'Anna', 'Peter', 'Linda'],
+            'Age': [28, 24, 35, 32],
+            'City': ['New York', 'Paris', 'Berlin', 'London']}
+    df = pd.DataFrame(data)
+
+    # Convert DataFrame to JSON
+    json_data = df.to_dict(orient='records')
+
+    return jsonify(json_data)
+
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmation_request', methods=['GET'])
 @decorators.log_info(app)
@@ -360,7 +377,7 @@ def confirmation_request():
             caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>'
 
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
-            summary = clean_sheet.astype(str).describe().to_html(na_rep=" ", justify="center", classes="table table-striped") 
+            summary = clean_sheet.dropna(how="all", axis="columns").astype(str).describe().T.drop(columns=["count"]).to_html(classes='table table-striped', na_rep=" ", justify="center")
             summary = caption + summary
             summaries.append(summary)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
@@ -372,11 +389,13 @@ def confirmation_request():
             
         # if invalid_values:            
         #     return render_template('enum_validation_fail.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
-        
-        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
+        # return render_template('confirmation_request copy.html', table=summaries[0])
+
     
     except Exception as e:
         return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
+    return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], 
+                           clean_sheets=clean_sheets, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
 
 # TODO: lock this function so only 1 can happen at a time (alternatively 1 upload per table at a time)
 @app.route('/confirmed', methods=['POST'])
