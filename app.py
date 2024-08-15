@@ -206,13 +206,20 @@ def upload_file():
             
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
+                db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                
+                
+                
                 clean_sheet = parsers.parse(sheet=sheet,
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
-                                            thousands_seperator=thousands_seperator)                
+                                            thousands_seperator=thousands_seperator)    
+                       
                 
                 clean_sheet.columns = clean_sheet.columns.str.strip()
+                clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     
                 
                 # TODO: Check that no two columns are the same with lower()
             
@@ -299,10 +306,7 @@ def upload_file():
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
-                rename_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
-                
-                db_table_data = db_table_data.rename(columns=rename_map)
-                
+                            
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -313,7 +317,8 @@ def upload_file():
                 suf = str(Path(str(file_name)).suffix)
                 stem = str(Path(str(file_name)).stem)
                 write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
-                if not os.path.exists(write_path):       
+                if not os.path.exists(write_path): 
+                    clean_sheet = clean_sheet.rename(columns=db_to_sheet_col_name_map, errors="raise")      
                     clean_sheet.to_csv(write_path, index=False, encoding='utf_16', sep="\t")
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
@@ -345,26 +350,30 @@ def confirmation_request():
         database_table_name = session.get('database_table_name')
         failed_validations = []
                        
-
+        summaries = []
         clean_sheets = []
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             suf = str(Path(str(file_name)).suffix)
             stem = str(Path(str(file_name)).stem)
             clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding='utf_16', sep='\t')
             # Validate enum columns:   
-          
+            caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>'
+
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
+            summary = clean_sheet.astype(str).describe().to_html(na_rep=" ", justify="center", classes="table table-striped") 
+            summary = caption + summary
+            summaries.append(summary)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
             # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
-
+            
             clean_sheets.append(html_table_with_caption)
             
             
         # if invalid_values:            
         #     return render_template('enum_validation_fail.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
         
-        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
     
     except Exception as e:
         return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
@@ -416,7 +425,7 @@ def confirmed():
                 #  Rename columns to DB columns
                 rename_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 
-                clean_sheet = clean_sheet.rename(columns=rename_map)
+                clean_sheet = clean_sheet.rename(columns=rename_map, errors="raise")
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
