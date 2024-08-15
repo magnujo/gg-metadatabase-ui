@@ -206,8 +206,8 @@ def upload_file():
             
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
-                db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                
                 
                 
                 
@@ -314,6 +314,7 @@ def upload_file():
                 
 
             for i, (clean_sheet, table_name) in enumerate(clean_sheets):
+                db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 suf = str(Path(str(file_name)).suffix)
                 stem = str(Path(str(file_name)).stem)
                 write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
@@ -374,14 +375,14 @@ def confirmation_request():
             stem = str(Path(str(file_name)).stem)
             clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding='utf_16', sep='\t')
             # Validate enum columns:   
-            caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>'
+            caption = f'<br><h3 align="center" id="{ele}">Table {i+1}: {ele}</h3>'
 
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
             summary = clean_sheet.dropna(how="all", axis="columns").astype(str).describe().T.drop(columns=["count"]).to_html(classes='table table-striped', na_rep=" ", justify="center")
             summary = caption + summary
             summaries.append(summary)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-            html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
+            html_table_with_caption = f'<br><h3 align="center" id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
             # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
             
             clean_sheets.append(html_table_with_caption)

@@ -29,32 +29,40 @@
             <br>
             If not needed and you are sure that the data is correct, scroll to the buttom and press the confirm button.</p>
             <br>
-            <h2>Summaries</h2>
-            <br>
-            {% for summary in summaries %}
-                <div class="table-responsive">
-                    {{ summary|safe }}
-                </div>
-            {% endfor %}
-
-            <br>
-            <p> Link to full data tables:</p>
             
-            {% for table in table_names %}
-                <li><a href="#{{ table }}">{{ table }}</a></li>
-            {% endfor %}
-            <br>
-            <p>Click the links above to see what data goes into what table, and confirm that you want to upload it all, by pressing the confirm button on the buttom of the page. 
-            It might help to zoom out, too see all the data. If it looks wrong, press cancel and make sure you chose the correct format settings on the previous page.
-            Otherwise contact admin for help.</p>
-            <br>
+                <h2 align="center">Summaries</h2>
+            
+                {% for summary in summaries %}
+                    <div class="table-responsive">
+                        {{ summary|safe }}
+                    
+                       
+                    </div>
         
-        <h2>All data</h2>
-        <br>
+                {% endfor %}
+    
+                <br>
+                <p> Link to full data tables:</p>
+                
+                {% for table in table_names %}
+                    <li><a href="#{{ table }}">{{ table }}</a></li>
+                {% endfor %}
+                <br>
+                <p>Click the links above to see what data goes into what table, and confirm that you want to upload it all, by pressing the confirm button on the buttom of the page. 
+                It might help to zoom out, too see all the data. If it looks wrong, press cancel and make sure you chose the correct format settings on the previous page.
+                Otherwise contact admin for help.</p>
+                <br>
+
+            
+    </div> 
+    <div class="container-fluid">
+        <h2 align="center">All data</h2>
+       
         {% for clean_sheet in clean_sheets %}
         <div class="table-responsive">
             {{ clean_sheet|safe }}
-        </div>          
+        </div>       
+        <br>   
         {% endfor %}  
         <br>
         <br>
@@ -85,6 +93,7 @@
         <br>
         <br>
         <br>
+    </div> 
 
     
 
