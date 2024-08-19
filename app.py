@@ -375,14 +375,23 @@ def confirmation_request():
             stem = str(Path(str(file_name)).stem)
             clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding='utf_16', sep='\t')
             # Validate enum columns:   
-            caption = f'<br><h3 align="center" id="{ele}">Table {i+1}: {ele}</h3>'
+            caption = lambda x: f'<br><h3 align="center" id="{ele}_{x}">Table {i+1}: {ele}</h3>'
 
             clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
-            summary = clean_sheet.dropna(how="all", axis="columns").astype(str).describe().T.drop(columns=["count"]).to_html(classes='table table-striped', na_rep=" ", justify="center")
-            summary = caption + summary
+            summary = (
+                clean_sheet
+                .dropna(how="all", axis="columns")
+                .astype(str)
+                .describe()
+                .T
+                .drop(columns=["count"])
+                .rename(columns={"unique": "num of unique values", "top": "mode", "freq": "frequency"})
+                .to_html(classes='table table-striped', na_rep=" ", justify="center")
+            )
+            summary = caption('summary') + summary
             summaries.append(summary)
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-            html_table_with_caption = f'<br><h3 align="center" id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
+            html_table_with_caption = caption('table') + clean_sheet
             # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
             
             clean_sheets.append(html_table_with_caption)
@@ -626,14 +635,32 @@ def success():
               
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-
+        summaries = []
         all_tables = []
         for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
+            caption = f'<br><h3 align="center" id="{table}">Table {i+1}: {table}</h3>'
+            
             uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
+            summary = (
+                uploaded_data
+                .dropna(how="all", axis="columns")
+                .astype(str)
+                .describe()
+                .T
+                .drop(columns=["count"])
+                .rename(columns={"unique": "num of unique values", "top": "mode", "freq": "frequency"})
+                .to_html(classes='table table-striped', na_rep=" ", justify="center")
+            )
+            
+            summary = caption + summary
+            summaries.append(summary)
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
+            uploaded_data = caption + uploaded_data
             all_tables.append(uploaded_data)
-        return render_template('results.html', uploaded_data=all_tables, admin_emails=ADMIN_EMAIL)
+        return render_template('results.html',  admin_emails=ADMIN_EMAIL, table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], 
+                           uploaded_data=all_tables, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
+
 
     except Exception as e:
         return general_error_handling(message=e, delete_db_entries=True, 
