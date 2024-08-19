@@ -33,14 +33,12 @@
     </style>
 </head>
 <body>
-    <br>
-    <br>
-   
-    <p><b>!!! PLEASE NOTE: This page is still under development, and some data is missing and not standardized. Use it with care !!!</b></p>
-    <br>
-
+<br>
     <h2>Download all tables</h2>
-    <p> Press the "Download all tables..." button below if you want to download all the tables of the database. This includes both old unstandardized CGG tables and the new standardized field_sample data</p>
+    <p> Press the "Download all tables..." button below if you want to download all the tables of the database. 
+        This includes both old unstandardized CGG tables and the new standardized field_sample data
+    <br>
+NOTE: It is recommended to convert data to a common case, to not have to deal with case sensitivity.</p>
     <form method="post" action="/download_all_individual_tables">
         <label for="encoding_type">Encoding (use UTF-8 if you are in doubt): </label>
         <select name="encoding_type" id="encoding_type" required>
