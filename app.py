@@ -220,7 +220,7 @@ def upload_file():
             
                 
                 # Adds rows about which user was responsible for the upload:
-                clean_sheet['database_insert_by'] = SQL_ALCH_CONFIG['user']
+                clean_sheet['database_insert_by'] = request.form['email']
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
