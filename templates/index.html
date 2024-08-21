@@ -3,93 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meta data spreadsheet upload</title>
+    <title>Meta Data Spreadsheet Upload</title>
     <link rel="shortcut icon" href="#">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p, label {
+            margin: 10px 0;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .section h3 {
+            margin-top: 0;
+        }
+
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        input[type="file"], 
+        select, 
+        input[type="email"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Centralized CGG meta database spreadsheet upload interface</h1>
-    READ AND UNDERSTAND THE FOLLOWING THOROUGHLY BEFORE UPLOADING:
-    <br>
-    <a href="/download_manual" download>Manual (PDF)</a>
-    <br>
-    It contains important information about what data you can upload and what happens to it when uploading.
-    <br>
-    <br>
-    
-    <h3>Spreadsheet types (NOT GUARANTEED TO BE CORRECT, ask Magnus if you encounter issues):</h3>
-    To help you upload correctly formatted meta data sheets that the database will accept, here are some 
-    example/template sheets to help you.
-    <br> NOTE: The database only accepts “Unicode Text (.txt)” (windows) or “UTF-16 unicode text” (mac), except if you upload Lane Barcodes (then you should upload as .html).    
-    <br>
-    {% for sheet in example_sheets %} 
-    <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
-    {% endfor %} 
+    <div class="container">
+        <h1>Meta Data Spreadsheet Upload</h1>
 
-    <br>
-    <h3>Upload options:</h3>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="file">Choose a file to upload:</label>
-        <input type="file" name="file" accept=".txt, .html, .csv" required>
-        <br>
-
-        <label for="database_table_name">Select spreadsheet type:</label>
-        <select name="database_table_name" id="database_table_name" required>
-            <option value="">Choose an option...</option>
-        {% for key in SHEET_TYPES %} 
-            <option value="{{ key }}">{{ SHEET_TYPES[key] }}</option>
-        {% endfor %} 
-        </select>
-        <br>
-        
-        <label for="date_format">Select date format:</label>
-        <select name="date_format" id="date_format" required>
-            <option value="">Choose an option...</option> 
-            {% for ele in ALLOWED_DATE_FORMATS %}
-            <option value="{{ ele }}">{{ ele }}</option>  
-            {% endfor %}         
-            </select>
-        <br>
-        
-        <label for="decimal_point">Select decimal point character used:</label>
-        <select name="decimal_point" id="decimal_point" required>
-            <option value="">Choose an option...</option>
-            <option value=",">, (comma)</option> 
-            <option value=".">. (period)</option>
-            <option value="not_relevant">My sheet does not contain decimals</option>
-        </select>
-        <br>        
-        <label for="thousands_seperator">Select thousands seperator used:</label>
-        <select name="thousands_seperator" id="thousands_seperator" required>
-            <option value="">Choose an option...</option> 
-            <option value=",">, (comma)</option>
-            <option value=".">. (period)</option> 
-            <option value="not_relevant">My sheet does not contain thousands seperators</option>
-        </select>
-        <br>
-        <style>
-            .centered {
-            margin-left: auto;
-            margin-right: auto;
-            width: 50%; /* Adjust the width as needed */
-        }
-        </style>
-        <br>
-        <br>
-        <br>
-        <br>
-        <div class="centered">
-            <button type="submit" onclick="showAlert()">Upload</button>
+        <div class="section">
+            <p><strong>READ AND UNDERSTAND THE FOLLOWING THOROUGHLY BEFORE CONTINUING:</strong></p>
+            <p><a href="/download_manual" download>Download Manual (PDF)</a></p>
+            <p>The manual guides you through the upload process and contains important information about the data you can upload and what happens during the upload process</p>
         </div>
-        
-    </form>
-    <br>
 
-    {% if message %}
-        <script>
-            // Display an alert box with the message
-            alert("{{ message }}");
-        </script>
-    {% endif %}
-    
+        <div class="section">
+            <h3>Spreadsheet Types</h3>
+            <p><strong>Note:</strong> The database only accepts “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac). For Lane Barcodes, use .html format.</p>
+            <p>Here are some example/template sheets to help you format your data correctly:</p>
+            {% for sheet in example_sheets %}
+                <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
+            {% endfor %}
+        </div>
+
+        <div class="section">
+            <h3>Upload Options</h3>
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="file">Choose a file to upload:</label>
+                    <input type="file" name="file" accept=".txt, .html, .csv" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="database_table_name">Select spreadsheet type:</label>
+                    <select name="database_table_name" id="database_table_name" required>
+                        <option value="">Choose an option...</option>
+                        {% for key in SHEET_TYPES %}
+                            <option value="{{ key }}">{{ SHEET_TYPES[key] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date_format">Select date format:</label>
+                    <select name="date_format" id="date_format" required>
+                        <option value="">Choose an option...</option>
+                        {% for ele in ALLOWED_DATE_FORMATS %}
+                            <option value="{{ ele }}">{{ ele }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="decimal_point">Select decimal point character used:</label>
+                    <select name="decimal_point" id="decimal_point" required>
+                        <option value="">Choose an option...</option>
+                        <option value=",">, (comma)</option>
+                        <option value=".">. (period)</option>
+                        <option value="not_relevant">My sheet does not contain decimals</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="thousands_seperator">Select thousands separator used:</label>
+                    <select name="thousands_seperator" id="thousands_seperator" required>
+                        <option value="">Choose an option...</option>
+                        <option value=",">, (comma)</option>
+                        <option value=".">. (period)</option>
+                        <option value="not_relevant">My sheet does not contain thousands separators</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Your e-mail:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div>
+                    <button type="submit">Upload</button>
+                </div>
+            </form>
+        </div>
+
+        {% if message %}
+            <div class="section">
+                <p>{{ message }}</p>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
