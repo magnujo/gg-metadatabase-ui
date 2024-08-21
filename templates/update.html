@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Table</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+</head>
+<body>
+    <div id="table"></div>
+    <button id="save">Save</button>
+    <script>
+        $(document).ready(function() {
+            var data = {{ data|tojson }};
+            var container = document.getElementById('table');
+            var hot = new Handsontable(container, {
+                data: data,
+                rowHeaders: true,
+                colHeaders: ['Column1', 'Column2'],
+                columns: [
+                    {data: 'column1'},
+                    {data: 'column2'}
+                ],
+                minSpareRows: 1,
+                contextMenu: true
+            });
+
+            $('#save').click(function() {
+                var updatedData = hot.getData();
+                $.ajax({
+                    url: '/update',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(updatedData),
+                    success: function(response) {
+                        alert('Data saved successfully!');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
