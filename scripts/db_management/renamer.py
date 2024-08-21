@@ -25,18 +25,17 @@ table_name in name_maps.table_names where ID = 15 to "geological_sampling".
 
 NOTE: Table IDs can be found in the database under name_maps.
 
-
+To run this file do the following:
+    1. Activate a conda environment with the environment.yml file
+    2. Set environment variable DB_PASSWORD = your_db_password.
+    3. python renamer.py
 '''
 
-# TODO: Translate
-# TODO: Implement
 # TODO: Make queries safe from sql injection
 import os, sys
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(parent_dir)
-
-
 
 import pandas as pd
 import json

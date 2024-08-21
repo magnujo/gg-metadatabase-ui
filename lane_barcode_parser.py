@@ -16,7 +16,7 @@ def parse_sequencing_data(df_full):
     flowcell_summary = df_full[1]
 
     for i, col in enumerate(flowcell_summary.columns):
-        df[col] = flowcell_summary[col].iloc[0]
+        df[col + " sum"] = flowcell_summary[col].iloc[0]
     return df
 
 def parse_top_unknown_barcodes(df_full):

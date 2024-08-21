@@ -19,6 +19,14 @@
           transform: translateX(-50%);
         }
         </style>
+        <script>
+            function removeButton(event) {
+                event.preventDefault(); // Prevent the form from submitting
+                var button = document.getElementById("confButton");
+                button.parentNode.removeChild(button);
+                document.getElementById("myForm").submit(); // Submit the form after removing the button
+            }
+        </script>
 </head>
 <body>
 
@@ -63,10 +71,10 @@
               
             </form>
             <br>
-            <form action="/confirmed" method="post" enctype="multipart/form-data">
+            <form id="myForm" action="/confirmed" method="post" enctype="multipart/form-data">
                 <div class="vertical-center">
-                    <button type="submit">Confirm</button>
-                </div>
+                    <button id="confButton" type="submit" onclick="this.disabled=true; this.form.submit();">Confirm</button>
+            </div>
                     
               
             </form>
