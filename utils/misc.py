@@ -184,7 +184,9 @@ def create_nested_paths(nested_dict, root_path="", nested_paths=[]):
         
         new_path = os.path.join(root_path, k.strip())
         nested_paths.append(new_path)
-        # nested_paths.append(os.path.join(new_path, "Files"))
+        nested_paths.append(os.path.join(new_path, "Age-Models"))
+        nested_paths.append(os.path.join(new_path, "XRF"))
+        nested_paths.append(os.path.join(new_path, "Other"))
         # nested_paths.append(os.path.join(new_path, "Files", "Analyses"))
         # nested_paths.append(os.path.join(new_path, "Files", "Analyses", "ITRAX"))
         # nested_paths.append(os.path.join(new_path, "Files", "Analyses", "Pollen"))
@@ -243,8 +245,8 @@ def generate_field_sample_dir_paths(parsed_sheet, projects_root_dir):
                 raise Exception(f"Tried to create {project_path_on_server} but the path already exists")
             else:                 
                 paths_to_create.append(project_path_on_server)
-                # paths_to_create.append(os.path.join(project_path_on_server, "Permits"))
-                # paths_to_create.append(os.path.join(project_path_on_server, "Reports"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Permits"))
+                paths_to_create.append(os.path.join(project_path_on_server, "Field photos"))
                 # paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Age-Depth Reports"))
                 # paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Other"))
                 # paths_to_create.append(os.path.join(project_path_on_server, "Analyses"))
