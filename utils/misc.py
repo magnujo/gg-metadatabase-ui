@@ -184,16 +184,16 @@ def create_nested_paths(nested_dict, root_path="", nested_paths=[]):
         
         new_path = os.path.join(root_path, k.strip())
         nested_paths.append(new_path)
-        nested_paths.append(os.path.join(new_path, "Files"))
-        nested_paths.append(os.path.join(new_path, "Files", "Analyses"))
-        nested_paths.append(os.path.join(new_path, "Files", "Analyses", "ITRAX"))
-        nested_paths.append(os.path.join(new_path, "Files", "Analyses", "Pollen"))
-        nested_paths.append(os.path.join(new_path, "Files", "Analyses", "Ignition Loss"))
-        nested_paths.append(os.path.join(new_path, "Files", "Permits"))
-        nested_paths.append(os.path.join(new_path, "Files", "Reports"))
-        nested_paths.append(os.path.join(new_path, "Files", "Other"))
-        nested_paths.append(os.path.join(new_path, "Files", "Reports", "Age-Depth Reports"))
-        nested_paths.append(os.path.join(new_path, "Files", "Reports", "Other"))
+        # nested_paths.append(os.path.join(new_path, "Files"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Analyses"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Analyses", "ITRAX"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Analyses", "Pollen"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Analyses", "Ignition Loss"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Permits"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Reports"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Other"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Reports", "Age-Depth Reports"))
+        # nested_paths.append(os.path.join(new_path, "Files", "Reports", "Other"))
         
         # If the value of the current key is a dictionary, recurse
         if isinstance(v, dict):
@@ -224,8 +224,12 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
         return path_on_server
     
     
-def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_root_dir):
+def generate_field_sample_dir_paths(parsed_sheet, projects_root_dir):
     col_names = db_names.field_sample
+    parent_sample_id_col_name = col_names.master_id_parent_sample_id()
+    sample_id_col_name = col_names.unique_sample_id()
+    project_col_name = col_names.running_project_title()
+    
     project_names = list(parsed_sheet[col_names.running_project_title()].str.strip().unique())
     if len(project_names) < 1:
         raise Exception(f"Please fill in {col_names.running_project_title()}")
@@ -239,30 +243,30 @@ def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_roo
                 raise Exception(f"Tried to create {project_path_on_server} but the path already exists")
             else:                 
                 paths_to_create.append(project_path_on_server)
-                paths_to_create.append(os.path.join(project_path_on_server, "Permits"))
-                paths_to_create.append(os.path.join(project_path_on_server, "Reports"))
-                paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Age-Depth Reports"))
-                paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Other"))
-                paths_to_create.append(os.path.join(project_path_on_server, "Analyses"))
-                paths_to_create.append(os.path.join(project_path_on_server, "Other"))
-
-    # Make sample paths
-    parent_sample_id_col_name = col_names.master_id_parent_sample_id()
-    sample_id_col_name = col_names.unique_sample_id()
-    root_sample_ids = \
-        set(parsed_sheet[parent_sample_id_col_name].str.strip().unique()) - set(parsed_sheet[sample_id_col_name].str.strip().unique())
-    sample_hierachy = extract_sample_hierachy(root_sample_ids, parsed_sheet, 
-                                                    sample_id_col_name=sample_id_col_name, 
-                                                    parent_sample_id_col_name=parent_sample_id_col_name)
-
-    nested_sample_paths = create_nested_paths(sample_hierachy, root_path=samples_root_dir)
+                # paths_to_create.append(os.path.join(project_path_on_server, "Permits"))
+                # paths_to_create.append(os.path.join(project_path_on_server, "Reports"))
+                # paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Age-Depth Reports"))
+                # paths_to_create.append(os.path.join(project_path_on_server, "Reports", "Other"))
+                # paths_to_create.append(os.path.join(project_path_on_server, "Analyses"))
+                # paths_to_create.append(os.path.join(project_path_on_server, "Other"))
+                
+                # Make sample paths
+                project_sheet = parsed_sheet[parsed_sheet[project_col_name] == project_name]
     
-    # Make sample folders
-    for path in nested_sample_paths:
-        if os.path.exists(path):
-            raise Exception(f"Tried to create {path} but the path already exists")
-        else:
-            paths_to_create.append(path)
+                root_sample_ids = \
+                    set(project_sheet[parent_sample_id_col_name].str.strip().unique()) - set(project_sheet[sample_id_col_name].str.strip().unique())
+                sample_hierachy = extract_sample_hierachy(root_sample_ids, project_sheet, 
+                                                                sample_id_col_name=sample_id_col_name, 
+                                                                parent_sample_id_col_name=parent_sample_id_col_name)
+
+                nested_sample_paths = create_nested_paths(nested_dict=sample_hierachy, root_path=project_path_on_server, nested_paths=[])
+    
+                # Make sample folders
+                for path in nested_sample_paths:
+                    if os.path.exists(path):
+                        raise Exception(f"Tried to create {path} but the path already exists")
+                    else:
+                        paths_to_create.append(path)
     return paths_to_create
 
 def get_first_directory(path, root_path):

@@ -233,10 +233,10 @@ def upload_file():
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
                 if split_database_table_name == db_names.age_depth_model():
-                    master_ids = {str(Path(str(file_name)).stem).lower()}
+                    master_ids = {str(Path(str(file_name)).stem)}
                 
                 if split_database_table_name == db_names.master_depth():
-                    master_ids: set = set(clean_sheet[db_names.master_depth.master_field_sample_id()].apply(lambda x: x.lower()).unique())
+                    master_ids: set = set(clean_sheet[db_names.master_depth.master_field_sample_id()].unique())
                 
                 
                 
@@ -282,8 +282,8 @@ def upload_file():
                     if not project_col in clean_sheet.columns:
                         raise Exception(f"Expected column {project_col}, but column was not found in the uploaded file")
                         
-                    unique_master_IDs_in_parsed_sheet = set(clean_sheet[parent_col].str.lower().unique())
-                    unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
+                    unique_master_IDs_in_parsed_sheet = set(clean_sheet[parent_col].unique())
+                    unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].unique())
                         
                     
                     bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
@@ -585,9 +585,13 @@ def confirmed():
             if database_table_name == 'field_sample':
                 for table_name in table_splits:
                         clean_sheet = clean_sheets[table_name]
-                        dirs_to_create = misc.generate_field_sample_dir_paths(clean_sheet, projects_root_dir=misc_constants.GEO_DATA_PROJECTS_DIR_PATH, 
-                                                                                          samples_root_dir=misc_constants.GEO_DATA_SAMPLES_DIR)
+                        dirs_to_create = misc.generate_field_sample_dir_paths(clean_sheet, 
+                                                                              projects_root_dir=misc_constants.GEO_DATA_PROJECTS_DIR_PATH) 
+                        for path in dirs_to_create:
+                            print(path)
+                            
                         created_dirs = []
+                        
                         for path in dirs_to_create:
                             os.makedirs(path)
                             created_dirs.append(path)
