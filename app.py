@@ -990,6 +990,50 @@ def download_all():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
+@app.route('/download_merged_standardized', methods=['POST'])
+def download_merged_standardized():
+    
+    with download_lock:
+        
+        query = '''
+    select 
+fs2."field_sample_id" as "field_sample_id", fs2."country_ocean" as "fs_country_ocean", fs2."Site name" as "fs_Site name", fs2."Latitude (WGS84 decimal degrees)" as "fs_Latitude (WGS84 decimal degrees)", fs2."Longitude (WGS84 decimal degrees)" as "fs_Longitude (WGS84 decimal degrees)", fs2."Sample date" as "fs_Sample date", fs2."Sample Provider(s) (Full name)" as "fs_Sample Provider(s) (Full name)", fs2."Running Project Title" as "fs_Running Project Title", fs2."Sampling depth (discrete, cm)" as "fs_Sampling depth (discrete, cm)", fs2."Sampling interval - to (cm)" as "fs_Sampling interval - to (cm)", fs2."Water depth (m)" as "fs_Water depth (m)", fs2."Sample type" as "fs_Sample type", fs2."Sample environment" as "fs_Sample environment", fs2."Sample context" as "fs_Sample context", fs2."Age Estimate - from (ka)" as "fs_Age Estimate - from (ka)", fs2."Elevation (m asl)" as "fs_Elevation (m asl)", fs2."Sample storage address" as "fs_Sample storage address", fs2."Sample storage setting" as "fs_Sample storage setting", fs2."Sample storage location" as "fs_Sample storage location", fs2."Miscellaneous Sample Measurement(s) or Observation(s)" as "fs_Miscellaneous Sample Measurement(s) or Observation(s)", fs2."Miscellaneous Environmental Measurement(s) or Observation(s)" as "fs_Miscellaneous Environmental Measurement(s) or Observation(s)", fs2."Link(s) to images" as "fs_Link(s) to images", fs2."Link(s) to other relevant information" as "fs_Link(s) to other relevant information", fs2."Comments" as "fs_Comments", fs2."Sampling interval - from (cm)" as "fs_Sampling interval - from (cm)", fs2."Age Estimate - to (ka)" as "fs_Age Estimate - to (ka)", fs2."Sample material" as "fs_Sample material", fs2."Alias" as "fs_Alias", fs2."Cultural Affiliation" as "fs_Cultural Affiliation", fs2."Museum/Institution" as "fs_Museum/Institution", fs2."Other Relevant Information" as "fs_Other Relevant Information", fs2."PI (Full name)" as "fs_PI (Full name)", fs2."Sample Provider(s) (Contact info)" as "fs_Sample Provider(s) (Contact info)", fs2."Site-Grid Elev (m asl)" as "fs_Site-Grid Elev (m asl)", fs2."Site-Grid Latitude (WGS84 decimal degrees)" as "fs_Site-Grid Latitude (WGS84 decimal degrees)", fs2."Site-Grid Longitude (WGS84 decimal degrees)" as "fs_Site-Grid Longitude (WGS84 decimal degrees)", fs2."field_sample_parent_id" as "fs_field_sample_parent_id", fs2."Field Label (informal)" as "fs_Field Label (informal)", fs2."Sample type in storage at GM" as "fs_Sample type in storage at GM", fs2."Permit for DNA Analysis (yes/no)" as "fs_Permit for DNA Analysis (yes/no)",
+eas."archive_sample_id" as "archive_sample_id", eas."PositionInRack" as "as_PositionInRack", eas."RackName" as "as_RackName", eas."RackID" as "as_RackID", eas."DepthSampledCalTape" as "as_DepthSampledCalTape", eas."DepthOrderedCalTape" as "as_DepthOrderedCalTape", eas."OrganicContent" as "as_OrganicContent", eas."SurfaceExposed" as "as_SurfaceExposed", eas."RemarksArchiveSampling" as "as_RemarksArchiveSampling", eas."SampledBy" as "as_SampledBy", eas."SamplingDate" as "as_SamplingDate", eas."Submitter" as "as_Submitter", eas."SubmissionDate" as "as_SubmissionDate", eas."RemarksSubmission" as "as_RemarksSubmission",
+rs."robot_sample_id" as "robot_sample_id", rs."RackName" as "rs_RackName", rs."RackID" as "rs_RackID", rs."PositionInRack" as "rs_PositionInRack", rs."Mass" as "rs_Mass", rs."SampledBy" as "rs_SampledBy", rs."SamplingDate" as "rs_SamplingDate", rs."RemarksSubSampling" as "rs_RemarksSubSampling", rs."Submitter" as "rs_Submitter", rs."SubmissionDate" as "rs_SubmissionDate", rs."RemarksSubmission" as "rs_RemarksSubmission",
+wl."Customer Name" as "wl_Customer Name", wl."Order Date" as "wl_Order Date", wl."Order ID" as "wl_Order ID", wl."No" as "wl_No", wl."Total Sample Quantity" as "wl_Total Sample Quantity", wl."eDNA Lysate Plate ID" as "wl_eDNA Lysate Plate ID", wl."eDNA Lysate Position" as "wl_eDNA Lysate Position", wl."Lysis Date" as "wl_Lysis Date", wl."eDNA plate ID" as "wl_eDNA plate ID", wl."eDNA plate Position" as "wl_eDNA plate Position", wl."edna_id" as "wl_edna_id", wl."eDNA Concentration (ng/µL)" as "wl_eDNA Concentration (ng/µL)", wl."Cleanup Date" as "wl_Cleanup Date", wl."Customer Attention to Extraction" as "wl_Customer Attention to Extraction", wl."Library Plate ID" as "wl_Library Plate ID", wl."Library Plate Barcode" as "wl_Library Plate Barcode", wl."Library Plate Position" as "wl_Library Plate Position", wl."library_id" as "wl_library_id", wl."Library Concentration (nM)" as "wl_Library Concentration (nM)", wl."Library Peak Size (bp)" as "wl_Library Peak Size (bp)", wl."Library Leftover Volume  (µL)" as "wl_Library Leftover Volume  (µL)", wl."Library QC Result" as "wl_Library QC Result", wl."Library Start Date" as "wl_Library Start Date", wl."Ct" as "wl_Ct", wl."qPCR Date" as "wl_qPCR Date", wl."IDT Index No" as "wl_IDT Index No", wl."i7 Bases in Adapter" as "wl_i7 Bases in Adapter", wl."i5 Bases in Adapter" as "wl_i5 Bases in Adapter", wl."PCR Cycle" as "wl_PCR Cycle", wl."Indexing PCR Date" as "wl_Indexing PCR Date", wl."Library Cleanup Date" as "wl_Library Cleanup Date", wl."Library QC Date" as "wl_Library QC Date", wl."Customer Attention to Library Prep" as "wl_Customer Attention to Library Prep", wl."seqc_tube_tag" as "wl_seqc_tube_tag", wl."DNA Pooled (nmol)" as "wl_DNA Pooled (nmol)", wl."Expected Sequencing Data (MB)" as "wl_Expected Sequencing Data (MB)", wl."Submitting Date" as "wl_Submitting Date", wl."Return DNA" as "wl_Return DNA", wl."Return Library" as "wl_Return Library", wl."Return Pool" as "wl_Return Pool", wl."Pool to SeqC" as "wl_Pool to SeqC", wl."Project Done Date" as "wl_Project Done Date", wl."fastq_file_id" as "fastq_file_id", wl."Library Prep Method" as "wl_Library Prep Method",
+fc."Lane" as "fc_Lane", fc."seq_project_name" as "fc_seq_project_name", fc."Barcode sequence" as "fc_Barcode sequence", fc."PF Clusters" as "fc_PF Clusters", fc."% of the lane" as "fc_% of the lane", fc."% Perfect barcode" as "fc_% Perfect barcode", fc."% One mismatch barcode" as "fc_% One mismatch barcode", fc."Yield (Mbases)" as "fc_Yield (Mbases)", fc."% PF Clusters" as "fc_% PF Clusters", fc."% >= Q30 bases" as "fc_% >= Q30 bases", fc."Mean Quality Score" as "fc_Mean Quality Score", fc."flowcell_id" as "fc_flowcell_id", fc."Clusters (Raw) sum" as "fc_Clusters (Raw) sum", fc."Clusters(PF) sum" as "fc_Clusters(PF) sum", fc."Yield (MBases) sum" as "fc_Yield (MBases) sum"
+from test_1.field_sample fs2 
+full outer join test_1.edna_archive_sample eas on lower(fs2.field_sample_id) = lower(eas.field_sample_id)
+full outer join test_1.edna_robot_sample rs on lower(eas.archive_sample_id) = lower(rs.archive_sample_id)
+full outer join test_1.edna_wetlab_report wl on lower(rs.robot_sample_id) = lower(wl.robot_sample_id) 
+full outer join test_1.flowcell fc on lower(wl.fastq_file_id) = lower(fc.fastq_file_id);
+    '''
+        
+        encoding_type = request.form['encoding_type']
+
+        zip_paths = []
+                
+        global search_id 
+        search_id = search_id + 1
+        session["search_id"] = str(search_id)
+                
+        directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+                
+        path_full = os.path.join(directory_path, 'query_result_full.csv')
+        zip_paths.append(path_full)
+        path_zip_query = os.path.join(directory_path, 'query_all.zip')
+        
+        df = pd.read_sql(query, con=ENGINE)
+        df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+        
+        create_zip(zip_paths, path_zip_query)
+
+        # Send the text file as a download to the user
+        return send_file(path_zip_query, as_attachment=True)
+    
+    
+    
+
 @app.route('/download_all_individual_tables', methods=['POST'])
 def download_all_individual_tables():
     
