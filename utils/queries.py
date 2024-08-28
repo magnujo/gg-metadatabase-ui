@@ -183,7 +183,7 @@ def get_table_as_dataframe(engine, schema_name: str, table_name: str, dtype=None
     df = pd.read_sql(q, con=engine, dtype=dtype)
     return df
 
-def execute_query(query, connection, params=None):
+def execute_query(query, connection, params=None, get_cols=False):
     # Connection parameters
 
     try:
@@ -200,7 +200,11 @@ def execute_query(query, connection, params=None):
                 # Fetch results if it's a SELECT query
                 if query.strip().upper().startswith("SELECT"):
                     
-                    return cur.fetchall()
+                    if get_cols:
+                        return cur.fetchall(), cur.description
+                    
+                    else: 
+                        return cur.fetchall()
                 
                 else:
                     # For INSERT, UPDATE, DELETE queries

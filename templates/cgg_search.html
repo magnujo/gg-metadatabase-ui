@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Input Form</title>
-    <link rel="shortcut icon" href="#">
+    <title>Input Form - Page 2</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <style>
@@ -14,14 +13,26 @@
             padding-top: 20px;
         }
         .container {
-            max-width: 1000px; /* Increase the max-width to better accommodate large tables */
+            max-width: 1000px;
             background-color: #ffffff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        h2, h3, h4, h5 {
+        .nav-container {
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #343a40;
+        }
+        h3, h4 {
             margin-top: 20px;
             color: #343a40;
         }
@@ -37,7 +48,7 @@
         }
         .table-container {
             margin-top: 20px;
-            overflow-x: auto; /* Allows horizontal scrolling if necessary */
+            overflow-x: auto;
         }
         table {
             width: 100%;
@@ -57,53 +68,27 @@
             background-color: #e2e6ea;
         }
     </style>
-
 </head>
 <body>
-
-    <div class="container">
-        <h3>Download All Individual Tables (recommended)</h3>
-        <p>Press the "Download all tables..." button below to download all raw database tables, including both old unstandardized CGG tables and new standardized field sample data.</p>
-        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
-        <form method="post" action="/download_all_individual_tables">
-            <div class="form-group">
-                <label for="encoding_type">Encoding:</label>
-                <select class="form-control" name="encoding_type" id="encoding_type" required>
-                    <option value="">Choose an option...</option> 
-                    <option value="utf_8">UTF-8</option>
-                    <option value="utf_16">UTF-16</option>  
-                </select>
-                <p class="note">Use UTF-8 if in doubt</p>
-            </div>
-            <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download all individual tables...</button>
-        </form>
+    <br>
+    <br>
+    <br>
+    <br>
+    <h1>CGG spreadsheet search (NOT RECOMMENDED)</h1>
+    <br>
+    
+    <div class="nav-container text-center">
+        <a href="/search" class="btn btn-secondary">Go to database search (recommended)</a>
     </div>
+    <br>
+    
+    <br>
 
     <div class="container">
-        <h3>Download Merged Standardized Data (recommended)</h3>
-        <p>Press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
-        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
-
-        <form method="post" action="/download_merged_standardized">
-            <div class="form-group">
-                <label for="encoding_type">Encoding:</label>
-                <select class="form-control" name="encoding_type" id="encoding_type" required>
-                    <option value="">Choose an option...</option> 
-                    <option value="utf_8">UTF-8</option>
-                    <option value="utf_16">UTF-16</option>  
-                </select>
-                <p class="note">Use UTF-8 if in doubt</p>
-            </div>
-            <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download merged table...</button>
-        </form>
-    </div>
-
-    <div class="container">
-        <h3>Merged CGG Data (not recommended!)</h3>
+        <h3>Merged CGG Data (NOT RECOMMENDED)</h3>
         <p class="note">Note: The merged data is not consistent and is based on old non-standardized CGG data.</p>
 
         <form method="post" action="/get_all_data">
-            
             <div class="form-group">
                 <label for="encoding_type">Encoding:</label>
                 <select class="form-control" name="encoding_type" id="encoding_type" required>
@@ -113,12 +98,12 @@
                 </select>
                 <p class="note">Use UTF-8 if in doubt</p>
             </div>
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 20000);">Get all data...</button>
+            <button type="submit" class="btn btn-primary mb-3">Get all data...</button>
         </form>
     </div>
 
     <div class="container">
-        <h3>Search CGG (old 'database') data (not recommended!)</h3>
+        <h3>Search CGG (old 'database') data (NOT RECOMMENDED)</h3>
 
         <form method="post" action="/search">
             <div class="form-group">
@@ -145,9 +130,7 @@
                 <textarea class="form-control" id="input_values" name="input_values" rows="5" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 20000);">Search</button>
-            
-            
+            <button type="submit" class="btn btn-primary mb-3">Search</button>
         </form>
 
         {% if parsed_values %}
@@ -189,6 +172,8 @@
         {% endif %}
     </div>
 
+    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script>
@@ -202,6 +187,9 @@
             });
         });
     </script>
-
+<br>
+<br>
+<br>
+<br>
 </body>
 </html>
