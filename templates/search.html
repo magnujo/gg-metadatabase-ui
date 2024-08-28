@@ -25,6 +25,12 @@
             margin-top: 20px;
             color: #343a40;
         }
+        h1 {
+            
+            margin-bottom: 20px;
+            color: #343a40;
+            text-align: center;
+        }
         .form-group {
             margin-bottom: 15px;
         }
@@ -60,9 +66,12 @@
 
 </head>
 <body>
+    <br>
+    <br>
+    <h1>New database data (recommended)</h1>
 
     <div class="container">
-        <h3>Download All Individual Tables (recommended)</h3>
+        <h3>Download All Individual Tables </h3>
         <p>Press the "Download all tables..." button below to download all raw database tables, including both old unstandardized CGG tables and new standardized field sample data.</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
         <form method="post" action="/download_all_individual_tables">
@@ -80,7 +89,7 @@
     </div>
 
     <div class="container">
-        <h3>Download Merged Standardized Data (recommended)</h3>
+        <h3>Download Merged Standardized Data </h3>
         <p>Press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
 
@@ -97,9 +106,12 @@
             <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download merged table...</button>
         </form>
     </div>
-
+    <br>
+    <br>
+    <h1>Old non-standardized CGG 
+        spreadsheet data <br> (NOT RECOMMENDED)</h1>
     <div class="container">
-        <h3>Merged CGG Data (not recommended!)</h3>
+        <h3>Merged old non-standardized CGG spreadsheet data</h3>
         <p class="note">Note: The merged data is not consistent and is based on old non-standardized CGG data.</p>
 
         <form method="post" action="/get_all_data">
@@ -118,7 +130,7 @@
     </div>
 
     <div class="container">
-        <h3>Search CGG (old 'database') data (not recommended!)</h3>
+        <h3>Search old non-standardized CGG spreadsheet data</h3>
 
         <form method="post" action="/search">
             <div class="form-group">
@@ -202,6 +214,8 @@
             });
         });
     </script>
-
+<br>
+<br>
+<br>
 </body>
 </html>
