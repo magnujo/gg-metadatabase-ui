@@ -29,8 +29,8 @@ def check_if_upload_id_exists_in_table(schema, table, upload_id):
     else:
         return False
 
-def get_unique_values_from_db_column(schema: str, table: str, column: str, engine) -> set:
-    return set(get_table_as_dataframe(engine, schema_name=schema, table_name=table)[column].astype(str).apply(lambda x: x.lower()).unique())
+def get_unique_values_from_db_column(schema: str, table: str, column: str, engine):
+    return set(get_table_as_dataframe(engine, schema_name=schema, table_name=table)[column].astype(str).unique())
     
 def check_if_upload_id_exists_in_schema(database, schema, upload_id):
     cases = []
@@ -183,7 +183,7 @@ def get_table_as_dataframe(engine, schema_name: str, table_name: str, dtype=None
     df = pd.read_sql(q, con=engine, dtype=dtype)
     return df
 
-def execute_query(query, connection, params=None):
+def execute_query(query, connection, params=None, get_cols=False):
     # Connection parameters
 
     try:
@@ -200,7 +200,11 @@ def execute_query(query, connection, params=None):
                 # Fetch results if it's a SELECT query
                 if query.strip().upper().startswith("SELECT"):
                     
-                    return cur.fetchall()
+                    if get_cols:
+                        return cur.fetchall(), cur.description
+                    
+                    else: 
+                        return cur.fetchall()
                 
                 else:
                     # For INSERT, UPDATE, DELETE queries
