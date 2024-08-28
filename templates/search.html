@@ -61,10 +61,9 @@
 <body>
 
     <div class="container">
-        <h3>Download All Tables (recommended)</h3>
-        <p>Press the "Download all tables..." button below to download all database tables, including both old unstandardized CGG tables and new standardized field_sample data.</p>
-        <p class="note">Note: It's recommended to convert data to a common case to avoid case sensitivity issues.</p>
-
+        <h3>Download All Individual Tables (recommended)</h3>
+        <p>Press the "Download all tables..." button below to download all raw database tables, including both old unstandardized CGG tables and new standardized field sample data.</p>
+        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
         <form method="post" action="/download_all_individual_tables">
             <div class="form-group">
                 <label for="encoding_type">Encoding:</label>
@@ -75,12 +74,31 @@
                 </select>
                 <p class="note">Use UTF-8 if in doubt</p>
             </div>
-            <button type="submit" class="btn btn-primary">Download all tables...</button>
+            <button type="submit" class="btn btn-primary">Download all individual tables...</button>
         </form>
     </div>
 
     <div class="container">
-        <h3>Merged Data (not recommended!)</h3>
+        <h3>Download Merged Standardized Data (recommended)</h3>
+        <p>Press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
+        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
+
+        <form method="post" action="/download_merged_standardized">
+            <div class="form-group">
+                <label for="encoding_type">Encoding:</label>
+                <select class="form-control" name="encoding_type" id="encoding_type" required>
+                    <option value="">Choose an option...</option> 
+                    <option value="utf_8">UTF-8</option>
+                    <option value="utf_16">UTF-16</option>  
+                </select>
+                <p class="note">Use UTF-8 if in doubt</p>
+            </div>
+            <button type="submit" class="btn btn-primary">Download merged table...</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h3>Merged CGG Data (not recommended!)</h3>
         <p class="note">Note: The merged data is not consistent and is based on old non-standardized CGG data.</p>
 
         <form method="post" action="/get_all_data">
