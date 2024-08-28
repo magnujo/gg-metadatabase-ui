@@ -31,7 +31,7 @@ import shutil
 import constants.misc_constants as misc_constants
 import log_util
 from utils import queries
-from flask import Flask, render_template, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
+from flask import Flask, render_template, jsonify, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
 from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
@@ -202,23 +202,25 @@ def upload_file():
             
             clean_sheets = []
             
-            
-            
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
+                sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
+                   
                 clean_sheet = parsers.parse(sheet=sheet,
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
-                                            thousands_seperator=thousands_seperator)                
+                                            thousands_seperator=thousands_seperator)    
+                       
                 
                 clean_sheet.columns = clean_sheet.columns.str.strip()
+                clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     
                 
                 # TODO: Check that no two columns are the same with lower()
             
                 
                 # Adds rows about which user was responsible for the upload:
-                clean_sheet['database_insert_by'] = SQL_ALCH_CONFIG['user']
+                clean_sheet['database_insert_by'] = request.form['email']
                 
                 # Adds information about which file the data came from:
                 clean_sheet['from_spreadsheet'] = file_name
@@ -299,10 +301,7 @@ def upload_file():
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
-                rename_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
-                
-                db_table_data = db_table_data.rename(columns=rename_map)
-                
+                            
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -310,10 +309,12 @@ def upload_file():
                 
 
             for i, (clean_sheet, table_name) in enumerate(clean_sheets):
+                db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 suf = str(Path(str(file_name)).suffix)
                 stem = str(Path(str(file_name)).stem)
                 write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
-                if not os.path.exists(write_path):       
+                if not os.path.exists(write_path): 
+                    clean_sheet = clean_sheet.rename(columns=db_to_sheet_col_name_map, errors="raise")      
                     clean_sheet.to_csv(write_path, index=False, encoding='utf_16', sep="\t")
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
@@ -334,6 +335,23 @@ def handle_enum_columns(parsed_sheet, table_name):
 
     return allowed_values, invalid_values
 
+@app.route('/pretty_data')
+def pretty_data():
+    return render_template('confirmation_request copy.html')
+
+@app.route('/data')
+def data():
+    # Sample DataFrame
+    data = {'Name': ['John', 'Anna', 'Peter', 'Linda'],
+            'Age': [28, 24, 35, 32],
+            'City': ['New York', 'Paris', 'Berlin', 'London']}
+    df = pd.DataFrame(data)
+
+    # Convert DataFrame to JSON
+    json_data = df.to_dict(orient='records')
+
+    return jsonify(json_data)
+
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmation_request', methods=['GET'])
 @decorators.log_info(app)
@@ -345,29 +363,44 @@ def confirmation_request():
         database_table_name = session.get('database_table_name')
         failed_validations = []
                        
-
+        summaries = []
         clean_sheets = []
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             suf = str(Path(str(file_name)).suffix)
             stem = str(Path(str(file_name)).stem)
             clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding='utf_16', sep='\t')
             # Validate enum columns:   
-          
-            clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
-            clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
-            html_table_with_caption = f'<h3 id="{ele}">Table {i+1}: {ele}</h3>{clean_sheet}'
-            # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
+            caption = lambda x: f'<br><h3 align="center" id="{ele}_{x}">Table {i+1}: {ele}</h3>'
 
+            clean_sheet = misc.drop_auto_generated_columns(clean_sheet)
+            summary = (
+                clean_sheet
+                .dropna(how="all", axis="columns")
+                .astype(str)
+                .describe()
+                .T
+                .drop(columns=["count"])
+                .rename(columns={"unique": "num of unique values", "top": "mode", "freq": "frequency"})
+                .to_html(classes='table table-striped', na_rep=" ", justify="center")
+            )
+            summary = caption('summary') + summary
+            summaries.append(summary)
+            clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
+            html_table_with_caption = caption('table') + clean_sheet
+            # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
+            
             clean_sheets.append(html_table_with_caption)
             
             
         # if invalid_values:            
         #     return render_template('enum_validation_fail.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
-        
-        return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], clean_sheets=clean_sheets, file_name=file_name, database_table_name=database_table_name)
+        # return render_template('confirmation_request copy.html', table=summaries[0])
+
     
     except Exception as e:
         return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
+    return render_template('confirmation_request.html', table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], 
+                           clean_sheets=clean_sheets, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
 
 # TODO: lock this function so only 1 can happen at a time (alternatively 1 upload per table at a time)
 @app.route('/confirmed', methods=['POST'])
@@ -416,7 +449,7 @@ def confirmed():
                 #  Rename columns to DB columns
                 rename_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
                 
-                clean_sheet = clean_sheet.rename(columns=rename_map)
+                clean_sheet = clean_sheet.rename(columns=rename_map, errors="raise")
                             
                 clean_sheet['upload_uuid'] = session.get('upload_id')
                 clean_sheet['database_insert_datetime_utc'] = upload_time
@@ -597,14 +630,32 @@ def success():
               
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
-
+        summaries = []
         all_tables = []
         for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
+            caption = f'<br><h3 align="center" id="{table}">Table {i+1}: {table}</h3>'
+            
             uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
+            summary = (
+                uploaded_data
+                .dropna(how="all", axis="columns")
+                .astype(str)
+                .describe()
+                .T
+                .drop(columns=["count"])
+                .rename(columns={"unique": "num of unique values", "top": "mode", "freq": "frequency"})
+                .to_html(classes='table table-striped', na_rep=" ", justify="center")
+            )
+            
+            summary = caption + summary
+            summaries.append(summary)
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
+            uploaded_data = caption + uploaded_data
             all_tables.append(uploaded_data)
-        return render_template('results.html', uploaded_data=all_tables, admin_emails=ADMIN_EMAIL)
+        return render_template('results.html',  admin_emails=ADMIN_EMAIL, table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], 
+                           uploaded_data=all_tables, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
+
 
     except Exception as e:
         return general_error_handling(message=e, delete_db_entries=True, 
@@ -961,6 +1012,8 @@ def download_all_individual_tables():
         
         for table_name in tables:
             df = pd.read_sql(f'select * from {schema_name}.{table_name}', con=ENGINE)
+            # if encoding_type == "ascii":
+            #     df = df.applymap(lambda x: ascii(x) if isinstance(x, str) else x)
             table_path = os.path.join(raw_path, f"{table_name}.tsv")
             df.to_csv(table_path, encoding=encoding_type, sep="\t")
             zip_paths.append(table_path)
