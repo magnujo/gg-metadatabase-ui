@@ -1,3 +1,4 @@
+import numpy as np
 import constants.db_connections
 from constants.db_names.names import db_names
 from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG, PSY_CONN
@@ -233,32 +234,38 @@ def upload_file():
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
                 if split_database_table_name == db_names.age_depth_model():
-                    master_ids = {str(Path(str(file_name)).stem).lower()}
+                    master_ids = {str(Path(str(file_name)).stem)}
                 
                 if split_database_table_name == db_names.master_depth():
-                    master_ids: set = set(clean_sheet[db_names.master_depth.master_field_sample_id()].apply(lambda x: x.lower()).unique())
-                
-                
-                
+                    master_ids = clean_sheet[db_names.master_depth.master_field_sample_id()].unique()
+
                 if split_database_table_name == db_names.age_depth_model() or split_database_table_name == db_names.master_depth():
                     if master_ids == None or len(master_ids) < 1:
                         raise Exception("master_ids is None or empty")
-                    
-                    
+ 
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=db_names.field_sample.master_id_parent_sample_id(), 
                                                                                       engine=ENGINE, 
                                                                                       schema=SQL_ALCH_CONFIG["schema_name"], 
                                                                                       table=db_names.field_sample())
                     
+
+                    
+                    unique_master_IDs_in_db = {s.lower() for s in unique_master_IDs_in_db}
+
                     for master_id in master_ids:
                         if master_id == None or unique_master_IDs_in_db == None:
                             raise Exception("master_id or master_ids_in_database is None")
                         
-                        if master_id in unique_master_IDs_in_db and master_id != "unknown":
-                            clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
+                        if master_id.lower() in unique_master_IDs_in_db and master_id != "unknown":
+                            if split_database_table_name == db_names.age_depth_model():
+                                clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
+                            elif split_database_table_name == db_names.master_depth():
+                                pass
+                            else:
+                                raise Exception("didnt find table name")
                         
                         else:
-                            raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
+                            raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your Master ID(s) so it refers to an existing Master ID or upload the missing Field Samples data")
                 
                 if split_database_table_name == db_names.field_sample():
                     parent_col = db_names.field_sample.master_id_parent_sample_id()
@@ -301,7 +308,10 @@ def upload_file():
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
-                            
+                if database_table_name in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS:
+                    for db_generated_col in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
+                        if db_generated_col in list(db_table_data.columns):
+                            db_table_data.drop(db_generated_col, axis=1, inplace=True)
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
