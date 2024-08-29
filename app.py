@@ -1,6 +1,7 @@
+import numpy as np
 import constants.db_connections
 from constants.db_names.names import db_names
-from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG
+from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG, PSY_CONN
 from constants.db_names.name_maps import sheet_to_db_rename_map, db_to_sheet_rename_map
 from utils.db_utils import get_ordinal_position_maps
 from pathlib import Path
@@ -233,32 +234,38 @@ def upload_file():
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
                 if split_database_table_name == db_names.age_depth_model():
-                    master_ids = {str(Path(str(file_name)).stem).lower()}
+                    master_ids = {str(Path(str(file_name)).stem)}
                 
                 if split_database_table_name == db_names.master_depth():
-                    master_ids: set = set(clean_sheet[db_names.master_depth.master_field_sample_id()].apply(lambda x: x.lower()).unique())
-                
-                
-                
+                    master_ids = clean_sheet[db_names.master_depth.master_field_sample_id()].unique()
+
                 if split_database_table_name == db_names.age_depth_model() or split_database_table_name == db_names.master_depth():
                     if master_ids == None or len(master_ids) < 1:
                         raise Exception("master_ids is None or empty")
-                    
-                    
+ 
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=db_names.field_sample.master_id_parent_sample_id(), 
                                                                                       engine=ENGINE, 
                                                                                       schema=SQL_ALCH_CONFIG["schema_name"], 
                                                                                       table=db_names.field_sample())
                     
+
+                    
+                    unique_master_IDs_in_db = {s.lower() for s in unique_master_IDs_in_db}
+
                     for master_id in master_ids:
                         if master_id == None or unique_master_IDs_in_db == None:
                             raise Exception("master_id or master_ids_in_database is None")
                         
-                        if master_id in unique_master_IDs_in_db and master_id != "unknown":
-                            clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
+                        if master_id.lower() in unique_master_IDs_in_db and master_id != "unknown":
+                            if split_database_table_name == db_names.age_depth_model():
+                                clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
+                            elif split_database_table_name == db_names.master_depth():
+                                pass
+                            else:
+                                raise Exception("didnt find table name")
                         
                         else:
-                            raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your file so it refers to an existing Master ID, or upload the missing Field Samples data")
+                            raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your Master ID(s) so it refers to an existing Master ID or upload the missing Field Samples data")
                 
                 if split_database_table_name == db_names.field_sample():
                     parent_col = db_names.field_sample.master_id_parent_sample_id()
@@ -301,7 +308,10 @@ def upload_file():
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
-                            
+                if database_table_name in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS:
+                    for db_generated_col in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
+                        if db_generated_col in list(db_table_data.columns):
+                            db_table_data.drop(db_generated_col, axis=1, inplace=True)
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
@@ -990,6 +1000,56 @@ def download_all():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
+@app.route('/download_merged_standardized', methods=['POST'])
+def download_merged_standardized():
+    
+    with download_lock:
+        
+        query = '''
+        select 
+        fs2."field_sample_id" as "field_sample_id", fs2."country_ocean" as "country_ocean", fs2."Site name" as "Site name", fs2."Latitude (WGS84 decimal degrees)" as "Latitude (WGS84 decimal degrees)", fs2."Longitude (WGS84 decimal degrees)" as "Longitude (WGS84 decimal degrees)", fs2."Sample date" as "Field sampling date", fs2."Sample Provider(s) (Full name)" as "Field Sample Provider", fs2."Running Project Title" as "Field Sampling Project Title", fs2."Sampling depth (discrete, cm)" as "Field Sampling depth (discrete, cm)", fs2."Sampling interval - to (cm)" as "Field Sampling depth interval - to (cm)", fs2."Water depth (m)" as "Field Sampling Water depth (m)", fs2."Sample type" as "Field Sample type", fs2."Sample environment" as "Field sampling environment", fs2."Sample context" as "Fiel sampling context", fs2."Age Estimate - from (ka)" as "Age Estimate - from (ka)", fs2."Elevation (m asl)" as "Elevation (m asl)", fs2."Sample storage address" as "Field sample storage address", fs2."Sample storage setting" as "Field Sample Sample storage setting", fs2."Sample storage location" as "Field Sample Sample storage location", fs2."Miscellaneous Sample Measurement(s) or Observation(s)" as "Miscellaneous Field Sample Measurement(s) or Observation(s)", fs2."Miscellaneous Environmental Measurement(s) or Observation(s)", fs2."Link(s) to images" as "Link(s) to images", fs2."Link(s) to other relevant information" as "Link(s) to other relevant information", fs2."Comments" as "Field sampling comments", fs2."Sampling interval - from (cm)" as "Field Sampling depth interval - from (cm)", fs2."Age Estimate - to (ka)" as "Age Estimate - to (ka)", fs2."Sample material" as "Field sample material", fs2."Alias" as "Field Sample Alias", fs2."Cultural Affiliation" as "Field Sample Cultural Affiliation", fs2."Museum/Institution" as "Fiel Sample Museum/Institution", fs2."Other Relevant Information" as "Other Relevant Field Sampling Information", fs2."PI (Full name)" as "PI", fs2."Sample Provider(s) (Contact info)" as "Field Sample Provider", fs2."Site-Grid Elev (m asl)" as "Site-Grid Elev (m asl)", fs2."Site-Grid Latitude (WGS84 decimal degrees)" as "Site-Grid Latitude (WGS84 decimal degrees)", fs2."Site-Grid Longitude (WGS84 decimal degrees)" as "Site-Grid Longitude (WGS84 decimal degrees)", fs2."field_sample_parent_id" as "field_sample_parent_id", fs2."Field Label (informal)" as "Field Sample Label (informal)", fs2."Sample type in storage at GM" as "Field sample type in storage at GM", fs2."Permit for DNA Analysis (yes/no)" as "Permit for DNA Analysis (yes/no)",
+        eas."archive_sample_id" as "archive_sample_id", eas."PositionInRack" as "ArchiveSamplePositionInRack", eas."RackName" as "ArchiveSampleRackName", eas."RackID" as "ArchiveSampleRackID", eas."DepthSampledCalTape" as "ArchiveSampleDepthCalTape", eas."DepthOrderedCalTape" as "ArchiveSampleOrderedDepthCalTape", eas."OrganicContent" as "ArchiveSampleOrganicContent", eas."SurfaceExposed" as "ArchiveSampleSurfaceExposed", eas."RemarksArchiveSampling" as "RemarksArchiveSampling", eas."SampledBy" as "ArchiveSamplingBy", eas."SamplingDate" as "ArchiveSamplingDate", eas."Submitter" as "ArchiveSampleSubmitter", eas."SubmissionDate" as "ArchiveSampleSubmissionDate", eas."RemarksSubmission" as "ArchiveSampleSubmissionRemarks",
+        md."Master Depth (cm)", adm.mean as "Mean Master Age", adm.median as "Median Master Age", adm.min  as "Min Master Age", adm.max as "Max Master Age",
+        rs."robot_sample_id" as "robot_sample_id", rs."RackName" as "RobotSampleRackName", rs."RackID" as "RobotSampleRackID", rs."PositionInRack" as "RobotSamplePositionInRack", rs."Mass" as "RobotSampleMass", rs."SampledBy" as "RobotSampleSampledBy", rs."SamplingDate" as "RobotSampleSamplingDate", rs."RemarksSubSampling" as "rs_RemarksRobotSampling", rs."Submitter" as "RobotSampleSubmitter", rs."SubmissionDate" as "RobotSampleSubmissionDate", rs."RemarksSubmission" as "RobotSampleRemarksSubmission",
+        wl."Customer Name" as "Wet Lab Customer Name", wl."Order Date" as "Wet Lab Order Date", wl."Order ID" as "Wet Lab Order ID", wl."No" as "Wet Lab No", wl."Total Sample Quantity" as "Wet Lab Total Sample Quantity", wl."eDNA Lysate Plate ID" as "eDNA Lysate Plate ID", wl."eDNA Lysate Position" as "eDNA Lysate Position", wl."Lysis Date" as "Lysis Date", wl."eDNA plate ID" as "eDNA plate ID", wl."eDNA plate Position" as "eDNA plate Position", wl."edna_id" as "edna_id", wl."eDNA Concentration (ng/µL)" as "eDNA Concentration (ng/µL)", wl."Cleanup Date" as "Wet Lab Cleanup Date", wl."Customer Attention to Extraction" as "Customer Attention to DNA Extraction", wl."Library Plate ID" as "Library Plate ID", wl."Library Plate Barcode" as "Library Plate Barcode", wl."Library Plate Position" as "Library Plate Position", wl."library_id" as "library_id", wl."Library Concentration (nM)" as "Library Concentration (nM)", wl."Library Peak Size (bp)" as "Library Peak Size (bp)", wl."Library Leftover Volume  (µL)" as "Library Leftover Volume (µL)", wl."Library QC Result" as "Library QC Result", wl."Library Start Date" as "Library Start Date", wl."Ct" as "Ct", wl."qPCR Date" as "qPCR Date", wl."IDT Index No" as "IDT Index No", wl."i7 Bases in Adapter" as "i7 Bases in Adapter", wl."i5 Bases in Adapter" as "i5 Bases in Adapter", wl."PCR Cycle" as "PCR Cycle", wl."Indexing PCR Date" as "Indexing PCR Date", wl."Library Cleanup Date" as "Library Cleanup Date", wl."Library QC Date" as "Library QC Date", wl."Customer Attention to Library Prep" as "Customer Attention to Library Prep", wl."seqc_tube_tag" as "seqc_tube_tag", wl."DNA Pooled (nmol)" as "DNA Pooled (nmol)", wl."Expected Sequencing Data (MB)" as "Expected Sequencing Data (MB)", wl."Submitting Date" as "Submitting Date", wl."Return DNA" as "Return DNA", wl."Return Library" as "Return Library", wl."Return Pool" as "Return Pool", wl."Pool to SeqC" as "Pool to SeqC", wl."Project Done Date" as "Wet Lab Project Done Date", wl."fastq_file_id" as "fastq_file_id", wl."Library Prep Method" as "Library Prep Method",
+        fc."Lane" as "fc_Lane", fc."seq_project_name" as "seq_project_name", fc."Barcode sequence" as "Barcode sequence", fc."PF Clusters" as "PF Clusters", fc."% of the lane" as "% of the flowcell lane", fc."% Perfect barcode" as "% Perfect barcode", fc."% One mismatch barcode" as "% One mismatch barcode", fc."Yield (Mbases)" as "Seq Yield (Mbases)", fc."% PF Clusters" as "% PF Clusters", fc."% >= Q30 bases" as "% >= Q30 bases", fc."Mean Quality Score" as "Mean Seq Quality Score", fc."flowcell_id" as "flowcell_id", fc."Clusters (Raw) sum" as "Seq Clusters (Raw) sum", fc."Clusters(PF) sum" as "Seq Clusters(PF) sum", fc."Yield (MBases) sum" as "Seq Yield (MBases) sum"
+        from test_1.field_sample fs2 
+        full outer join test_1.edna_archive_sample eas on lower(fs2.field_sample_id) = lower(eas.field_sample_id)
+        full outer join test_1.master_depth md on lower(eas.archive_sample_id) = lower(md.archive_sample_id)
+        full outer join test_1.age_depth_model adm on lower(md.depth_id) = lower(adm.depth_id)
+        full outer join test_1.edna_robot_sample rs on lower(eas.archive_sample_id) = lower(rs.archive_sample_id)
+        full outer join test_1.edna_wetlab_report wl on lower(rs.robot_sample_id) = lower(wl.robot_sample_id) 
+        full outer join test_1.flowcell fc on lower(wl.fastq_file_id) = lower(fc.fastq_file_id);
+        '''
+
+        rows, cols = queries.execute_query(query=query, connection=PSY_CONN, get_cols=True)
+        column_names = [desc[0] for desc in cols]
+        
+        encoding_type = request.form['encoding_type']
+
+        zip_paths = []
+                
+        global search_id 
+        search_id = search_id + 1
+        session["search_id"] = str(search_id)
+                
+        directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+                
+        path_full = os.path.join(directory_path, 'query_result_full.csv')
+        zip_paths.append(path_full)
+        path_zip_query = os.path.join(directory_path, 'query_all.zip')
+        
+        df = pd.DataFrame(rows, columns=column_names)
+        df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+        
+        create_zip(zip_paths, path_zip_query)
+
+        # Send the text file as a download to the user
+        return send_file(path_zip_query, as_attachment=True)
+    
+    
+    
+
 @app.route('/download_all_individual_tables', methods=['POST'])
 def download_all_individual_tables():
     
@@ -1039,6 +1099,8 @@ def download_individual_unfiltered_tables():
     
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
+
+
 
 if __name__ == '__main__':
     print("Start")

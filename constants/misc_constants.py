@@ -111,7 +111,8 @@ AUTO_GENERATED_COLUMNS = ['database_insert_by',
                           'database_insert_datetime_utc', 
                           'uid', 
                           'database_insert_date_utc', 
-                          'upload_uuid']
+                          'upload_uuid',
+                          'depth_id']
 
 
 DB_CHARACTER_ENCODING = 'UTF-8'

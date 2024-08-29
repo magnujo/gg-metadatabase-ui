@@ -46,7 +46,9 @@ class DBTableRelated:
                         'initials_translator': [db_names.initials_translator()]
                     }
 
-    DB_GENERATED_COLUMNS = {db_names.top_unknown_seq_barcodes(): ['uid']}
+    DB_GENERATED_COLUMNS = {"top_unknown_seq_barcodes": ['uid'],
+                            "master_depth": ['depth_id'],
+                            "age_depth_model": ['depth_id']}
         
 
     def check_for_duplicates():
