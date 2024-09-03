@@ -57,14 +57,14 @@ class Schema(str):
 	# 	name = get_column_name(id)
 	# 	return f"'{name}'"
 
-class db_names(Schema):
+class data(Schema):
     _db_id = 1
 
     class edna_robot_sample(Table):
         _db_id = 1
 
         #  Columns:
-        subsampleid = lambda template=False: get_column_name(1, template=template)
+        robot_sample_id = lambda template=False: get_column_name(1, template=template)
         rackname = lambda template=False: get_column_name(2, template=template)
         rackid = lambda template=False: get_column_name(3, template=template)
         positioninrack = lambda template=False: get_column_name(4, template=template)
@@ -253,7 +253,7 @@ class db_names(Schema):
         #  Columns:
         lane = lambda template=False: get_column_name(148, template=template)
         project = lambda template=False: get_column_name(149, template=template)
-        sample = lambda template=False: get_column_name(150, template=template)
+        fastq_file_id = lambda template=False: get_column_name(150, template=template)
         barcode_sequence = lambda template=False: get_column_name(151, template=template)
         pf_clusters = lambda template=False: get_column_name(152, template=template)
         of_the_lane = lambda template=False: get_column_name(153, template=template)
@@ -417,7 +417,7 @@ class db_names(Schema):
         _db_id = 16
 
         #  Columns:
-        sample_id = lambda template=False: get_column_name(279, template=template)
+        fastq_file_id = lambda template=False: get_column_name(279, template=template)
         sample_name = lambda template=False: get_column_name(280, template=template)
         sample_plate = lambda template=False: get_column_name(281, template=template)
         sample_well = lambda template=False: get_column_name(282, template=template)
@@ -446,7 +446,7 @@ class db_names(Schema):
         _db_id = 17
 
         #  Columns:
-        unique_sample_id = lambda template=False: get_column_name(303, template=template)
+        field_sample_id = lambda template=False: get_column_name(303, template=template)
         country_ocean = lambda template=False: get_column_name(304, template=template)
         site_name = lambda template=False: get_column_name(305, template=template)
         latitude = lambda template=False: get_column_name(306, template=template)
@@ -458,8 +458,8 @@ class db_names(Schema):
         sampling_interval___to = lambda template=False: get_column_name(312, template=template)
         water_depth = lambda template=False: get_column_name(313, template=template)
         sample_type = lambda template=False: get_column_name(314, template=template)
-        sample_environment = lambda template=False: get_column_name(315, template=template)
         sample_context = lambda template=False: get_column_name(316, template=template)
+        sample_environment = lambda template=False: get_column_name(315, template=template)
         age_estimate___from = lambda template=False: get_column_name(317, template=template)
         elevation = lambda template=False: get_column_name(318, template=template)
         sample_storage_address = lambda template=False: get_column_name(319, template=template)

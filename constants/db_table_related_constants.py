@@ -1,10 +1,10 @@
 from constants.db_connections import SQL_ALCH_CONFIG
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 from constants.misc_constants import SHEET_TYPES
 from utils import queries, misc
 import inspect
 
-db_names.edna_robot_sample()
+data.edna_robot_sample()
 
 
 
@@ -13,38 +13,49 @@ class DBTableRelated:
     Contains all constants that contain names of database tables
     '''
     
-    TABLE_TYPES_FOR_ENUM_VALIDATION = {"ENVIRONMENTAL": {"SAMPLE": [db_names.field_sample(), 
-                                                                    db_names.edna_robot_sample(), 
-                                                                    db_names.edna_archive_sample(), 
-                                                                    db_names.master_depth(), 
-                                                                    db_names.cgg_animal_plant(), 
-                                                                    db_names.cgg_sediment_water(), 
-                                                                    db_names.age_depth_model(), 
-                                                                    db_names.initials_translator()],
-                                                         "LIBRARY": [db_names.flowcell(), 
-                                                                     db_names.seq_sample_sheet(), 
-                                                                     db_names.top_unknown_seq_barcodes(), 
-                                                                     db_names.adna_wetlab_report(), 
-                                                                     db_names.edna_wetlab_report()]
+    TABLE_TYPES_FOR_ENUM_VALIDATION = {"ENVIRONMENTAL": {"SAMPLE": [data.field_sample(), 
+                                                                    data.edna_robot_sample(), 
+                                                                    data.edna_archive_sample(), 
+                                                                    data.master_depth(), 
+                                                                    data.cgg_animal_plant(), 
+                                                                    data.cgg_sediment_water(), 
+                                                                    data.age_depth_model(), 
+                                                                    data.initials_translator()],
+                                                         "LIBRARY": [data.flowcell(), 
+                                                                     data.seq_sample_sheet(), 
+                                                                     data.top_unknown_seq_barcodes(), 
+                                                                     data.adna_wetlab_report(), 
+                                                                     data.edna_wetlab_report()]
                                                          }
                                        }
 
     # TODO: Fix hardcoding of sheet labels
     # Load tables from schema and check that they are all here:
     TABLE_SPLITTER = {
-                        'field_sample': [db_names.field_sample()],
-                        'edna_archive_sample': [db_names.edna_archive_sample()],
-                        'edna_robot_sample': [db_names.edna_robot_sample()],
-                        'edna_wetlab_report': [db_names.edna_wetlab_report()],
-                        'adna_wetlab_report': [db_names.adna_wetlab_report()],
-                        'cgg_sediment_water': [db_names.cgg_sediment_water()],
-                        'cgg_animal_plant': [db_names.cgg_animal_plant()],
-                        'lane_barcode_html': [db_names.flowcell(), db_names.top_unknown_seq_barcodes()],
-                        'seq_sample_sheet': [db_names.seq_sample_sheet()],
-                        'master_depth': [db_names.master_depth()],
-                        'age_depth_model': [db_names.age_depth_model()],
-                        'initials_translator': [db_names.initials_translator()]
+                        'field_sample': [data.field_sample()],
+                        'edna_archive_sample': [data.edna_archive_sample()],
+                        'edna_robot_sample': [data.edna_robot_sample()],
+                        'edna_wetlab_report': [data.edna_wetlab_report()],
+                        'adna_wetlab_report': [data.adna_wetlab_report()],
+                        'cgg_sediment_water': [data.cgg_sediment_water()],
+                        'cgg_animal_plant': [data.cgg_animal_plant()],
+                        'lane_barcode_html': [data.flowcell(), data.top_unknown_seq_barcodes()],
+                        'seq_sample_sheet': [data.seq_sample_sheet()],
+                        'master_depth': [data.master_depth()],
+                        'age_depth_model': [data.age_depth_model()],
+                        'initials_translator': [data.initials_translator()]
                     }
+    
+    PARENTS = \
+    {
+        data() + "." + data.edna_archive_sample(): [data.field_sample.field_sample_id()],
+        data() + "." + data.edna_robot_sample(): [data.edna_archive_sample.archivesampleid()],
+        data() + "." + data.edna_wetlab_report(): [data.edna_robot_sample.robot_sample_id(), data.flowcell.fastq_file_id(), data.seq_sample_sheet.fastq_file_id],
+        data() + "." + data.seq_sample_sheet(): [data.flowcell.fastq_file_id()],
+        data() + "." + data.flowcell(): [],
+        data() + "." + data.master_depth(): [data.field_sample.master_id_parent_sample_id(), data.field_sample.field_sample_id(), data.edna_archive_sample.archivesampleid()],
+        data() + "." + data.age_depth_model(): [data.field_sample.master_id_parent_sample_id(), data.field_sample.field_sample_id(), data.edna_archive_sample.archivesampleid()] 
+    }
 
     DB_GENERATED_COLUMNS = {"top_unknown_seq_barcodes": ['uid'],
                             "master_depth": ['depth_id'],

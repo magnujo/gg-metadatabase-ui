@@ -5,19 +5,19 @@ import numpy as np
 from scripts import fid_query
 ENGINE = misc_constants.ENGINE_READ_ONLY
 from utils.db_utils import get_ordinal_position_maps
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 
 def get_all_fids():
-    wldf_q = f'select * from "{db_names()}"."{db_names.edna_wetlab_report()}";'
-    asdf_q = f'select * from "{db_names()}"."{db_names.edna_archive_sample()}";'
-    cgg_q = f'select * from "{db_names()}"."{db_names.cgg_sediment_water()}";'
+    wldf_q = f'select * from "{data()}"."{data.edna_wetlab_report()}";'
+    asdf_q = f'select * from "{data()}"."{data.edna_archive_sample()}";'
+    cgg_q = f'select * from "{data()}"."{data.cgg_sediment_water()}";'
     wldf = pd.read_sql(wldf_q, dtype=str, con=ENGINE)
     asdf = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
     cgg = pd.read_sql(cgg_q, dtype=str, con=ENGINE)
     
       
-    field_sample_ID = db_names.edna_archive_sample.field_sample_id()
-    museum_ID = db_names.cgg_sediment_water.museum_id_sample_id() 
+    field_sample_ID = data.edna_archive_sample.field_sample_id()
+    museum_ID = data.cgg_sediment_water.museum_id_sample_id() 
 
     wldf = wldf.fillna(np.nan)
     wldf = wldf.replace("NONE", np.nan)
