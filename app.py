@@ -315,6 +315,40 @@ def upload_file():
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
+                print("split_database_table_name: ", split_database_table_name)
+                print("keys: ", db_table_related_constants.DBTableRelated.PARENTS.keys())
+                if split_database_table_name in db_table_related_constants.DBTableRelated.PARENTS.keys():
+                    
+                    print("IIIIFIFFFFF  ")
+                    # Check parents precense in DB
+                    
+                    parents = db_table_related_constants.DBTableRelated.PARENTS[split_database_table_name]
+                    print("parents: ", parents)
+                    
+                    for sheet_key, val in parents.items():
+                        print("sheet_key: ", sheet_key)
+                        print("val: ", val)
+                        for db_table, table_keys in val.items():
+                            print("db_table: ", db_table)
+                            print("table_keys: ", table_keys)
+                            unique_vals_in_sheet = set(clean_sheet[sheet_key].astype(str).unique())
+                            print("unique_vals_in_sheet: ", unique_vals_in_sheet)
+                            for db_key in table_keys:
+                                print("db_key: ", db_key)
+                                
+                                unique_vals_in_db = queries.get_unique_values_from_db_column(column=db_key, 
+                                                                                            engine=ENGINE, 
+                                                                                            schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                            table=db_table)
+                                print("unique_vals_in_db: ", unique_vals_in_db)
+                                diff = unique_vals_in_sheet.difference(unique_vals_in_db)
+                                
+                                if len(diff) != 0:                                
+                                    raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
+                                                    {diff} \n \
+                                                        Tell the responsible uploader to upload the missing data first, \
+                                                            or make sure that there are no typos in the IDs.")
+                
                 clean_sheets.append((clean_sheet, split_database_table_name))
                 
 
@@ -349,18 +383,6 @@ def handle_enum_columns(parsed_sheet, table_name):
 def pretty_data():
     return render_template('confirmation_request copy.html')
 
-@app.route('/data')
-def data():
-    # Sample DataFrame
-    data = {'Name': ['John', 'Anna', 'Peter', 'Linda'],
-            'Age': [28, 24, 35, 32],
-            'City': ['New York', 'Paris', 'Berlin', 'London']}
-    df = pd.DataFrame(data)
-
-    # Convert DataFrame to JSON
-    json_data = df.to_dict(orient='records')
-
-    return jsonify(json_data)
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmation_request', methods=['GET'])

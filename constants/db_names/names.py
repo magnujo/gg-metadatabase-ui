@@ -12,7 +12,7 @@ from utils import queries
 class Table(str):
 	def __new__(cls):
 		return super().__new__(cls, get_table_name(cls._db_id))
-
+        
 
 class Schema(str):
 	def __new__(cls):
