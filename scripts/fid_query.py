@@ -3,16 +3,16 @@ import pandas as pd
 from constants.db_connections import ENGINE_READ_ONLY as ENGINE
 import numpy as np
 from utils.db_utils import get_ordinal_position_maps
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 
 def get_meta_data(field_sample_IDs):
     '''
     Gets all meta data connected to fIDs across WetLab, Archive and CGG sediment table
     '''
     
-    wldf_q = f'select * from "{db_names()}"."{db_names.edna_wetlab_report()}";'
-    asdf_q = f'select * from "{db_names()}"."{db_names.edna_archive_sample()}";'
-    cgg_q = f'select * from "{db_names()}"."{db_names.cgg_sediment_water()}";'
+    wldf_q = f'select * from "{data()}"."{data.edna_wetlab_report()}";'
+    asdf_q = f'select * from "{data()}"."{data.edna_archive_sample()}";'
+    cgg_q = f'select * from "{data()}"."{data.cgg_sediment_water()}";'
 
     wet_lab_reports = pd.read_sql(wldf_q, dtype=str, con=ENGINE)
     archive_samples = pd.read_sql(asdf_q, dtype=str, con=ENGINE)
@@ -26,28 +26,28 @@ def get_meta_data(field_sample_IDs):
     # cgg_3 = cgg_3.rename(columns=ordinal_position_maps[db_names.cgg_sediment_water()].col_to_pos)
     
     # Dynamic column names Wetlab Report
-    library_id = db_names.edna_wetlab_report.library_id()
-    fastq_file_id = db_names.edna_wetlab_report.fastq_file_id() 
-    robot_sample_ID = db_names.edna_wetlab_report.robot_sample_id() 
-    extraction_ID = db_names.edna_wetlab_report.edna_id() 
-    aID_wlr = db_names.edna_wetlab_report.archive_sample_id() 
+    library_id = data.edna_wetlab_report.library_id()
+    fastq_file_id = data.edna_wetlab_report.fastq_file_id() 
+    robot_sample_ID = data.edna_wetlab_report.robot_sample_id() 
+    extraction_ID = data.edna_wetlab_report.edna_id() 
+    aID_wlr = data.edna_wetlab_report.archive_sample_id() 
     
     # Dynamic col names Archive Samples
-    aID_as = db_names.edna_archive_sample.archivesampleid() 
-    field_sample_ID = db_names.edna_archive_sample.field_sample_id() 
-    depth_as = db_names.edna_archive_sample.depthsampledcaltape() 
+    aID_as = data.edna_archive_sample.archivesampleid() 
+    field_sample_ID = data.edna_archive_sample.field_sample_id() 
+    depth_as = data.edna_archive_sample.depthsampledcaltape() 
     
     # Dynamic col names CGG
-    cgg_ID = db_names.cgg_sediment_water.cgg_id() 
-    museum_ID = db_names.cgg_sediment_water.museum_id_sample_id()
-    depth_cgg = db_names.cgg_sediment_water.depth()
-    height = db_names.cgg_sediment_water.height__asl()
-    age = db_names.cgg_sediment_water.age()
-    geological_age = db_names.cgg_sediment_water.geological_age()
-    country = db_names.cgg_sediment_water.country()
-    lat = db_names.cgg_sediment_water.lat()
-    lon = db_names.cgg_sediment_water.lon()
-    gps = db_names.cgg_sediment_water.gps()
+    cgg_ID = data.cgg_sediment_water.cgg_id() 
+    museum_ID = data.cgg_sediment_water.museum_id_sample_id()
+    depth_cgg = data.cgg_sediment_water.depth()
+    height = data.cgg_sediment_water.height__asl()
+    age = data.cgg_sediment_water.age()
+    geological_age = data.cgg_sediment_water.geological_age()
+    country = data.cgg_sediment_water.country()
+    lat = data.cgg_sediment_water.lat()
+    lon = data.cgg_sediment_water.lon()
+    gps = data.cgg_sediment_water.gps()
     
     global_field_sample_id_col_name = "FieldSampleID"
 

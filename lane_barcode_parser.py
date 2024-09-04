@@ -1,5 +1,5 @@
 import pandas as pd
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 
 def parse(df):
     flowcell_data = parse_sequencing_data(df)
@@ -12,7 +12,7 @@ def parse(df):
 
 def parse_sequencing_data(df_full):
     df = df_full[2]
-    df[db_names.flowcell.flowcell_id(template=True)] = df_full[0][0][0].split("/")[0].strip()
+    df[data.flowcell.flowcell_id(template=True)] = df_full[0][0][0].split("/")[0].strip()
     flowcell_summary = df_full[1]
 
     for i, col in enumerate(flowcell_summary.columns):
@@ -20,7 +20,7 @@ def parse_sequencing_data(df_full):
     return df
 
 def parse_top_unknown_barcodes(df_full):
-    col_names = db_names.top_unknown_seq_barcodes
+    col_names = data.top_unknown_seq_barcodes
     # flowcell_id_col_name = col_names.flowcell_id(template=True)
     flowcell_id_col_name = col_names.flowcell_id(template=True)
     lane_col_name = col_names.lane(template=True)

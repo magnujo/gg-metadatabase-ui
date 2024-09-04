@@ -6,7 +6,7 @@ import constants.misc_constants as misc_constants
 import utils.queries as q
 import json
 import requests
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 
 def drop_auto_generated_columns(dataframe):
     '''
@@ -225,7 +225,7 @@ def make_dir_on_network_mount(network_drive, path_to_dir, error_if_exists):
     
     
 def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_root_dir):
-    col_names = db_names.field_sample
+    col_names = data.field_sample
     project_names = list(parsed_sheet[col_names.running_project_title()].str.strip().unique())
     if len(project_names) < 1:
         raise Exception(f"Please fill in {col_names.running_project_title()}")
@@ -248,7 +248,7 @@ def generate_field_sample_dir_paths(parsed_sheet, samples_root_dir, projects_roo
 
     # Make sample paths
     parent_sample_id_col_name = col_names.master_id_parent_sample_id()
-    sample_id_col_name = col_names.unique_sample_id()
+    sample_id_col_name = col_names.field_sample_id()
     root_sample_ids = \
         set(parsed_sheet[parent_sample_id_col_name].str.strip().unique()) - set(parsed_sheet[sample_id_col_name].str.strip().unique())
     sample_hierachy = extract_sample_hierachy(root_sample_ids, parsed_sheet, 
