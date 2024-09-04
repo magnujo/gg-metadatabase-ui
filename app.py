@@ -1,6 +1,6 @@
 import numpy as np
 import constants.db_connections
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 from constants.db_connections import ENGINE, ENGINE_READ_ONLY, SQL_ALCH_CONFIG, PSY_CONN
 from constants.db_names.name_maps import sheet_to_db_rename_map, db_to_sheet_rename_map
 from utils.db_utils import get_ordinal_position_maps
@@ -189,13 +189,13 @@ def upload_file():
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
             else:       
-                if database_table_name == db_names.seq_sample_sheet():
+                if database_table_name == data.seq_sample_sheet():
                     l = []
                     for i in range(10):
                         l.append(f"Column{i+1}")
                     sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
-                elif database_table_name == db_names.age_depth_model():
+                elif database_table_name == data.age_depth_model():
                     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
                 else:
                     sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
@@ -233,20 +233,20 @@ def upload_file():
                 
                 clean_sheet['upload_uuid'] = 'not_uploaded'
                 
-                if split_database_table_name == db_names.age_depth_model():
+                if split_database_table_name == data.age_depth_model():
                     master_ids = {str(Path(str(file_name)).stem)}
                 
-                if split_database_table_name == db_names.master_depth():
-                    master_ids = clean_sheet[db_names.master_depth.master_field_sample_id()].unique()
+                if split_database_table_name == data.master_depth():
+                    master_ids = clean_sheet[data.master_depth.master_field_sample_id()].unique()
 
-                if split_database_table_name == db_names.age_depth_model() or split_database_table_name == db_names.master_depth():
+                if split_database_table_name == data.age_depth_model() or split_database_table_name == data.master_depth():
                     if master_ids == None or len(master_ids) < 1:
                         raise Exception("master_ids is None or empty")
  
-                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=db_names.field_sample.master_id_parent_sample_id(), 
+                    unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=data.field_sample.master_id_parent_sample_id(), 
                                                                                       engine=ENGINE, 
                                                                                       schema=SQL_ALCH_CONFIG["schema_name"], 
-                                                                                      table=db_names.field_sample())
+                                                                                      table=data.field_sample())
                     
 
                     
@@ -257,9 +257,9 @@ def upload_file():
                             raise Exception("master_id or master_ids_in_database is None")
                         
                         if master_id.lower() in unique_master_IDs_in_db and master_id != "unknown":
-                            if split_database_table_name == db_names.age_depth_model():
-                                clean_sheet[db_names.field_sample.master_id_parent_sample_id()] = master_id
-                            elif split_database_table_name == db_names.master_depth():
+                            if split_database_table_name == data.age_depth_model():
+                                clean_sheet[data.field_sample.master_id_parent_sample_id()] = master_id
+                            elif split_database_table_name == data.master_depth():
                                 pass
                             else:
                                 raise Exception("didnt find table name")
@@ -267,19 +267,19 @@ def upload_file():
                         else:
                             raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your Master ID(s) so it refers to an existing Master ID or upload the missing Field Samples data")
                 
-                if split_database_table_name == db_names.field_sample():
-                    parent_col = db_names.field_sample.master_id_parent_sample_id()
-                    project_col = db_names.field_sample.running_project_title()
+                if split_database_table_name == data.field_sample():
+                    parent_col = data.field_sample.master_id_parent_sample_id()
+                    project_col = data.field_sample.running_project_title()
                     
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=parent_col, 
                                                                                       engine=ENGINE, 
                                                                                       schema=SQL_ALCH_CONFIG["schema_name"], 
-                                                                                      table=db_names.field_sample())
+                                                                                      table=data.field_sample())
                     
                     unique_project_IDs_in_db = queries.get_unique_values_from_db_column(column=project_col, 
                                                                                       engine=ENGINE, 
                                                                                       schema=SQL_ALCH_CONFIG["schema_name"], 
-                                                                                      table=db_names.field_sample())
+                                                                                      table=data.field_sample())
                     
   
                     if not parent_col in clean_sheet.columns:
@@ -315,6 +315,40 @@ def upload_file():
                 clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
+                print("split_database_table_name: ", split_database_table_name)
+                print("keys: ", db_table_related_constants.DBTableRelated.PARENTS.keys())
+                if split_database_table_name in db_table_related_constants.DBTableRelated.PARENTS.keys():
+                    
+                    print("IIIIFIFFFFF  ")
+                    # Check parents precense in DB
+                    
+                    parents = db_table_related_constants.DBTableRelated.PARENTS[split_database_table_name]
+                    print("parents: ", parents)
+                    
+                    for sheet_key, val in parents.items():
+                        print("sheet_key: ", sheet_key)
+                        print("val: ", val)
+                        for db_table, table_keys in val.items():
+                            print("db_table: ", db_table)
+                            print("table_keys: ", table_keys)
+                            unique_vals_in_sheet = set(clean_sheet[sheet_key].astype(str).unique())
+                            print("unique_vals_in_sheet: ", unique_vals_in_sheet)
+                            for db_key in table_keys:
+                                print("db_key: ", db_key)
+                                
+                                unique_vals_in_db = queries.get_unique_values_from_db_column(column=db_key, 
+                                                                                            engine=ENGINE, 
+                                                                                            schema=SQL_ALCH_CONFIG["schema_name"], 
+                                                                                            table=db_table)
+                                print("unique_vals_in_db: ", unique_vals_in_db)
+                                diff = unique_vals_in_sheet.difference(unique_vals_in_db)
+                                
+                                if len(diff) != 0:                                
+                                    raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
+                                                    {diff} \n \
+                                                        Tell the responsible uploader to upload the missing data first, \
+                                                            or make sure that there are no typos in the IDs.")
+                
                 clean_sheets.append((clean_sheet, split_database_table_name))
                 
 
@@ -349,18 +383,6 @@ def handle_enum_columns(parsed_sheet, table_name):
 def pretty_data():
     return render_template('confirmation_request copy.html')
 
-@app.route('/data')
-def data():
-    # Sample DataFrame
-    data = {'Name': ['John', 'Anna', 'Peter', 'Linda'],
-            'Age': [28, 24, 35, 32],
-            'City': ['New York', 'Paris', 'Berlin', 'London']}
-    df = pd.DataFrame(data)
-
-    # Convert DataFrame to JSON
-    json_data = df.to_dict(orient='records')
-
-    return jsonify(json_data)
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/confirmation_request', methods=['GET'])
@@ -888,10 +910,10 @@ def search():
             session["search_id"] = str(search_id)
             
             directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
-            db_names.edna_archive_sample()
+            data.edna_archive_sample()
             
-            library_id_col_name = db_names.edna_wetlab_report.library_id() 
-            country_col_name = db_names.cgg_sediment_water.country()
+            library_id_col_name = data.edna_wetlab_report.library_id() 
+            country_col_name = data.cgg_sediment_water.country()
             
             try:
                 match input_dropdown:

@@ -1,5 +1,5 @@
 from constants.db_connections import RUN_MODE_OPTIONS, pw
-from constants.db_names.names import db_names
+from constants.db_names.names import data
 import os
 from flask import Flask
 import platform
@@ -121,8 +121,8 @@ DB_CHARACTER_ENCODING = 'UTF-8'
 '''
 The following is a translator from CGG DB column names to SPAAM defined in https://github.com/SPAAM-community/AncientMetagenomeDir
 '''
-TO_SPAAM_COLUMN_NAMES = {db_names.field_sample(): {db_names.field_sample.country_ocean(): "geo_loc_name",
-                                                    db_names.field_sample.sample_context(): "feature"}}
+TO_SPAAM_COLUMN_NAMES = {data.field_sample(): {data.field_sample.country_ocean(): "geo_loc_name",
+                                                    data.field_sample.sample_context(): "feature"}}
 
 FROM_SPAAM_COLUMN_NAMES = lambda table_name: {value: key for key, value in TO_SPAAM_COLUMN_NAMES[table_name].items()} if table_name in TO_SPAAM_COLUMN_NAMES else None
 
