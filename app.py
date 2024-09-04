@@ -206,7 +206,10 @@ def upload_file():
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
                 sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
-                   
+                
+                #  Remove trailing and leading whitespace  
+                sheet = sheet.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+                
                 clean_sheet = parsers.parse(sheet=sheet,
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
@@ -270,6 +273,7 @@ def upload_file():
                 if split_database_table_name == data.field_sample():
                     parent_col = data.field_sample.master_id_parent_sample_id()
                     project_col = data.field_sample.running_project_title()
+                    id_col = data.field_sample.field_sample_id()
                     
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=parent_col, 
                                                                                       engine=ENGINE, 
@@ -291,7 +295,7 @@ def upload_file():
                         
                     unique_master_IDs_in_parsed_sheet = set(clean_sheet[parent_col].str.lower().unique())
                     unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
-                        
+                                        
                     
                     bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
                     
