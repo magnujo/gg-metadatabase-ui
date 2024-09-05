@@ -1,3 +1,4 @@
+import generate_template
 import numpy as np
 import constants.db_connections
 from constants.db_names.names import data
@@ -754,6 +755,10 @@ def download_manual():
 @app.route('/download/<path:filename>')
 @decorators.log_info(app)
 def download_file(filename): 
+    if filename == 'Field Sampling Meta data reporting template.xlsx':
+        save_path = os.path.join(misc_constants.PATH_TO_STANDARD_SHEETS, filename)
+        generate_template.generate(data.field_sample(), data(), ENGINE_READ_ONLY, save_path=save_path)
+
     return send_from_directory(misc_constants.PATH_TO_STANDARD_SHEETS, filename, as_attachment=True)
 
 def current_function_name():

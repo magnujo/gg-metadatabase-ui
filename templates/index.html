@@ -100,16 +100,19 @@
         </div>
 
         <div class="section">
-            <h3>Spreadsheet Types</h3>
-            <p><strong>Note:</strong> The database only accepts “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac). For Lane Barcodes, use .html format.</p>
-            <p>Here are some example/template sheets to help you format your data correctly:</p>
+            <h3>Accepted upload spreadsheet templates</h3>
+            <p>The database is picky. Use one of the upload spreadsheet templates below, or it will not be happy.
+                <br>
+                They are updated regularly. To make sure you have the latest version, <b>download a new one everytime you need to fill out meta data</b>.
+            </p>
             {% for sheet in example_sheets %}
-                <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
+            <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
             {% endfor %}
         </div>
-
+        
         <div class="section">
-            <h3>Upload Options</h3>
+            <h3>Upload</h3>
+            <p><strong>Note:</strong> The database only accepts “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac). For Lane Barcodes, use .html format.</p>
             <form action="/upload" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="file">Choose a file to upload:</label>
