@@ -3,21 +3,13 @@ import psycopg2
 from constants.misc_constants import AUTO_GENERATED_COLUMNS
 from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_rename_map
 from constants.db_names.names import data
+from constants.db_connections import ENGINE_READ_ONLY
 
 from openpyxl import Workbook
-from openpyxl.styles import PatternFill, Alignment
-
-# Database connection parameters
-conn_params = {
-    'dbname': 'aedna_metadata_test',
-    'user': 'glj523',
-    'password': 'Wtcantfw36c!',
-    'host': 'dandyweb01fl',
-    'port': '5432'
-}
+from openpyxl.styles import PatternFill, Alignment, Border, Side
 
 # Connect to the database
-conn = psycopg2.connect(**conn_params)
+conn = ENGINE_READ_ONLY
 
 your_table = 'field_sample'
 your_schema = 'test_1'
@@ -31,6 +23,24 @@ SELECT * FROM "{your_schema}"."{your_table}" where "{col_names.field_sample_id()
 '''
 
 df = pd.read_sql(query, conn)
+
+new_row = {col_names.field_sample_id(): "The above row is an example row. Delete it and this row before uploading. Also delete the colour legend below"}
+new_row2 = {col_names.field_label(): ""}
+new_row3 = {col_names.field_label(): " = Mandatory column"}
+new_row4 = {col_names.field_label(): " = Non-mandatory column"}
+new_row5 = {col_names.field_label(): " = Mandatory depending on environment, type or other features"}
+
+# Insert at index 1
+df.loc[1.5] = new_row
+
+# Insert at index 1
+df.loc[2.5] = new_row2
+df.loc[3.5] = new_row3
+df.loc[4.5] = new_row4
+df.loc[5.5] = new_row5
+
+# Sort the index to maintain order
+df = df.sort_index().reset_index(drop=True)
 
 # Handle timezone-aware datetime columns
 for col in df.columns:
@@ -46,7 +56,7 @@ WHERE table_name = '{your_table}' and table_schema = '{your_schema}'
 constraints_df = pd.read_sql(constraints_query, conn)
 
 # Close the database connection
-conn.close()
+
 
 
 
@@ -117,9 +127,13 @@ workbook = writer.book
 worksheet = writer.sheets['Sheet1']
 
 # Define header formats
-green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='solid')
-white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
+non_mandatory_colour = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+feature_dependent_colour = PatternFill(start_color='D9EFCD', end_color='D9EFCD', fill_type='solid')
+yellow_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
 center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+border = Border(top=Side('thin'), bottom=Side('thin'), left=Side('thin'), right=Side('thin'))
+
 
 # Map renamed columns back to the original names for constraint checking
 reverse_renamer = {v: k for k, v in renamer.items()}
@@ -135,7 +149,6 @@ should_be_mandatory = [
     col_names.sample_date(template=True),
 ]
 
-light_green_fill = PatternFill(start_color='CCFFCC', end_color='CCFFCC', fill_type='solid')
 
 
 for col_num, col_name in enumerate(df_translated.columns):
@@ -148,18 +161,27 @@ for col_num, col_name in enumerate(df_translated.columns):
     # Apply color based on constraints and special non-mandatory status
     cell = worksheet.cell(row=1, column=col_num + 1)
     if original_col_name in special_non_mandatory_columns:
-        cell.fill = light_green_fill
+        cell.fill = feature_dependent_colour
     elif is_nullable == 'NO' or original_col_name in should_be_mandatory:
-        cell.fill = green_fill
+        cell.fill = mandatory_colour
     else:
-        cell.fill = white_fill
+        cell.fill = non_mandatory_colour
+
+    example_cell = worksheet.cell(row=3, column=col_num + 1)
+    example_cell.fill = yellow_fill
 
     # Align the text in the cell
     cell.alignment = center_alignment
 
+
+worksheet.cell(row=5, column=1).fill = mandatory_colour 
+worksheet.cell(row=5, column=1).border = border 
+worksheet.cell(row=6, column=1).fill = non_mandatory_colour 
+worksheet.cell(row=6, column=1).border = border 
+worksheet.cell(row=7, column=1).fill = feature_dependent_colour 
+worksheet.cell(row=7, column=1).border = border 
 # Set the row height for the header
 worksheet.row_dimensions[1].height = 61  # Adjust the height as needed
-
 # Set the column width for all columns
 for col in worksheet.columns:
     col_letter = col[0].column_letter
