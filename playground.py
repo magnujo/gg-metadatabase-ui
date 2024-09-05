@@ -7,7 +7,6 @@ from constants.db_names.names import data
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Alignment
 
-
 # Database connection parameters
 conn_params = {
     'dbname': 'aedna_metadata_test',
@@ -22,10 +21,18 @@ conn = psycopg2.connect(**conn_params)
 
 your_table = 'field_sample'
 your_schema = 'test_1'
-# Query to fetch the first row of the table
-query = f"SELECT * FROM {your_schema}.{your_table} LIMIT 1"
+
+if your_table == data.field_sample():
+    col_names = data.field_sample
+
+# Query a good example row
+query = f'''
+SELECT * FROM "{your_schema}"."{your_table}" where "{col_names.field_sample_id()}" = 'min22a_3';
+'''
+
 df = pd.read_sql(query, conn)
 
+# Handle timezone-aware datetime columns
 for col in df.columns:
     if pd.api.types.is_datetime64tz_dtype(df[col]):
         df[col] = df[col].dt.tz_localize(None)
@@ -38,70 +45,75 @@ WHERE table_name = '{your_table}' and table_schema = '{your_schema}'
 """
 constraints_df = pd.read_sql(constraints_query, conn)
 
-
-
-
 # Close the database connection
 conn.close()
 
-if your_table == data.field_sample():
-    col_names = data.field_sample()
-print(df.columns)
+
+
+# Drop auto-generated columns
 df = df.drop(columns=AUTO_GENERATED_COLUMNS, errors='ignore')
+
+# Rename columns based on the renaming map
 renamer = db_to_sheet_rename_map(schema_name=your_schema, table_name=your_table)
 df_translated = df.rename(columns=renamer, errors='raise')
-new_order = [col_names.field_sample_id(),
-             'Field Label (informal)',
-             'Master ID/Parent sample ID',
-             'Running Project Title',
-             'Permit for DNA Analysis (yes/no)',
-             'Country/Ocean',
-             'Site name',
-             'Longitude (WGS84 decimal degrees)',
-             'Latitude (WGS84 decimal degrees)',
-             'Elevation (m asl)',
-             'Water depth (m)',
-             'Sample context',
-             'Sample type',
-             'Sample type in storage at GM',
-             'Sample material',
-             'Sample environment',
-             'Age Estimate - from (ka)',
-             'Age Estimate - to (ka)',
-             'Sampling depth (discrete, cm)',
-             'Sampling interval - from (cm)',
-             'Sampling interval - to (cm)',
-             'Sample date',
-             'PI (Full name)',
-             'Sample Provider(s) (Full name)',
-             'Sample Provider(s) (Contact info)',
-             'Sample storage setting',
-             'Sample storage location',
-             'Sample storage address',
-             'Comments',
-             'Link(s) to other relevant information',
-             'Link(s) to images',
-             'Miscellaneous Environmental Measurement(s) or Observation(s)',
-             'Miscellaneous Sample Measurement(s) or Observation(s)',
-             'Alias',
-             'Cultural Affiliation',
-             'Museum/Institution',
-             'Other Relevant Information',
-             'Site-Grid Elev (m asl)',
-             'Site-Grid Latitude (WGS84 decimal degrees)',
-             'Site-Grid Longitude (WGS84 decimal degrees)']
 
-print(df.columns)
+# New column order
+new_order = [
+    col_names.field_sample_id(template=True),
+    col_names.field_label(template=True),
+    col_names.master_id_parent_sample_id(template=True),
+    col_names.running_project_title(template=True),
+    col_names.permit_for_dna_analysis(template=True),
+    col_names.country_ocean(template=True),
+    col_names.site_name(template=True),
+    col_names.longitude(template=True),
+    col_names.latitude(template=True),
+    col_names.elevation(template=True),
+    col_names.water_depth(template=True),
+    col_names.sample_context(template=True),
+    col_names.sample_type(template=True),
+    col_names.sample_type_in_storage_at_gm(template=True),
+    col_names.sample_material(template=True),
+    col_names.sample_environment(template=True),
+    col_names.age_estimate___from(template=True),
+    col_names.age_estimate___to(template=True),
+    col_names.sampling_depth(template=True),
+    col_names.sampling_interval___from(template=True),
+    col_names.sampling_interval___to(template=True),
+    col_names.sample_date(template=True),
+    col_names.pi(template=True),
+    col_names.sample_provider_name(template=True),
+    col_names.sample_provider_contact(template=True),
+    col_names.sample_storage_setting(template=True),
+    col_names.sample_storage_location(template=True),
+    col_names.sample_storage_address(template=True),
+    col_names.comments(template=True),
+    col_names.link_to_other_relevant_information(template=True),
+    col_names.link_to_images(template=True),
+    col_names.miscellaneous_environmental_measurement_or_observation(template=True),
+    col_names.miscellaneous_sample_measurement_or_observation(template=True),
+    col_names.alias(template=True),
+    col_names.cultural_affiliation(template=True),
+    col_names.museum_institution(template=True),
+    col_names.other_relevant_information(template=True),
+    col_names.site_grid_elev(template=True),
+    col_names.site_grid_latitude(template=True),
+    col_names.site_grid_longitude(template=True)
+]
 
+df_translated = df_translated[new_order]
+
+for col in df_translated.select_dtypes(include='bool').columns:
+    df_translated[col] = df_translated[col].map({True: 'yes', False: 'no'})
 
 # Create a Pandas Excel writer using openpyxl as the engine
 writer = pd.ExcelWriter('colored_header.xlsx', engine='openpyxl')
 
-# Convert the DataFrame to an XlsxWriter Excel object
+# Write the DataFrame to Excel
 df_translated.to_excel(writer, index=False, sheet_name='Sheet1')
 
 # Get the xlsxwriter workbook and worksheet objects
-workbook  = writer.book
+workbook = writer.book
 worksheet = writer.sheets['Sheet1']
 
 # Define header formats
@@ -109,21 +121,44 @@ green_fill = PatternFill(start_color='00FF00', end_color='00FF00', fill_type='so
 white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
 center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
-# Apply the header format based on NOT NULL constraints, center the text, and wrap text
-for col in range(len(df.columns)):
-    column_name = df.columns[col]
-    is_nullable = constraints_df[constraints_df['column_name'] == column_name]['is_nullable'].values[0]
-    cell = worksheet.cell(row=1, column=col+1)
-    if is_nullable == 'NO':
+# Map renamed columns back to the original names for constraint checking
+reverse_renamer = {v: k for k, v in renamer.items()}
+
+special_non_mandatory_columns = [
+    col_names.sampling_depth(template=True),
+    col_names.sampling_interval___from(template=True),
+    col_names.sampling_interval___to(template=True)
+]
+
+#  Columns that are not mandatory in DB but actually should be filled
+should_be_mandatory = [
+    col_names.sample_date(template=True),
+]
+
+light_green_fill = PatternFill(start_color='CCFFCC', end_color='CCFFCC', fill_type='solid')
+
+
+for col_num, col_name in enumerate(df_translated.columns):
+    # Get the original column name
+    original_col_name = reverse_renamer.get(col_name, col_name)
+
+    # Check the NOT NULL constraint
+    is_nullable = constraints_df[constraints_df['column_name'] == original_col_name]['is_nullable'].values[0]
+    
+    # Apply color based on constraints and special non-mandatory status
+    cell = worksheet.cell(row=1, column=col_num + 1)
+    if original_col_name in special_non_mandatory_columns:
+        cell.fill = light_green_fill
+    elif is_nullable == 'NO' or original_col_name in should_be_mandatory:
         cell.fill = green_fill
     else:
         cell.fill = white_fill
+
+    # Align the text in the cell
     cell.alignment = center_alignment
 
-
-
 # Set the row height for the header
-worksheet.row_dimensions[1].height = 61  # You can adjust the height as needed
+worksheet.row_dimensions[1].height = 61  # Adjust the height as needed
 
 # Set the column width for all columns
 for col in worksheet.columns:
@@ -132,7 +167,3 @@ for col in worksheet.columns:
 
 # Save and close the Excel file
 writer.close()
-
-
-
-
