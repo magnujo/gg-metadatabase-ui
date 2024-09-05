@@ -28,7 +28,7 @@ def generate(table_name, schema_name, conn, save_path):
     for col in df.select_dtypes(include='bool').columns:
         df[col] = df[col].map({True: 'yes', False: 'no'})
 
-    new_row = {col_names.field_sample_id(): "The above row is an example row. Delete it and this row before uploading. Also delete the colour legend below"}
+    new_row = {col_names.field_sample_id(): "The above row is an example row. Delete it and this row before uploading. Also delete the legend below"}
     new_row2 = {col_names.field_label(): ""}
     new_row3 = {col_names.field_label(): " = Mandatory column"}
     new_row4 = {col_names.field_label(): " = Non-mandatory column"}
@@ -118,9 +118,6 @@ def generate(table_name, schema_name, conn, save_path):
     ]
 
     df_translated = df_translated[new_order]
-
-    
-
 
     # Create a Pandas Excel writer using openpyxl as the engine
     writer = pd.ExcelWriter(save_path, engine='openpyxl')

@@ -91,9 +91,9 @@ class DBTableRelated:
                 }
     }
 
-    DB_GENERATED_COLUMNS = {"top_unknown_seq_barcodes": ['uid'],
-                            "master_depth": ['depth_id'],
-                            "age_depth_model": ['depth_id']}
+    DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
+                            data.master_depth(): ['depth_id'],
+                            data.age_depth_model(): ['depth_id']}
         
 
     def check_for_duplicates():

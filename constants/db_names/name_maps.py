@@ -163,6 +163,19 @@ def get_full_name_map():
 
 
 def sheet_to_db_rename_map(schema_name, table_name):
+    # Check that schema and table exists:
+    
+    existing_tables = pd.read_sql(\
+        f"select table_name from information_schema.tables where table_schema = '{schema_name}';", ENGINE)["table_name"]
+    existing_tables_schemas = pd.read_sql(\
+        f"select distinct table_schema from information_schema.tables;", ENGINE)["table_schema"]
+    
+    
+    if schema_name in list(existing_tables_schemas) and table_name in list(existing_tables):
+        pass
+    else:
+        raise Exception(f"Not able to make rename map because table {schema_name}.{table_name} does not exist")
+    
     column_names = name_maps().column_names()
     table_names = name_maps().table_names()
     schema_names = name_maps().schema_names()
