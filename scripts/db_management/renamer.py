@@ -429,7 +429,7 @@ def run():
     password = getpass.getpass("Enter your database password: ")
     
     db_config = {
-        'host': "dandyweb01fl",
+        'host': "dandypdb01fl",
         'dbname': "aedna_metadata_test",
         'port': "5432",
         'user': user,
