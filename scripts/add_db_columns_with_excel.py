@@ -22,7 +22,7 @@ def add_cols_to_db(excel_file, database, table_name, schema):
     password = getpass.getpass("Enter your password: ")
     
     DATABASE_CONFIG = {
-        'host': 'dandyweb01fl',
+        'host': 'dandypdb01fl',
         'database': database,
         'port': '5432',
         'user': user,

@@ -44,7 +44,7 @@ def generate_excel_from_table(output_folder, table_name, database_name, schema_n
     # Connect to your PostgreSQL database
     
     database_config = {
-    'host': 'dandyweb01fl',
+    'host': 'dandypdb01fl',
     'dbname': database_name,
     'port': 5432,
     'user': user,

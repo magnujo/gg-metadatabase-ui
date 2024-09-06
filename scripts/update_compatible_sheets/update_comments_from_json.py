@@ -30,7 +30,7 @@ file = r'static\example_sheets_online\json_dumps\Field sampling (internal).json'
 
 
 DATABASE_CONFIG_2 = {
-        'host': 'dandyweb01fl',
+        'host': 'dandypdb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': username,

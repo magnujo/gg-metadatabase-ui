@@ -7,7 +7,7 @@ import os
 
 
 DATABASE_CONFIG = {
-        'host': 'dandyweb01fl',
+        'host': 'dandypdb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'glj523',
