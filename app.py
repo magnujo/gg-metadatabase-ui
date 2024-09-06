@@ -330,7 +330,7 @@ def upload_file():
                        
                         for db_table, table_keys in val.items():
                             
-                            unique_vals_in_sheet = set(clean_sheet[sheet_key].astype(str).unique())
+                            unique_vals_in_sheet = set(clean_sheet[sheet_key].astype(str).str.lower().unique())
                             for db_key in table_keys:
                                 
                                 unique_vals_in_db = queries.get_unique_values_from_db_column(column=db_key, 
@@ -339,6 +339,9 @@ def upload_file():
                                                                                             table=db_table)
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
                                 
+                                
+                                print(unique_vals_in_db)
+                                print()
                                 if len(diff) != 0:                                
                                     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
                                                     {diff} \n \

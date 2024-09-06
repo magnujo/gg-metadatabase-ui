@@ -14,7 +14,7 @@ RUN_MODE = 'development'
 
 if RUN_MODE == 'production':
     SQL_ALCH_CONFIG = {
-        'host': 'dandyweb01fl',
+        'host': 'dandypdb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
@@ -24,7 +24,7 @@ if RUN_MODE == 'production':
 
 elif RUN_MODE == 'development':
     SQL_ALCH_CONFIG = {
-        'host': 'dandyweb01fl',
+        'host': 'dandypdb01fl',
         'database': 'aedna_metadata_test',
         'port': '5432',
         'user': 'upload_user',
