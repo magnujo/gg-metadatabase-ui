@@ -112,7 +112,9 @@ AUTO_GENERATED_COLUMNS = ['database_insert_by',
                           'uid', 
                           'database_insert_date_utc', 
                           'upload_uuid',
-                          'depth_id']
+                          'depth_id',
+                          'fastq_path_command',
+                          'prod_res_path_command']
 
 
 DB_CHARACTER_ENCODING = 'UTF-8'
