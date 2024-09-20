@@ -285,9 +285,25 @@ def upload_file():
                             ")"
                             )
                         
+                        clean_sheet['prod_result_path_command'] = (
+                            "(" + 
+                            
+                            "shopt -s nocaseglob; " + 
+                            "cd /projects/caeg/data/production/*/*/*/" + 
+                            clean_sheet[data.edna_wetlab_report.library_id()] + 
+                            "*/*/" + 
+                            clean_sheet[data.flowcell.flowcell_id()] + 
+                            "; pwd; " +
+                            "shopt -u nocaseglob" +
+                            
+                            ")"
+                            )
+                        
+                        
                         clean_sheet = clean_sheet.drop(columns=[data.flowcell.flowcell_id()])
                         
                         #  Generate prod result path command
+                        
                         
                         
                 if split_database_table_name == data.age_depth_model():
