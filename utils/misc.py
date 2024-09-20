@@ -16,6 +16,23 @@ def drop_auto_generated_columns(dataframe):
 
     return dataframe
 
+def find_missing_ids(sheet, table, schema, id_col_sheet, id_col_table, engine):
+    '''
+    Finds IDs in the sheet that does not exist in table
+    '''
+    file_ids_sheet = set(sheet[id_col_sheet].dropna().astype(str).unique())
+    
+    file_ids_flowcell_table_lower_case = queries.get_unique_values_from_db_column(column=id_col_table, 
+                                                                        engine=engine, 
+                                                                        schema=schema, 
+                                                                        table=table)
+                    
+    
+    sheet_ids_not_found_in_table = [id for id in file_ids_sheet if id.lower() not in file_ids_flowcell_table_lower_case]
+    
+    return sheet_ids_not_found_in_table
+    
+
 def match_column_positions(upload_file_df, db_data_df):
     '''
     Tries to rearrange the column positions of upload_file to match db_data. 
