@@ -285,6 +285,9 @@ def upload_file():
                             ")"
                             )
                         
+                        clean_sheet = clean_sheet.drop(columns=[data.flowcell.flowcell_id()])
+                        
+                        #  Generate prod result path command
                         
                         
                 if split_database_table_name == data.age_depth_model():
