@@ -270,8 +270,8 @@ def upload_file():
                         ''' 
                         flowcell_table = pd.read_sql(q, con=ENGINE)
                         
-                        clean_sheet['prod_res_path_command'] = None
-                        clean_sheet['fastq_path_command'] = None
+                        clean_sheet['prod_res_path'] = None
+                        clean_sheet['fastq_path'] = None
                         for index, row in clean_sheet.iterrows():
                             fastq_id = row[id_col_name_sheet]
                             lib_id = row[data.edna_wetlab_report.library_id()]
@@ -286,20 +286,13 @@ def upload_file():
                                 flowcell_ids = flowcell_table[flowcell_table[id_col_name_table] == fastq_id][data.flowcell.flowcell_id()].unique()
 
                                 if len(flowcell_ids) > 0:
-                                    fq_path_command = "(shopt -s nocaseglob;"
-                                    prod_res_path_command = "(shopt -s nocaseglob;"
                                     for fid in flowcell_ids:
-                                        fq_path_command = fq_path_command + f"ls /datasets/caeg_fastq/*/*{fid}*/*/{fastq_id}*.fastq.gz;"
-                                        prod_res_path_command = prod_res_path_command + f"ls /projects/caeg/data/production/*/*/*/{lib_id}/*{fid};"
-                                    
-                                    fq_path_command = fq_path_command +"shopt -u nocaseglob)"
-                                    prod_res_path_command = prod_res_path_command +"shopt -u nocaseglob)"
-                        
+                                        fq_path = f"/datasets/caeg_fastq/*/*{fid}*/*/{fastq_id}*.fastq.gz"
+                                        prod_res_path = f"/projects/caeg/data/production/*/*/*/{lib_id}/*{fid}"
 
-                                    clean_sheet.loc[index, 'fastq_path_command'] = fq_path_command
-                                    clean_sheet.loc[index, 'prod_res_path_command'] = prod_res_path_command
+                                    clean_sheet.loc[index, 'fastq_path'] = fq_path
+                                    clean_sheet.loc[index, 'prod_res_path'] = prod_res_path
                                     
-
                                 else:
                                     raise Exception("Something wrong happened")
                                          
@@ -406,9 +399,7 @@ def upload_file():
                                                                                             table=db_table)
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
                                 
-                                
-                                print(unique_vals_in_db)
-                                print()
+       
                                 if len(diff) != 0:                                
                                     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
                                                     {diff} \n \
