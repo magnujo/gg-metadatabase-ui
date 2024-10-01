@@ -248,7 +248,7 @@ def upload_file():
                                                                                   id_col_table=id_col_name_table,
                                                                                   engine=ENGINE,
                                                                                   schema=schema_name)
-                    
+                    lib_id_col_name = data.edna_wetlab_report.library_id()
                     
                     #  If there are some IDs found in the sheet that are not in the flowcell table, it means Julie didn't upload her meta data when she finished sequencing
                     if len(sheet_ids_not_found_in_flowcell_table) != 0:
@@ -257,44 +257,22 @@ def upload_file():
                                             Upload the missing data and try again.''')
                                
                     else:
+                        clean_sheet['prod_res_path'] = (
+                            "/projects/caeg/data/production/*/*/*/" +
+                            clean_sheet[lib_id_col_name]+ "/*"
+                        )
                         
-                        unique_ids = clean_sheet[id_col_name_sheet].dropna().unique()
-                        # unique_ids = queries.get_unique_values_from_db_column(column=id_col_name_table, 
-                        #                                                 engine=ENGINE, 
-                        #                                                 table=data.flowcell(),
-                        #                                                 schema=schema_name, lower=False)
-                        #  generate paths
-                        q = f'''
-                        select {data.flowcell.fastq_file_id()}, {data.flowcell.flowcell_id()} from {schema_name}.{data.flowcell()} 
-                        where {data.flowcell.fastq_file_id()} in {tuple(unique_ids)}
-                        ''' 
-                        flowcell_table = pd.read_sql(q, con=ENGINE)
-                        
-                        clean_sheet['prod_res_path'] = None
-                        clean_sheet['fastq_path'] = None
-                        for index, row in clean_sheet.iterrows():
-                            fastq_id = row[id_col_name_sheet]
-                            lib_id = row[data.edna_wetlab_report.library_id()]
-                            
-                            if pd.isnull(fastq_id):
-                                pass
-                            
-                            else:
-                                if pd.isnull(lib_id):
-                                    raise Exception("Found fastq_id but no Library ID. Please insert Library IDs before continuing")
-                                
-                                flowcell_ids = flowcell_table[flowcell_table[id_col_name_table] == fastq_id][data.flowcell.flowcell_id()].unique()
-
-                                if len(flowcell_ids) > 0:
-                                    for fid in flowcell_ids:
-                                        fq_path = f"/datasets/caeg_fastq/*/*{fid}*/*/{fastq_id}*.fastq.gz"
-                                        prod_res_path = f"/projects/caeg/data/production/*/*/*/{lib_id}/*{fid}"
-
-                                    clean_sheet.loc[index, 'fastq_path'] = fq_path
-                                    clean_sheet.loc[index, 'prod_res_path'] = prod_res_path
-                                    
-                                else:
-                                    raise Exception("Something wrong happened")
+                if split_database_table_name == data.flowcell():
+                    flowcell_id_col_name = data.flowcell.flowcell_id()
+                    fastq_id_col_name = data.flowcell.fastq_file_id()
+                    
+                    clean_sheet['fastq_path'] = (
+                            "/datasets/caeg_fastq/*/*" 
+                            + clean_sheet[flowcell_id_col_name] 
+                            + "*/*/" 
+                            + clean_sheet[fastq_id_col_name] 
+                            + "*.fastq.gz" 
+                        )
                                          
                         
                 if split_database_table_name == data.age_depth_model():
@@ -311,9 +289,7 @@ def upload_file():
                                                                                       engine=ENGINE, 
                                                                                       schema=SQL_ALCH_CONFIG["schema_name"], 
                                                                                       table=data.field_sample())
-                    
-
-                    
+                
                     unique_master_IDs_in_db = {s.lower() for s in unique_master_IDs_in_db}
 
                     for master_id in master_ids:
