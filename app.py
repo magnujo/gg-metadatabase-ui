@@ -1055,12 +1055,8 @@ def download_all():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
-@app.route('/download_merged_standardized', methods=['POST'])
-def download_merged_standardized():
-    
-    with download_lock:
-        
-        query = '''
+def get_merged_standardized():
+    query = '''
         select 
         fs2."field_sample_id" as "field_sample_id", fs2."country_ocean" as "country_ocean", fs2."Site name" as "Site name", fs2."Latitude (WGS84 decimal degrees)" as "Latitude (WGS84 decimal degrees)", fs2."Longitude (WGS84 decimal degrees)" as "Longitude (WGS84 decimal degrees)", fs2."Sample date" as "Field sampling date", fs2."Sample Provider(s) (Full name)" as "Field Sample Provider", fs2."Running Project Title" as "Field Sampling Project Title", fs2."Sampling depth (discrete, cm)" as "Field Sampling depth (discrete, cm)", fs2."Sampling interval - to (cm)" as "Field Sampling depth interval - to (cm)", fs2."Water depth (m)" as "Field Sampling Water depth (m)", fs2."Sample type" as "Field Sample type", fs2."Sample environment" as "Field sampling environment", fs2."Sample context" as "Fiel sampling context", fs2."Age Estimate - from (ka)" as "Age Estimate - from (ka)", fs2."Elevation (m asl)" as "Elevation (m asl)", fs2."Sample storage address" as "Field sample storage address", fs2."Sample storage setting" as "Field Sample Sample storage setting", fs2."Sample storage location" as "Field Sample Sample storage location", fs2."Miscellaneous Sample Measurement(s) or Observation(s)" as "Miscellaneous Field Sample Measurement(s) or Observation(s)", fs2."Miscellaneous Environmental Measurement(s) or Observation(s)", fs2."Link(s) to images" as "Link(s) to images", fs2."Link(s) to other relevant information" as "Link(s) to other relevant information", fs2."Comments" as "Field sampling comments", fs2."Sampling interval - from (cm)" as "Field Sampling depth interval - from (cm)", fs2."Age Estimate - to (ka)" as "Age Estimate - to (ka)", fs2."Sample material" as "Field sample material", fs2."Alias" as "Field Sample Alias", fs2."Cultural Affiliation" as "Field Sample Cultural Affiliation", fs2."Museum/Institution" as "Fiel Sample Museum/Institution", fs2."Other Relevant Information" as "Other Relevant Field Sampling Information", fs2."PI (Full name)" as "PI", fs2."Sample Provider(s) (Contact info)" as "Field Sample Provider", fs2."Site-Grid Elev (m asl)" as "Site-Grid Elev (m asl)", fs2."Site-Grid Latitude (WGS84 decimal degrees)" as "Site-Grid Latitude (WGS84 decimal degrees)", fs2."Site-Grid Longitude (WGS84 decimal degrees)" as "Site-Grid Longitude (WGS84 decimal degrees)", fs2."field_sample_parent_id" as "field_sample_parent_id", fs2."Field Label (informal)" as "Field Sample Label (informal)", fs2."Sample type in storage at GM" as "Field sample type in storage at GM", fs2."Permit for DNA Analysis (yes/no)" as "Permit for DNA Analysis (yes/no)",
         eas."archive_sample_id" as "archive_sample_id", eas."PositionInRack" as "ArchiveSamplePositionInRack", eas."RackName" as "ArchiveSampleRackName", eas."RackID" as "ArchiveSampleRackID", eas."DepthSampledCalTape" as "ArchiveSampleDepthCalTape", eas."DepthOrderedCalTape" as "ArchiveSampleOrderedDepthCalTape", eas."OrganicContent" as "ArchiveSampleOrganicContent", eas."SurfaceExposed" as "ArchiveSampleSurfaceExposed", eas."RemarksArchiveSampling" as "RemarksArchiveSampling", eas."SampledBy" as "ArchiveSamplingBy", eas."SamplingDate" as "ArchiveSamplingDate", eas."Submitter" as "ArchiveSampleSubmitter", eas."SubmissionDate" as "ArchiveSampleSubmissionDate", eas."RemarksSubmission" as "ArchiveSampleSubmissionRemarks",
@@ -1077,8 +1073,83 @@ def download_merged_standardized():
         full outer join test_1.flowcell fc on lower(wl.fastq_file_id) = lower(fc.fastq_file_id);
         '''
 
-        rows, cols = queries.execute_query(query=query, connection=PSY_CONN, get_cols=True)
-        column_names = [desc[0] for desc in cols]
+    rows, cols = queries.execute_query(query=query, connection=PSY_CONN, get_cols=True)
+    column_names = [desc[0] for desc in cols]
+    df = pd.DataFrame(rows, columns=column_names)
+    
+    return df
+    
+
+@app.route('/PI_download_standardized', methods=['POST'])
+def PI_download_standardized():
+    with download_lock:
+        
+        df = get_merged_standardized()
+        
+        
+        
+        columns = [
+            "field_sample_parent_id",
+            "field_sample_id",
+            "archive_sample_id",
+            "Master Depth (cm)",
+            "ArchiveSampleDepthCalTape",
+            "ArchiveSamplePositionInRack",
+            "ArchiveSampleRackName",
+            "ArchiveSampleRackID"
+        ]
+        
+        df = df[columns]
+        
+        df = df.rename(columns={"field_sample_parent_id": "Master Field Sample ID",
+                           "field_sample_id": "Field Sample ID",
+                           "archive_sample_id": "Archive Sample ID"})
+        
+        encoding_type = request.form['encoding_type']
+        
+        input_values = request.form['input_values']                
+            
+        # Remove trailing newline characters
+        input_values = input_values.rstrip('\r\n')
+        
+        # Split the input values into a list
+        values_list_original = input_values.split('\r\n')  # Assuming values are separated by newline character
+                    
+        values_list_original = list(map(lambda x: x.strip(), values_list_original))
+        values_list = list(map(lambda x: x.lower(), values_list_original))
+        
+        zip_paths = []
+                
+        global search_id 
+        search_id = search_id + 1
+        session["search_id"] = str(search_id)
+                
+        directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+                
+        path_full = os.path.join(directory_path, 'master_depths_etc.csv')
+        # zip_paths.append(path_full)
+        # path_zip_query = os.path.join(directory_path, 'query_all.zip')
+        
+        filter = df["Field Sample ID"].str.lower().isin(values_list)
+        df = df[filter]
+        
+        df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+        
+        # create_zip(zip_paths, path_zip_query)
+
+        # Send the text file as a download to the user
+        return send_file(path_full, as_attachment=True)
+    
+    
+    
+
+@app.route('/download_merged_standardized', methods=['POST'])
+def download_merged_standardized():
+    
+    with download_lock:
+        
+        
+        df = get_merged_standardized()
         
         encoding_type = request.form['encoding_type']
 
@@ -1094,7 +1165,7 @@ def download_merged_standardized():
         zip_paths.append(path_full)
         path_zip_query = os.path.join(directory_path, 'query_all.zip')
         
-        df = pd.DataFrame(rows, columns=column_names)
+        
         df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
         
         create_zip(zip_paths, path_zip_query)
