@@ -5,6 +5,7 @@ import pandas as pd
 from utils import queries
 import constants.misc_constants as misc_constants
 from scripts import duplicate_schema
+from constants.db_connections import ENGINE
 
 
 def copy_or_generate(active_schema, database_name, alch_engine, psy_conn):
@@ -31,8 +32,8 @@ def copy_or_generate(active_schema, database_name, alch_engine, psy_conn):
     active_deleted_schema_name = get_active_deleted_schema(schema_name=active_schema, engine=alch_engine)
     
     
-    table_names_source = queries.get_table_names(schema_name=active_schema, database_name=database_name)
-    table_names_destination = queries.get_table_names(schema_name=active_deleted_schema_name, database_name=database_name)
+    table_names_source = queries.get_table_names(schema_name=active_schema, database_name=database_name, engine=alch_engine)
+    table_names_destination = queries.get_table_names(schema_name=active_deleted_schema_name, database_name=database_name, engine=alch_engine)
     
     equal = False
     

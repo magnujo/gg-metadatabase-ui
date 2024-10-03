@@ -64,7 +64,10 @@ ALLOWED_PRIVILIGES = ["INSERT", "DELETE", "SELECT"]
 
     
 
- 
+ENUM_TABLES = [data.field_sample_types(),
+               data.field_sample_material_type(),
+               data.field_sample_context_types(),
+               data.field_sample_environment_types()]
 
 
 # If you add to this, make sure to include the table information in dbtable class

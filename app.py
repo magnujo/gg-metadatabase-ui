@@ -1197,7 +1197,7 @@ def download_all_individual_tables():
         tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
         
         for table_name in tables:
-            df = pd.read_sql(f'select * from {schema_name}.{table_name}', con=ENGINE)
+            df = pd.read_sql(f'select * from {schema_name}.{table_name}', con=ENGINE_READ_ONLY)
             # if encoding_type == "ascii":
             #     df = df.applymap(lambda x: ascii(x) if isinstance(x, str) else x)
             table_path = os.path.join(raw_path, f"{table_name}.tsv")

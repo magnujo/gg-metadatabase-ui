@@ -372,7 +372,7 @@ class data(Schema):
         #  Columns:
         name = lambda template=False: get_column_name(252, template=template)
 
-    class field_sample_setting_types(Table):
+    class field_sample_context_types(Table):
         _db_id = 13
 
         #  Columns:
@@ -504,6 +504,7 @@ class data(Schema):
         database_insert_datetime_utc = lambda template=False: get_column_name(353, template=template)
         uid = lambda template=False: get_column_name(354, template=template)
         upload_uuid = lambda template=False: get_column_name(355, template=template)
+    
 
 
 def print_class_structure(schema_id):

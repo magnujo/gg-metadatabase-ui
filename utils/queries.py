@@ -2,7 +2,7 @@ import os, sys
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
-from constants.db_connections import ENGINE
+from constants.db_connections import ENGINE, ENGINE_READ_ONLY
 from constants.db_connections import SQL_ALCH_CONFIG
 import pandas as pd
 import psycopg2
@@ -44,13 +44,13 @@ def check_if_upload_id_exists_in_schema(database, schema, upload_id):
     return cases
     
  
-def get_table_names(schema_name, database_name):
+def get_table_names(schema_name, database_name, engine=ENGINE_READ_ONLY):
     q = f'''    
     SELECT table_name
     FROM information_schema.tables
     WHERE table_schema = '{schema_name}' and table_catalog = '{database_name}'
     '''
-    df = pd.read_sql(sql=q, con=ENGINE)
+    df = pd.read_sql(sql=q, con=engine)
     return list(df['table_name'])
 
 def get_primary_key(table_name, schema_name, database_name):
