@@ -1107,7 +1107,9 @@ def PI_download_standardized():
         
         encoding_type = request.form['encoding_type']
         
-        input_values = request.form['input_values']                
+        input_values = request.form['input_values']    
+        input_dropdown = request.form['search_type']
+            
             
         # Remove trailing newline characters
         input_values = input_values.rstrip('\r\n')
@@ -1130,7 +1132,21 @@ def PI_download_standardized():
         # zip_paths.append(path_full)
         # path_zip_query = os.path.join(directory_path, 'query_all.zip')
         
-        filter = df["Field Sample ID"].str.lower().isin(values_list)
+        match input_dropdown:
+            case "":
+                raise Exception("You need to choose a search type in the dropdown menu")
+            case "no_choice":
+                raise Exception("You need to choose a search type in the dropdown menu")
+            case "fID":
+                filter = df["Field Sample ID"].str.lower().isin(values_list)
+            
+            case "mID":
+                filter = df["Master Field Sample ID"].str.lower().isin(values_list)
+                
+            case _:
+                raise Exception("You need to choose a search type in the dropdown menu")
+        
+        
         df = df[filter]
         
         df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
