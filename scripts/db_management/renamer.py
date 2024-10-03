@@ -3,7 +3,7 @@ This script is used for renaming db columns, tables and schemas as well as uploa
 
 How to:
 To use it go to N:\SUN-GI-metadb-test\renamer and edit the relevant json. For example if you want to rename a 
-table/tables open n:\SUN-GI-metadb-test\renamer\db_table_renamer.json and insert the 
+table(s) open n:\SUN-GI-metadb-test\renamer\db_table_renamer.json and insert the 
 table id(s) of the table(s) you want to rename and the new name you want to give them as follows:
 
 {
