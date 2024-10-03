@@ -1148,6 +1148,7 @@ def PI_download_standardized():
         
         
         df = df[filter]
+        df = df.drop_duplicates(subset=["Archive Sample ID"])
         
         df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
         
