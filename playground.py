@@ -1,14 +1,13 @@
 import pandas as pd
 
-# Sample DataFrame
-data = {
-    'Name': ['Alice', 'Bob', 'Charlie'],
-    'Age': [25, 30, 35],
-    'City': ['New York', 'Los Angeles', 'Chicago']
-}
+# Example DataFrame
+data = {'Name': ['John', 'Alice', 'John', 'Mike', 'Alice'],
+        'Age': [25, 30, 25, 22, 30]}
+
 df = pd.DataFrame(data)
 
-# Selecting a subset of columns
-subset_df = df[['Name', 'City']]
+# Remove duplicates
+df_no_duplicates = df.drop_duplicates(subset=['Name'])
 
-print(subset_df)
+# Display result
+print(df_no_duplicates)
