@@ -256,7 +256,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                             bad_rows = bad_rows[0:10]
                         raise Exception(error_message(ele, bad_rows_indices, "period"))
                     else:
-                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
+                        sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
                         
                 case (",", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
@@ -264,7 +264,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
                         raise Exception(error_message(ele, bad_rows_indices, "period"))
                     else:
-                        sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
+                        sheet[ele] = sheet[ele].astype(str).str.replace(decimal_point, ".", regex=False)
                         
                 case (".", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
@@ -279,7 +279,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
                         raise Exception(error_message(ele, bad_rows_indices, "comma"))
                     else:
-                        sheet[ele] = sheet[ele].str.replace(thousands_seperator, "")
+                        sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "")
 
                 case ("not_relevant", "not_relevant"):
                     bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
@@ -288,11 +288,11 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         raise Exception(error_message(ele, bad_rows_indices, "comma or period"))
                         
                 case (",", "."):
-                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
-                    sheet[ele] = sheet[ele].str.replace(decimal_point, ".", regex=False)
+                    sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
+                    sheet[ele] = sheet[ele].astype(str).str.replace(decimal_point, ".", regex=False)
                         
                 case (".", ","):
-                    sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
+                    sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
                 
                 case _:
                     raise Exception(f"case _ reached in {parse_floats.__name__}. Contact database admin.")
@@ -313,7 +313,7 @@ def validate_integers(sheet, integer_columns, thousands_seperator):
     for ele in integer_columns:
         if ele in sheet.columns:
             if thousands_seperator == ',' or thousands_seperator == '.':
-                sheet[ele] = sheet[ele].str.replace(thousands_seperator, "", regex=False)
+                sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
             # bad_rows = sheet[ele].apply(str).str.contains("[^\d]", regex=True)
             # if bad_rows.any():
             #     raise Exception(f"Found non integer in expected integer data in column {ele} and following rows\
@@ -337,8 +337,9 @@ def parse_booleans(sheet, boolean_columns):
     for col in boolean_columns:
         if col in sheet.columns:
             bad_values[col] = []
+            sheet[col] = sheet[col].str.lower()
             for index, value in sheet[col].items():
-                if value in expected_vals:
+                if value.lower() in expected_vals:
                     pass
                 else:
                     bad_values[col].append(index + 2)
