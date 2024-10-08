@@ -5,8 +5,10 @@ from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_ren
 from constants.db_names.names import data
 from constants.db_connections import ENGINE_READ_ONLY
 
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side
+from openpyxl.worksheet.datavalidation import DataValidation
+
 
 # Connect to the database
 
@@ -174,6 +176,7 @@ def generate(table_name, schema_name, conn, save_path):
         # Align the text in the cell
         cell.alignment = center_alignment
 
+    
 
     worksheet.cell(row=5, column=1).fill = mandatory_colour 
     worksheet.cell(row=5, column=1).border = border 
@@ -187,6 +190,21 @@ def generate(table_name, schema_name, conn, save_path):
     for col in worksheet.columns:
         col_letter = col[0].column_letter
         worksheet.column_dimensions[col_letter].width = 30
+    
+    
+    
+    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"')[data.field_sample_context_types.name()]
+    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"')[data.field_sample_context_types.name()]
+    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"')[data.field_sample_context_types.name()]
+    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"')[data.field_sample_types.name()]
+    sample_types_dv = DataValidation(type="list", formula1=f'"{",".join(sample_types)}"', showErrorMessage=True, showInputMessage=True)
+    
+    # dv.error ='Your entry is not in the list'
+    # dv.errorTitle = 'Invalid Entry'
+    
+    sample_types_dv.add('B1:B1048576')
+    
+    worksheet.add_data_validation(sample_types_dv)
 
     # Save and close the Excel file
     writer.close()
