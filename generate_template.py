@@ -33,12 +33,14 @@ def generate(table_name, schema_name, conn, save_path):
     environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
     material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
     sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
+    country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}"', con=ENGINE_READ_ONLY)[data.country_ocean.name()]
 
     enum_sheet = pd.DataFrame({
         data.field_sample.sample_context(template=True): context_types,
         data.field_sample.sample_environment(template=True): environment_types,
         data.field_sample.sample_material(template=True): material_types,
-        data.field_sample.sample_type(template=True): sample_types
+        data.field_sample.sample_type(template=True): sample_types,
+        data.field_sample.country_ocean(template=True): country_ocean
     })
 
     for col in df.select_dtypes(include='bool').columns:
@@ -180,7 +182,7 @@ def generate(table_name, schema_name, conn, save_path):
         col_names.sample_date(template=True),
     ]
 
-    # comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
+    comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
     
     for col_num, col_name in enumerate(df_translated.columns):
         # Get the original column name
@@ -198,9 +200,9 @@ def generate(table_name, schema_name, conn, save_path):
         else:
             cell.fill = non_mandatory_colour
         
-        # comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
-        # print(comment)
-        # cell.comment = Comment(comment, ADMIN_EMAIL)
+        comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
+      
+        cell.comment = Comment(comment, ADMIN_EMAIL, height=160, width=288)
         
             
         # Align the text in the cell
