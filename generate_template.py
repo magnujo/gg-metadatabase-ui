@@ -1,13 +1,15 @@
+
+from openpyxl.comments import Comment
 import pandas as pd
 import psycopg2
-from constants.misc_constants import AUTO_GENERATED_COLUMNS
+from constants.misc_constants import AUTO_GENERATED_COLUMNS, ADMIN_EMAIL
 from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_rename_map
 from constants.db_names.names import data
-from constants.db_connections import ENGINE_READ_ONLY
+from constants.db_connections import ENGINE_READ_ONLY, DATABASE_CONFIG_READ_ONLY, PSY_CONN
+from utils import misc
 
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import PatternFill, Alignment, Border, Side
-from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 
 
 # Connect to the database
@@ -27,23 +29,40 @@ def generate(table_name, schema_name, conn, save_path):
 
     df = pd.read_sql(query, conn)
 
+    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
+    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
+    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
+    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
+
+    enum_sheet = pd.DataFrame({
+        data.field_sample.sample_context(template=True): context_types,
+        data.field_sample.sample_environment(template=True): environment_types,
+        data.field_sample.sample_material(template=True): material_types,
+        data.field_sample.sample_type(template=True): sample_types
+    })
+
     for col in df.select_dtypes(include='bool').columns:
         df[col] = df[col].map({True: 'yes', False: 'no'})
 
-    new_row = {col_names.field_sample_id(): "The above row is an example row. Delete it and this row before uploading. Also delete the legend below"}
-    new_row2 = {col_names.field_label(): ""}
-    new_row3 = {col_names.field_label(): " = Mandatory column"}
-    new_row4 = {col_names.field_label(): " = Non-mandatory column"}
-    new_row5 = {col_names.field_label(): " = Mandatory depending on environment, type or other features"}
-
+    new_rows = [
+        {col_names.field_label(): ""},
+        {col_names.field_sample_id(): "Column colour legend:"},
+        {col_names.field_label(): " = Mandatory column"},
+        {col_names.field_label(): " = Non-mandatory column"},
+        {col_names.field_label(): " = Mandatory depending on environment, type or other features"},
+        {col_names.field_sample_id(): "Delete this and all rows above before uploading (except row 1 ofcourse!)"}
+    ]
+    
+    new_row_0 = {col_names.field_sample_id(): "EXAMPLE ROW:"}
+    
     df_list = df.to_dict('records')
 
     # Insert rows at specific positions
-    df_list.insert(1, new_row)
-    df_list.insert(2, new_row2)
-    df_list.insert(3, new_row3)
-    df_list.insert(4, new_row4)
-    df_list.insert(5, new_row5)
+   
+    df_list.insert(0, new_row_0)
+    
+    for i, row in enumerate(new_rows):
+        df_list.insert(i+2, row)
 
     # Convert back to DataFrame
     df = pd.DataFrame(df_list)
@@ -120,16 +139,23 @@ def generate(table_name, schema_name, conn, save_path):
     ]
 
     df_translated = df_translated[new_order]
-
+    
     # Create a Pandas Excel writer using openpyxl as the engine
     writer = pd.ExcelWriter(save_path, engine='openpyxl')
-
+    
+    enum_sheet_name = 'Allowed categorical values'
+    data_sheet_name = 'Insert Data Here'
+    
     # Write the DataFrame to Excel
-    df_translated.to_excel(writer, index=False, sheet_name='Sheet1')
+    df_translated.to_excel(writer, index=False, sheet_name=data_sheet_name)
+    enum_sheet.to_excel(writer, index=False, sheet_name=enum_sheet_name)
+    
 
     # Get the xlsxwriter workbook and worksheet objects
     workbook = writer.book
-    worksheet = writer.sheets['Sheet1']
+    worksheet = writer.sheets[data_sheet_name]
+    # bold_format = workbook.add_format({'bold': True})
+    enum_sheet = writer.sheets[enum_sheet_name]
 
     # Define header formats
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
@@ -154,6 +180,8 @@ def generate(table_name, schema_name, conn, save_path):
         col_names.sample_date(template=True),
     ]
 
+    # comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
+    
     for col_num, col_name in enumerate(df_translated.columns):
         # Get the original column name
         original_col_name = reverse_renamer.get(col_name, col_name)
@@ -169,21 +197,25 @@ def generate(table_name, schema_name, conn, save_path):
             cell.fill = mandatory_colour
         else:
             cell.fill = non_mandatory_colour
-
-        example_cell = worksheet.cell(row=3, column=col_num + 1)
-        example_cell.fill = yellow_fill
-
+        
+        # comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
+        # print(comment)
+        # cell.comment = Comment(comment, ADMIN_EMAIL)
+        
+            
         # Align the text in the cell
         cell.alignment = center_alignment
-
     
+        example_cell = worksheet.cell(row=9, column=col_num + 1)
+        example_cell.fill = yellow_fill
+        example_cell.font = Font(bold=True)
 
-    worksheet.cell(row=5, column=1).fill = mandatory_colour 
-    worksheet.cell(row=5, column=1).border = border 
-    worksheet.cell(row=6, column=1).fill = non_mandatory_colour 
+    worksheet.cell(row=6, column=1).fill = mandatory_colour 
     worksheet.cell(row=6, column=1).border = border 
-    worksheet.cell(row=7, column=1).fill = feature_dependent_colour 
+    worksheet.cell(row=7, column=1).fill = non_mandatory_colour 
     worksheet.cell(row=7, column=1).border = border 
+    worksheet.cell(row=8, column=1).fill = feature_dependent_colour 
+    worksheet.cell(row=8, column=1).border = border 
     # Set the row height for the header
     worksheet.row_dimensions[1].height = 61  # Adjust the height as needed
     # Set the column width for all columns
@@ -191,21 +223,42 @@ def generate(table_name, schema_name, conn, save_path):
         col_letter = col[0].column_letter
         worksheet.column_dimensions[col_letter].width = 30
     
-    
-    
-    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"')[data.field_sample_context_types.name()]
-    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"')[data.field_sample_context_types.name()]
-    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"')[data.field_sample_context_types.name()]
-    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"')[data.field_sample_types.name()]
-    sample_types_dv = DataValidation(type="list", formula1=f'"{",".join(sample_types)}"', showErrorMessage=True, showInputMessage=True)
-    
-    # dv.error ='Your entry is not in the list'
-    # dv.errorTitle = 'Invalid Entry'
-    
-    sample_types_dv.add('B1:B1048576')
-    
-    worksheet.add_data_validation(sample_types_dv)
 
+    worksheet = writer.sheets[enum_sheet_name]
+    for col in worksheet.columns:
+        col_letter = col[0].column_letter
+        worksheet.column_dimensions[col_letter].width = 30
+        
+    # Create a new sheet for the guide
+    guide_sheet = workbook.create_sheet(title='Guide')
+
+    # Add instructions to the guide sheet
+    instructions = [
+        "To limit data insert errors, please read the instructions below before you begin to insert data:",
+        "1. Read the column definitions thoroughly before inserting data, so you know what data to put there. Hover over the column names to see their definitions.",
+        f"2. There are some columns that only accepts a finite set of categorical values. Inspect the sheet 'Allowed categorical values', to see what those values are. If you wish to include a categorical value contact {ADMIN_EMAIL} (it wont help if you just add it to the template)", 
+        "3. Before uploading/sending the file, ensure all entries are accurate and complete.",
+        "4. Delete any empty rows and columns",
+        "5. Delete the yellow row and all the rows above it, except the row with the column names."
+        f"Feel free to contact {ADMIN_EMAIL} if you have any questions or feedback to this template"
+    ]
+
+    for idx, instruction in enumerate(instructions, start=1):
+        guide_sheet[f'A{idx}'] = instruction
+
+    # Optionally, adjust column width for better readability
+    for col in guide_sheet.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        guide_sheet.column_dimensions[column].width = adjusted_width
+    
     # Save and close the Excel file
     writer.close()
 

@@ -1,3 +1,6 @@
+import pandas as pd
+import ast
+import requests
 from constants.db_names.name_maps import sheet_to_db_rename_map
 import os
 import constants.db_table_related_constants as db_table_related_constants
@@ -31,7 +34,9 @@ def find_missing_ids(sheet, table, schema, id_col_sheet, id_col_table, engine):
     sheet_ids_not_found_in_table = [id for id in file_ids_sheet if id.lower() not in file_ids_flowcell_table_lower_case]
     
     return sheet_ids_not_found_in_table
-    
+
+
+
 
 def match_column_positions(upload_file_df, db_data_df):
     '''
@@ -82,7 +87,49 @@ def empty_folder(folder_path, exclude=[]):
             # Remove the empty directory
             os.rmdir(item_path)
             print(f"Removed directory: {item_path}")
-            
+
+def get_comments(database_name, schema_name, table_name, psy_conn):
+    
+    conn = psy_conn
+    
+    # SQL query to retrieve column comments and data types
+    query = f"""
+select
+    c.column_name,
+    c.data_type,
+    c.is_nullable,
+    pgd.description
+from pg_catalog.pg_statio_all_tables as st
+inner join pg_catalog.pg_description pgd on (
+    pgd.objoid = st.relid
+)
+full outer join information_schema.columns c on (
+    pgd.objsubid   = c.ordinal_position and
+    c.table_schema = st.schemaname and
+    c.table_name   = st.relname
+) where c.table_catalog = '{database_name}' and c.table_schema = '{schema_name}' and c.table_name = '{table_name}';
+    """
+    
+    with conn as conn:
+        with conn.cursor() as cursor:
+
+            # Execute the query and fetch the results
+            cursor = conn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            # Create a DataFrame from the fetched data
+            df = pd.DataFrame(rows, columns=['Column Name', 'Data Type', 'Is Nullable', 'Description'])
+            # auto_generated_cols_in_df = [col for col in constants.auto_generated_columns if col in df.columns]
+            df = df[~df['Column Name'].isin(misc_constants.AUTO_GENERATED_COLUMNS)]    
+    
+
+    df = df.rename(columns={'Description': 'Comment'})
+    df['Comment'] = df['Comment'].str.replace("nan", 'None')
+
+    df = df.reset_index(drop=True)
+    return df
+    
 def load_json_url(url):
 # The URL of the JSON file
 

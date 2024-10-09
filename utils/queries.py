@@ -186,10 +186,12 @@ def get_table_as_dataframe(engine, schema_name: str, table_name: str, dtype=None
     df = pd.read_sql(q, con=engine, dtype=dtype)
     return df
 
+
+
 def execute_query(query, connection, params=None, get_cols=False):
     # Connection parameters
 
-    try:
+    # try:
         # Establish a connection
         with connection as conn:
             # Create a cursor
@@ -214,8 +216,8 @@ def execute_query(query, connection, params=None, get_cols=False):
                     conn.commit()
                     return cur.rowcount
     
-    except (Exception, psycopg2.Error) as error:
-        raise
+    # except (Exception, psycopg2.Error) as error:
+    #     raise
 
 def get_table_as_df(schema_name: str, table_name: str):
     
