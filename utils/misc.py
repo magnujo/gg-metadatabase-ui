@@ -1,3 +1,4 @@
+from PIL import ImageFont, ImageDraw, Image
 import pandas as pd
 import ast
 import requests
@@ -129,6 +130,57 @@ full outer join information_schema.columns c on (
 
     df = df.reset_index(drop=True)
     return df
+
+def calculate_text_width(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11):
+    # Load the Calibri font with size 11
+    font = ImageFont.truetype(font_path, font_size)
+    
+    # Create a dummy image to use ImageDraw
+    img = Image.new('RGB', (1, 1))
+    draw = ImageDraw.Draw(img)
+    
+    # Get the bounding box of the text
+    left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
+    
+    # Calculate the width of the text
+    text_width = right - left
+    
+    return text_width
+
+def calculate_text_box_height(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11, fixed_width=288):
+    # Load the Calibri font with size 11
+    font = ImageFont.truetype(font_path, font_size)
+    
+    # Create an image with a minimal size
+    img = Image.new('RGB', (fixed_width, 1))
+    draw = ImageDraw.Draw(img)
+    
+    # Word wrapping: Split the text into lines that fit within the fixed width
+    words = text.split()
+    lines = []
+    current_line = ""
+    
+    for word in words:
+        # Test if the word fits in the current line
+        test_line = current_line + (word + " ") if current_line else word
+        line_width, _ = draw.textbbox((0, 0), test_line, font=font)[2:]
+        
+        if line_width <= fixed_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word + " "
+    
+    # Append the last line
+    if current_line:
+        lines.append(current_line.strip())
+    
+    # Calculate the total height needed for the text
+    line_height = draw.textbbox((0, 0), lines[0], font=font)[3] - draw.textbbox((0, 0), lines[0], font=font)[1]
+    total_height = line_height * len(lines)
+    
+    return total_height
+
     
 def load_json_url(url):
 # The URL of the JSON file

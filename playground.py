@@ -1,7 +1,8 @@
-from utils import misc
-from constants.db_connections import PSY_CONN, DATABASE_CONFIG_READ_ONLY
 
+from utils.misc import calculate_text_box_size
 
-
-df = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
-print(df)
+text = "Hello, World!"
+font_path = "/path/to/font/arial.ttf"  # You can specify the font file path
+font_size = 20
+width, height = calculate_text_box_size(text, font_path, font_size)
+print(f"Text box size: Width={width}, Height={height}")

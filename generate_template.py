@@ -1,4 +1,5 @@
-
+import os
+from utils.misc import calculate_text_box_height, calculate_text_width
 from openpyxl.comments import Comment
 import pandas as pd
 import psycopg2
@@ -149,16 +150,50 @@ def generate(table_name, schema_name, conn, save_path):
     data_sheet_name = 'Insert Data Here'
     
     # Write the DataFrame to Excel
-    df_translated.to_excel(writer, index=False, sheet_name=data_sheet_name)
-    enum_sheet.to_excel(writer, index=False, sheet_name=enum_sheet_name)
+    
     
 
     # Get the xlsxwriter workbook and worksheet objects
     workbook = writer.book
+    
+    # Create a new sheet for the guide
+    guide_sheet = workbook.create_sheet(title='Read this first!')
+    
+    enum_sheet.to_excel(writer, index=False, sheet_name=enum_sheet_name)
+    df_translated.to_excel(writer, index=False, sheet_name=data_sheet_name)
+
+    # Add instructions to the guide sheet
+    instructions = [
+        "To limit data insertion errors, please read the instructions below before you begin to insert data:",
+        f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. samples that were collected directly from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). If your sample was not collected directly from a sample environment, but was sub sampled from an existing sample, you need to report it as a sub sample using the {data.edna_archive_sample(template=True)} template (find it the same place you found this template). Contact jtstenderup@sund.ku.dk for help with this.",
+        "2. When inserting data in a column, hover over the column name to see its definition.Read the column definition thoroughly before inserting the data, to make sure you are inserting it in the correct column",
+        f"3. There are some columns that only accepts a finite set of categorical values. Inspect the sheet '{enum_sheet_name}', to see what those values are. If you wish to include a categorical value contact {ADMIN_EMAIL} (it wont help if you just add it to the template yourself)", 
+        "4. Before uploading/sending the file, ensure all entries are accurate and complete.",
+        "5. Delete any empty rows and columns",
+        "6. Delete the yellow row and all the rows above it, except the row with the column names.",
+        f"Feel free to contact {ADMIN_EMAIL} if you have any questions or feedback to this template"
+    ]
+
+    for idx, instruction in enumerate(instructions, start=1):
+        guide_sheet[f'A{idx}'] = instruction
+
+    # Optionally, adjust column width for better readability
+    for col in guide_sheet.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        guide_sheet.column_dimensions[column].width = adjusted_width
+    
+    
     worksheet = writer.sheets[data_sheet_name]
     # bold_format = workbook.add_format({'bold': True})
-    enum_sheet = writer.sheets[enum_sheet_name]
-
+    
     # Define header formats
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
     non_mandatory_colour = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
@@ -200,11 +235,31 @@ def generate(table_name, schema_name, conn, save_path):
         else:
             cell.fill = non_mandatory_colour
         
-        comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
-      
-        cell.comment = Comment(comment, ADMIN_EMAIL, height=160, width=288)
+
+        def set_comment_height(comment_text, max_chars_per_line=50):
+            base_height = 20  # Base height in pixels
+            extra_height_per_line = 15  # Extra height per line in pixels
+            num_lines = (len(comment_text) // max_chars_per_line) + 1
+            height = base_height + num_lines * extra_height_per_line
+            return height
         
+        comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
+        
+        h = set_comment_height(comment)
+        
+        base_width = 50  # Base width in pixels
+        extra_width_per_char = 5  # Extra width per character in pixels
+        width = base_width + len(comment) * extra_width_per_char
+
+        font_size = 11
+        comment_box_height = calculate_text_box_height(comment, os.path.join("fonts", "CALIBRI.TTF"), font_size=font_size)
+        comment_box_height = calculate_text_width(comment, os.path.join("fonts", "CALIBRI.TTF"), font_size=font_size)
+        # cell.comment = Comment(comment, ADMIN_EMAIL, height=22, width=len(comment))
             
+        cell.comment = Comment(comment, ADMIN_EMAIL)
+        cell.comment.width = 100
+        cell.comment.height = h
+        
         # Align the text in the cell
         cell.alignment = center_alignment
     
@@ -231,35 +286,7 @@ def generate(table_name, schema_name, conn, save_path):
         col_letter = col[0].column_letter
         worksheet.column_dimensions[col_letter].width = 30
         
-    # Create a new sheet for the guide
-    guide_sheet = workbook.create_sheet(title='Guide')
-
-    # Add instructions to the guide sheet
-    instructions = [
-        "To limit data insert errors, please read the instructions below before you begin to insert data:",
-        "1. Read the column definitions thoroughly before inserting data, so you know what data to put there. Hover over the column names to see their definitions.",
-        f"2. There are some columns that only accepts a finite set of categorical values. Inspect the sheet 'Allowed categorical values', to see what those values are. If you wish to include a categorical value contact {ADMIN_EMAIL} (it wont help if you just add it to the template)", 
-        "3. Before uploading/sending the file, ensure all entries are accurate and complete.",
-        "4. Delete any empty rows and columns",
-        "5. Delete the yellow row and all the rows above it, except the row with the column names."
-        f"Feel free to contact {ADMIN_EMAIL} if you have any questions or feedback to this template"
-    ]
-
-    for idx, instruction in enumerate(instructions, start=1):
-        guide_sheet[f'A{idx}'] = instruction
-
-    # Optionally, adjust column width for better readability
-    for col in guide_sheet.columns:
-        max_length = 0
-        column = col[0].column_letter  # Get the column name
-        for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
-        adjusted_width = (max_length + 2)
-        guide_sheet.column_dimensions[column].width = adjusted_width
+    
     
     # Save and close the Excel file
     writer.close()
