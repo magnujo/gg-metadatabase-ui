@@ -1,3 +1,5 @@
+from PIL import ImageFont, ImageDraw, Image
+import math
 import os
 from utils.misc import calculate_text_box_height, calculate_text_width
 from openpyxl.comments import Comment
@@ -165,7 +167,7 @@ def generate(table_name, schema_name, conn, save_path):
     # Add instructions to the guide sheet
     instructions = [
         "To limit data insertion errors, please read the instructions below before you begin to insert data:",
-        f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. samples that were collected directly from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). If your sample was not collected directly from a sample environment, but was sub sampled from an existing sample, you need to report it as a sub sample using the {data.edna_archive_sample(template=True)} template (find it the same place you found this template). Contact jtstenderup@sund.ku.dk for help with this.",
+        f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. samples that were collected directly from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). If your sample was not collected directly from a sample environment, but was sub sampled from an existing sample, you need to report it as a sub sample using '{data.edna_archive_sample(template=True)}' (find it the same place you found this template). Contact jtstenderup@sund.ku.dk for help with this.",
         "2. When inserting data in a column, hover over the column name to see its definition.Read the column definition thoroughly before inserting the data, to make sure you are inserting it in the correct column",
         f"3. There are some columns that only accepts a finite set of categorical values. Inspect the sheet '{enum_sheet_name}', to see what those values are. If you wish to include a categorical value contact {ADMIN_EMAIL} (it wont help if you just add it to the template yourself)", 
         "4. Before uploading/sending the file, ensure all entries are accurate and complete.",
@@ -235,7 +237,24 @@ def generate(table_name, schema_name, conn, save_path):
         else:
             cell.fill = non_mandatory_colour
         
-
+        
+        def calculate_text_width_in_pixels(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11):
+            # Load the Calibri font with the specified size
+            font = ImageFont.truetype(font_path, font_size)
+            
+            # Create a dummy image to use ImageDraw
+            img = Image.new('RGB', (1, 1))
+            draw = ImageDraw.Draw(img)
+            
+            # Get the bounding box of the text
+            left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
+            
+            # Calculate the width of the text
+            text_width_pixels = right - left
+            
+            return text_width_pixels
+        
+        
         def set_comment_height(comment_text, max_chars_per_line=50):
             base_height = 20  # Base height in pixels
             extra_height_per_line = 15  # Extra height per line in pixels
@@ -243,22 +262,30 @@ def generate(table_name, schema_name, conn, save_path):
             height = base_height + num_lines * extra_height_per_line
             return height
         
+        def pixels_to_excel_units(pixel_width, font_size=11):
+            # Excel's default font width assumption (calculated based on width of '0' character)
+            # The value 7 is an approximation for a standard character width in Excel (in pixels)
+            character_width_in_pixels = font_size * 0.6  # Approximate character width based on font size
+            excel_width = pixel_width / character_width_in_pixels
+    
+            return excel_width
+        
+        
         comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
         
-        h = set_comment_height(comment)
+    
+        char_width = 7
+        text_width = len(comment) * char_width 
+        line_width = 40 * char_width
+        n_lines = math.ceil(text_width / line_width)
+        char_height = 22
         
-        base_width = 50  # Base width in pixels
-        extra_width_per_char = 5  # Extra width per character in pixels
-        width = base_width + len(comment) * extra_width_per_char
-
-        font_size = 11
-        comment_box_height = calculate_text_box_height(comment, os.path.join("fonts", "CALIBRI.TTF"), font_size=font_size)
-        comment_box_height = calculate_text_width(comment, os.path.join("fonts", "CALIBRI.TTF"), font_size=font_size)
-        # cell.comment = Comment(comment, ADMIN_EMAIL, height=22, width=len(comment))
-            
-        cell.comment = Comment(comment, ADMIN_EMAIL)
-        cell.comment.width = 100
-        cell.comment.height = h
+        height = (char_height * n_lines) + char_height
+        
+        new_lines = comment.count("\n")
+        height = height + (char_height * new_lines) 
+    
+        cell.comment = Comment(comment, ADMIN_EMAIL, width=line_width, height=height)
         
         # Align the text in the cell
         cell.alignment = center_alignment
