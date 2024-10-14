@@ -1,5 +1,7 @@
 '''
 This script is used for renaming db columns, tables and schemas as well as upload sheet templates and their columns. 
+NOTE: It doesn't work with field sample template column names. To rename those, you need to rename it directly in the database in 
+the name_maps schema.
 
 How to:
 To use it go to N:\SUN-GI-metadb-test\renamer and edit the relevant json. For example if you want to rename a 

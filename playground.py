@@ -1,13 +1,8 @@
-import pandas as pd
 
-# Example DataFrame
-data = {'Name': ['John', 'Alice', 'John', 'Mike', 'Alice'],
-        'Age': [25, 30, 25, 22, 30]}
+from utils.misc import calculate_text_box_size
 
-df = pd.DataFrame(data)
-
-# Remove duplicates
-df_no_duplicates = df.drop_duplicates(subset=['Name'])
-
-# Display result
-print(df_no_duplicates)
+text = "Hello, World!"
+font_path = "/path/to/font/arial.ttf"  # You can specify the font file path
+font_size = 20
+width, height = calculate_text_box_size(text, font_path, font_size)
+print(f"Text box size: Width={width}, Height={height}")

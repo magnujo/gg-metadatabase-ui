@@ -1,3 +1,7 @@
+from PIL import ImageFont, ImageDraw, Image
+import pandas as pd
+import ast
+import requests
 from constants.db_names.name_maps import sheet_to_db_rename_map
 import os
 import constants.db_table_related_constants as db_table_related_constants
@@ -31,7 +35,9 @@ def find_missing_ids(sheet, table, schema, id_col_sheet, id_col_table, engine):
     sheet_ids_not_found_in_table = [id for id in file_ids_sheet if id.lower() not in file_ids_flowcell_table_lower_case]
     
     return sheet_ids_not_found_in_table
-    
+
+
+
 
 def match_column_positions(upload_file_df, db_data_df):
     '''
@@ -82,7 +88,100 @@ def empty_folder(folder_path, exclude=[]):
             # Remove the empty directory
             os.rmdir(item_path)
             print(f"Removed directory: {item_path}")
-            
+
+def get_comments(database_name, schema_name, table_name, psy_conn):
+    
+    conn = psy_conn
+    
+    # SQL query to retrieve column comments and data types
+    query = f"""
+select
+    c.column_name,
+    c.data_type,
+    c.is_nullable,
+    pgd.description
+from pg_catalog.pg_statio_all_tables as st
+inner join pg_catalog.pg_description pgd on (
+    pgd.objoid = st.relid
+)
+full outer join information_schema.columns c on (
+    pgd.objsubid   = c.ordinal_position and
+    c.table_schema = st.schemaname and
+    c.table_name   = st.relname
+) where c.table_catalog = '{database_name}' and c.table_schema = '{schema_name}' and c.table_name = '{table_name}';
+    """
+    
+    with conn as conn:
+        with conn.cursor() as cursor:
+
+            # Execute the query and fetch the results
+            cursor = conn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            # Create a DataFrame from the fetched data
+            df = pd.DataFrame(rows, columns=['Column Name', 'Data Type', 'Is Nullable', 'Description'])
+            # auto_generated_cols_in_df = [col for col in constants.auto_generated_columns if col in df.columns]
+            df = df[~df['Column Name'].isin(misc_constants.AUTO_GENERATED_COLUMNS)]    
+    
+
+    df = df.rename(columns={'Description': 'Comment'})
+    df['Comment'] = df['Comment'].str.replace("nan", 'None')
+
+    df = df.reset_index(drop=True)
+    return df
+
+def calculate_text_width(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11):
+    # Load the Calibri font with size 11
+    font = ImageFont.truetype(font_path, font_size)
+    
+    # Create a dummy image to use ImageDraw
+    img = Image.new('RGB', (1, 1))
+    draw = ImageDraw.Draw(img)
+    
+    # Get the bounding box of the text
+    left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
+    
+    # Calculate the width of the text
+    text_width = right - left
+    
+    return text_width
+
+def calculate_text_box_height(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11, fixed_width=288):
+    # Load the Calibri font with size 11
+    font = ImageFont.truetype(font_path, font_size)
+    
+    # Create an image with a minimal size
+    img = Image.new('RGB', (fixed_width, 1))
+    draw = ImageDraw.Draw(img)
+    
+    # Word wrapping: Split the text into lines that fit within the fixed width
+    words = text.split()
+    lines = []
+    current_line = ""
+    
+    for word in words:
+        # Test if the word fits in the current line
+        test_line = current_line + (word + " ") if current_line else word
+        line_width, _ = draw.textbbox((0, 0), test_line, font=font)[2:]
+        
+        if line_width <= fixed_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word + " "
+    
+    # Append the last line
+    if current_line:
+        lines.append(current_line.strip())
+    
+    # Calculate the total height needed for the text
+    line_height = draw.textbbox((0, 0), lines[0], font=font)[3] - draw.textbbox((0, 0), lines[0], font=font)[1]
+    total_height = line_height * len(lines)
+    
+    return total_height
+
+    
 def load_json_url(url):
 # The URL of the JSON file
 

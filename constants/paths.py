@@ -14,3 +14,4 @@ fastq_path = lambda flowcell_id, fastq_id: (
                             + "*.fastq.gz"
     )
 
+PATH_TO_FONTS = ''

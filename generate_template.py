@@ -1,12 +1,19 @@
+from PIL import ImageFont, ImageDraw, Image
+import math
+import os
+from utils.misc import calculate_text_box_height, calculate_text_width
+from openpyxl.comments import Comment
 import pandas as pd
 import psycopg2
-from constants.misc_constants import AUTO_GENERATED_COLUMNS
+from constants.misc_constants import AUTO_GENERATED_COLUMNS, ADMIN_EMAIL
 from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_rename_map
 from constants.db_names.names import data
-from constants.db_connections import ENGINE_READ_ONLY
+from constants.db_connections import ENGINE_READ_ONLY, DATABASE_CONFIG_READ_ONLY, PSY_CONN
+from utils import misc
 
-from openpyxl import Workbook
-from openpyxl.styles import PatternFill, Alignment, Border, Side
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
+
 
 # Connect to the database
 
@@ -25,23 +32,42 @@ def generate(table_name, schema_name, conn, save_path):
 
     df = pd.read_sql(query, conn)
 
+    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
+    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
+    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
+    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
+    country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}"', con=ENGINE_READ_ONLY)[data.country_ocean.name()]
+
+    enum_sheet = pd.DataFrame({
+        data.field_sample.sample_context(template=True): context_types,
+        data.field_sample.sample_environment(template=True): environment_types,
+        data.field_sample.sample_material(template=True): material_types,
+        data.field_sample.sample_type(template=True): sample_types,
+        data.field_sample.country_ocean(template=True): country_ocean
+    })
+
     for col in df.select_dtypes(include='bool').columns:
         df[col] = df[col].map({True: 'yes', False: 'no'})
 
-    new_row = {col_names.field_sample_id(): "The above row is an example row. Delete it and this row before uploading. Also delete the legend below"}
-    new_row2 = {col_names.field_label(): ""}
-    new_row3 = {col_names.field_label(): " = Mandatory column"}
-    new_row4 = {col_names.field_label(): " = Non-mandatory column"}
-    new_row5 = {col_names.field_label(): " = Mandatory depending on environment, type or other features"}
-
+    new_rows = [
+        {col_names.field_label(): ""},
+        {col_names.field_sample_id(): "Column colour legend:"},
+        {col_names.field_label(): " = Mandatory column"},
+        {col_names.field_label(): " = Non-mandatory column"},
+        {col_names.field_label(): " = Mandatory depending on environment, type or other features"},
+        {col_names.field_sample_id(): "Delete this and all rows above before uploading (except row 1 ofcourse!)"}
+    ]
+    
+    new_row_0 = {col_names.field_sample_id(): "EXAMPLE ROW:"}
+    
     df_list = df.to_dict('records')
 
     # Insert rows at specific positions
-    df_list.insert(1, new_row)
-    df_list.insert(2, new_row2)
-    df_list.insert(3, new_row3)
-    df_list.insert(4, new_row4)
-    df_list.insert(5, new_row5)
+   
+    df_list.insert(0, new_row_0)
+    
+    for i, row in enumerate(new_rows):
+        df_list.insert(i+2, row)
 
     # Convert back to DataFrame
     df = pd.DataFrame(df_list)
@@ -118,17 +144,58 @@ def generate(table_name, schema_name, conn, save_path):
     ]
 
     df_translated = df_translated[new_order]
-
+    
     # Create a Pandas Excel writer using openpyxl as the engine
     writer = pd.ExcelWriter(save_path, engine='openpyxl')
-
+    
+    enum_sheet_name = 'Allowed categorical values'
+    data_sheet_name = 'Insert Data Here'
+    
     # Write the DataFrame to Excel
-    df_translated.to_excel(writer, index=False, sheet_name='Sheet1')
+    
+    
 
     # Get the xlsxwriter workbook and worksheet objects
     workbook = writer.book
-    worksheet = writer.sheets['Sheet1']
+    
+    # Create a new sheet for the guide
+    guide_sheet = workbook.create_sheet(title='Read this first!')
+    
+    enum_sheet.to_excel(writer, index=False, sheet_name=enum_sheet_name)
+    df_translated.to_excel(writer, index=False, sheet_name=data_sheet_name)
 
+    # Add instructions to the guide sheet
+    instructions = [
+        "To limit data insertion errors, please read the instructions below before you begin to insert data:",
+        f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. samples that were collected directly from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). If your sample was not collected directly from a sample environment, but was sub sampled from an existing sample, you need to report it as a sub sample using '{data.edna_archive_sample(template=True)}' (find it the same place you found this template). Contact jtstenderup@sund.ku.dk for help with this.",
+        "2. When inserting data in a column, hover over the column name to see its definition.Read the column definition thoroughly before inserting the data, to make sure you are inserting it in the correct column",
+        f"3. There are some columns that only accepts a finite set of categorical values. Inspect the sheet '{enum_sheet_name}', to see what those values are. If you wish to include a categorical value contact {ADMIN_EMAIL} (it wont help if you just add it to the template yourself)", 
+        "4. Before uploading/sending the file, ensure all entries are accurate and complete.",
+        "5. Delete any empty rows and columns",
+        "6. Delete the yellow row and all the rows above it, except the row with the column names.",
+        f"Feel free to contact {ADMIN_EMAIL} if you have any questions or feedback to this template"
+    ]
+
+    for idx, instruction in enumerate(instructions, start=1):
+        guide_sheet[f'A{idx}'] = instruction
+
+    # Optionally, adjust column width for better readability
+    for col in guide_sheet.columns:
+        max_length = 0
+        column = col[0].column_letter  # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        guide_sheet.column_dimensions[column].width = adjusted_width
+    
+    
+    worksheet = writer.sheets[data_sheet_name]
+    # bold_format = workbook.add_format({'bold': True})
+    
     # Define header formats
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
     non_mandatory_colour = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
@@ -152,6 +219,8 @@ def generate(table_name, schema_name, conn, save_path):
         col_names.sample_date(template=True),
     ]
 
+    comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
+    
     for col_num, col_name in enumerate(df_translated.columns):
         # Get the original column name
         original_col_name = reverse_renamer.get(col_name, col_name)
@@ -167,27 +236,85 @@ def generate(table_name, schema_name, conn, save_path):
             cell.fill = mandatory_colour
         else:
             cell.fill = non_mandatory_colour
-
-        example_cell = worksheet.cell(row=3, column=col_num + 1)
-        example_cell.fill = yellow_fill
-
+        
+        
+        def calculate_text_width_in_pixels(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11):
+            # Load the Calibri font with the specified size
+            font = ImageFont.truetype(font_path, font_size)
+            
+            # Create a dummy image to use ImageDraw
+            img = Image.new('RGB', (1, 1))
+            draw = ImageDraw.Draw(img)
+            
+            # Get the bounding box of the text
+            left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
+            
+            # Calculate the width of the text
+            text_width_pixels = right - left
+            
+            return text_width_pixels
+        
+        
+        def set_comment_height(comment_text, max_chars_per_line=50):
+            base_height = 20  # Base height in pixels
+            extra_height_per_line = 15  # Extra height per line in pixels
+            num_lines = (len(comment_text) // max_chars_per_line) + 1
+            height = base_height + num_lines * extra_height_per_line
+            return height
+        
+        def pixels_to_excel_units(pixel_width, font_size=11):
+            # Excel's default font width assumption (calculated based on width of '0' character)
+            # The value 7 is an approximation for a standard character width in Excel (in pixels)
+            character_width_in_pixels = font_size * 0.6  # Approximate character width based on font size
+            excel_width = pixel_width / character_width_in_pixels
+    
+            return excel_width
+        
+        
+        comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
+        
+    
+        char_width = 7
+        text_width = len(comment) * char_width 
+        line_width = 40 * char_width
+        n_lines = math.ceil(text_width / line_width)
+        char_height = 22
+        
+        height = (char_height * n_lines) + char_height
+        
+        new_lines = comment.count("\n")
+        height = height + (char_height * new_lines) 
+    
+        cell.comment = Comment(comment, ADMIN_EMAIL, width=line_width, height=height)
+        
         # Align the text in the cell
         cell.alignment = center_alignment
+    
+        example_cell = worksheet.cell(row=9, column=col_num + 1)
+        example_cell.fill = yellow_fill
+        example_cell.font = Font(bold=True)
 
-
-    worksheet.cell(row=5, column=1).fill = mandatory_colour 
-    worksheet.cell(row=5, column=1).border = border 
-    worksheet.cell(row=6, column=1).fill = non_mandatory_colour 
+    worksheet.cell(row=6, column=1).fill = mandatory_colour 
     worksheet.cell(row=6, column=1).border = border 
-    worksheet.cell(row=7, column=1).fill = feature_dependent_colour 
+    worksheet.cell(row=7, column=1).fill = non_mandatory_colour 
     worksheet.cell(row=7, column=1).border = border 
+    worksheet.cell(row=8, column=1).fill = feature_dependent_colour 
+    worksheet.cell(row=8, column=1).border = border 
     # Set the row height for the header
     worksheet.row_dimensions[1].height = 61  # Adjust the height as needed
     # Set the column width for all columns
     for col in worksheet.columns:
         col_letter = col[0].column_letter
         worksheet.column_dimensions[col_letter].width = 30
+    
 
+    worksheet = writer.sheets[enum_sheet_name]
+    for col in worksheet.columns:
+        col_letter = col[0].column_letter
+        worksheet.column_dimensions[col_letter].width = 30
+        
+    
+    
     # Save and close the Excel file
     writer.close()
 
