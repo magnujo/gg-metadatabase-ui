@@ -4,7 +4,6 @@ import ast
 import requests
 from constants.db_names.name_maps import sheet_to_db_rename_map
 import os
-import constants.db_table_related_constants as db_table_related_constants
 from utils import queries
 import constants.misc_constants as misc_constants
 import utils.queries as q
