@@ -1,8 +1,5 @@
+import pandas as pd
 
-from utils.misc import calculate_text_box_size
+df = pd.read_csv(r"c:\Users\glj523\Downloads\query_all (4)\query_files\1\query_result_full.csv")
 
-text = "Hello, World!"
-font_path = "/path/to/font/arial.ttf"  # You can specify the font file path
-font_size = 20
-width, height = calculate_text_box_size(text, font_path, font_size)
-print(f"Text box size: Width={width}, Height={height}")
+print(len(df))

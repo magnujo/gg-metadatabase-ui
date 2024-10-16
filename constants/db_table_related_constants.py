@@ -1,3 +1,4 @@
+from pprint import pprint
 from constants.db_connections import SQL_ALCH_CONFIG, ENGINE
 from constants.db_names.names import data
 from constants.misc_constants import SHEET_TYPES
@@ -26,6 +27,7 @@ class DBTableRelated:
                                                                      data.top_unknown_seq_barcodes(), 
                                                                      data.adna_wetlab_report(), 
                                                                      data.edna_wetlab_report()]
+                                                         
                                                          }
                                        }
 
@@ -45,6 +47,23 @@ class DBTableRelated:
                         'age_depth_model': [data.age_depth_model()],
                         'initials_translator': [data.initials_translator()]
                     }
+    
+    UTIL_TABLES = {"MEGA": [
+                            "outer_coalesced_mega_table_meta",
+                            "outer_coalesced_mega_table_full",
+                    ],
+                    "QC": [
+                        "plot_category",
+                        "sample",
+                        "plot_config",
+                        "plot_data",
+                        "report",
+                        "report_meta",
+                        "sample_data",
+                        "sample_data_type"
+                    ]}
+    
+    UTIL_TABLES_LEAFS = sum(list(misc.extract_leaf_values_from_dict(UTIL_TABLES)), [])
     
     # Keeps track of the parent IDs that tables depend on
     PARENTS = \
@@ -121,10 +140,13 @@ class DBTableRelated:
         else:
             raise Exception("Sheet types doesnt match table splitter")
         
-        table_names = queries.get_table_names(schema_name=SQL_ALCH_CONFIG["schema_name"], database_name=SQL_ALCH_CONFIG["database"], engine=ENGINE)
+        table_names = set(queries.get_table_names(schema_name=SQL_ALCH_CONFIG["schema_name"], database_name=SQL_ALCH_CONFIG["database"], engine=ENGINE))
         TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES = sum(list(misc.extract_leaf_values_from_dict(DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION)), [])
+        UTIL_TABLE_NAMES = set(sum(list(misc.extract_leaf_values_from_dict(DBTableRelated.UTIL_TABLES)), []))
+        table_names = table_names - UTIL_TABLE_NAMES
+     
         if set(table_names) != set(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES):
-            raise Exception("TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema")
+            raise Exception(f"TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema. Make sure to update either the UTIL_TABLES or the TABLE_TYPES_FOR_ENUM_VALIDATION. Found the following tables in the database: \n {table_names} and the following tables in TABLE_TYPES_FOR_ENUM_VALIDATION: \n {TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES}")
         else:
             print("TABLE_TYPES_FOR_ENUM_VALIDATION contains all tables from schema")
         

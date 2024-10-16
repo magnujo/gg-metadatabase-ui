@@ -21,6 +21,7 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+
         h2, h3, h4, h5 {
             margin-top: 20px;
             color: #343a40;
@@ -69,7 +70,8 @@
     <br>
     <br>
     <h1>New database data (recommended)</h1>
-
+  
+    
     <div class="container">
         <h3>Download All Individual Tables </h3>
         <p>Press the "Download all tables..." button below to download all raw database tables, including both old unstandardized CGG tables and new standardized field sample data.</p>
@@ -83,8 +85,11 @@
                     <option value="utf_16">UTF-16</option>  
                 </select>
                 <p class="note">Use UTF-8 if in doubt</p>
+                
             </div>
-            <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download all individual tables...</button>
+            <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download all individual tables...</button>
+            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
+            <!-- <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download all individual tables...</button> -->
         </form>
     </div>
 
@@ -103,7 +108,15 @@
                 </select>
                 <p class="note">Use UTF-8 if in doubt</p>
             </div>
-            <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download merged table...</button>
+
+            <div class="form-group">
+                <label for="checkbox_qc">Include Filipes QC data (this will increase download time substantially, ~5-10 min):</label>
+                <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
+                
+            </div>
+            <!-- <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download merged table...</button> -->
+            <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download merged table...</button>
+            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
     </div>
 
@@ -135,8 +148,8 @@
                 <label for="input_values">Insert ID(s) (separated by new lines):</label>
                 <textarea class="form-control" id="input_values" name="input_values" rows="5" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 20000);">Download</button>
-
+            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Download</button>
+            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
 
     </div>
@@ -162,7 +175,8 @@
                 </select>
                 <p class="note">Use UTF-8 if in doubt</p>
             </div>
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 20000);">Get all data...</button>
+            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Get all data...</button>
+            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
     </div>
 
@@ -194,7 +208,8 @@
                 <textarea class="form-control" id="input_values" name="input_values" rows="5" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 20000);">Search</button>
+            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Search</button>
+            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
             
             
         </form>
@@ -237,6 +252,8 @@
         </div>
         {% endif %}
     </div>
+
+
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
