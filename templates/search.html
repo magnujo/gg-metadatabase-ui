@@ -111,7 +111,10 @@
 
             <div class="form-group">
                 <label for="checkbox_qc">Include Filipes QC data (this will increase download time substantially, ~5-10 min):</label>
+                
                 <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
+                <p class="note">NOTE: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
+                    If you need data from other sequencing runs, you can find it in the data folders on dandy: projects/caeg/data/production</p>
                 
             </div>
             <!-- <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download merged table...</button> -->
