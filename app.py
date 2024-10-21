@@ -34,7 +34,7 @@ import shutil
 import constants.misc_constants as misc_constants
 import log_util
 from utils import queries
-from flask import Flask, render_template, jsonify, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
+from flask import Flask, render_template, jsonify, after_this_request, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
 from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
@@ -917,6 +917,38 @@ def make_dirs_for_query_files(search_id):
     
     return search_dir_path, raw_path
     
+@app.route('/download_all_master_ids')
+def get_master_ids():
+    
+    with download_lock:
+    
+        q = f'select distinct "{data.field_sample.master_id_parent_sample_id()}" from "{data()}"."{data.field_sample()}"'
+        
+        df = pd.read_sql(q, con=ENGINE_READ_ONLY)
+        
+        file_path = os.path.join('temp', 'master_ids.tsv')
+        
+        df.to_csv(file_path, sep="\t", index=False)
+    
+        
+        return send_file(file_path, as_attachment=True)
+    
+@app.route('/download_all_field_sample_ids')
+def download_all_field_sample_ids():
+    
+    with download_lock:
+    
+        q = f'select distinct "{data.field_sample.field_sample_id()}" from "{data()}"."{data.field_sample()}"'
+        
+        df = pd.read_sql(q, con=ENGINE_READ_ONLY)
+        
+        file_path = os.path.join('temp', 'field_sample_ids.tsv')
+        
+        df.to_csv(file_path, sep="\t", index=False)
+    
+        
+        return send_file(file_path, as_attachment=True)
+
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():

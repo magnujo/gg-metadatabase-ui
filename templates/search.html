@@ -146,9 +146,12 @@
                     <option value="mID">Master/Parent ID</option>  
                 </select>
             </div>
+            
 
             <div class="form-group">
-                <label for="input_values">Insert ID(s) (separated by new lines):</label>
+                <label for="input_values">Insert ID(s) (separated by new lines):</label><br>
+                <a href="/download_all_master_ids" download>Download a list of all master IDs</a><br>
+                <a href="/download_all_field_sample_ids" download>Download a list of all field sample IDs</a>
                 <textarea class="form-control" id="input_values" name="input_values" rows="5" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea>
             </div>
             <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Download</button>
