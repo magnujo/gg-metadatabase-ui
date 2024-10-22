@@ -784,7 +784,7 @@ def allowed_file(filename):
 @app.route('/download_manual')
 @decorators.log_info(app)
 def download_manual():
-    return send_file(misc_constants.MANUAL, as_attachment=True)
+    return send_file(misc_constants.MANUAL(), as_attachment=True)
 
 @app.route('/download/<path:filename>')
 @decorators.log_info(app)

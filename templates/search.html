@@ -32,6 +32,9 @@
             color: #343a40;
             text-align: center;
         }
+        .centered {
+            text-align: center;
+        }
         .form-group {
             margin-bottom: 15px;
         }
@@ -69,7 +72,7 @@
 <body>
     <br>
     <br>
-    <h1>New database data (recommended)</h1>
+    <h1>Download data from <i>SMDB</i> (Sample Metadata Database) (recommended)</h1>
   
     
     <div class="container">
@@ -154,7 +157,7 @@
                 <a href="/download_all_field_sample_ids" download>Download a list of all field sample IDs</a>
                 <textarea class="form-control" id="input_values" name="input_values" rows="5" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Download</button>
+            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Download master depths, archive sample IDs etc...</button>
             <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
 
@@ -164,11 +167,10 @@
 
     <br>
     <br>
-    <h1>Old non-standardized CGG 
-        spreadsheet data <br> (NOT RECOMMENDED)</h1>
+    <h1>Download data from CGG spreadsheet (NOT RECOMMENDED)</h1>
+    <h2 class="centered">Only use if you cannot find your data elsewhere!</h2>
     <div class="container">
         <h3>Merged old non-standardized CGG spreadsheet data</h3>
-        <p class="note">Note: The merged data is not consistent and is based on old non-standardized CGG data.</p>
 
         <form method="post" action="/get_all_data">
             

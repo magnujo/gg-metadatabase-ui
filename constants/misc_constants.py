@@ -35,7 +35,7 @@ STATIC_DIR = os.path.join(os.getcwd(), 'static')
 PATH_TO_STANDARD_SHEETS = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "standard_spreadsheet_templates")
 # MANUAL = os.path.join('latest_manual', os.listdir('latest_manual')[0])
 MANUAL_DIR = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "manuals", "latest_manual")
-MANUAL = os.path.join(MANUAL_DIR, os.listdir(MANUAL_DIR)[0])
+MANUAL = lambda: os.path.join(MANUAL_DIR, os.listdir(MANUAL_DIR)[0])
 
 
 EMAIL_SENDER = 'cgg.metadb.ui.website@gmail.com'
