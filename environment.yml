@@ -24,6 +24,7 @@ dependencies:
   - pip
   - ipympl
   - jupyterlab
+  - geopy
   - pip:
     - pretty_html_table
     - jupyterlab
