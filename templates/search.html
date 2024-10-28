@@ -76,7 +76,7 @@
   
     
     <div class="container">
-        <h3>Download All Individual Tables </h3>
+        <h3 id="download_all_individual_tables">Download All Individual Tables </h3>
         <p>Press the "Download all tables..." button below to download all raw database tables, including both old unstandardized CGG tables and new standardized field sample data.</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
         <form method="post" action="/download_all_individual_tables">
@@ -97,7 +97,7 @@
     </div>
 
     <div class="container">
-        <h3>Download Joined Standardized Data (full outer joined) </h3>
+        <h3 id="joined_smdb_data">Download Joined Standardized Data (full outer joined) </h3>
         <p>Press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
 
@@ -167,9 +167,16 @@
 
     <br>
     <br>
-    <h1>Download data from CGG spreadsheet (NOT RECOMMENDED)</h1>
-    <h2 class="centered">Only use if you cannot find your data elsewhere!</h2>
-    <div class="container">
+    <h1>Download data from CGG spreadsheet</h1>
+    <p class="centered">WARNING: We are still working on uploading the CGG data to the SMDB.
+         In the meantime, you can write to Pernille Vibeke Selmer Olsen at pvsolsen@sund.ku.dk, to get the latest CGG spreadsheet, and for example merge it yourself with the <a href="#joined_smdb_data">Download Joined Standardized Data (full outer joined)
+         </a> or <a href=#download_all_individual_tables> Download all individual tables <a>. You can find cgg IDs in both the field_sample_id column and archive_sample_id column. There are some IDs that are in both columns. You might find some of the sections below usefull, however they are not tested and might give incorrect results.</p>
+    <br>
+    <br>
+    <br>
+    <br>
+
+            <div class="container">
         <h3>Merged old non-standardized CGG spreadsheet data</h3>
 
         <form method="post" action="/get_all_data">
