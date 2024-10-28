@@ -51,7 +51,7 @@ def match_column_positions(upload_file_df, db_data_df):
         except KeyError as e:
             raise Exception(f"The following columns where found in the database table but not in the upload file: {e.args[0]}")
     else:
-        raise Exception(f"Number of columns in database table does match number of columns in upload file. Columns found database: {db_data_df.columns}. Columns found in upload file: {upload_file_df.columns}")
+        raise Exception(f"Number of columns in database table does match number of columns in upload file. Columns found database that were not found in upload file: {set(db_data_df.columns) - set(upload_file_df.columns)}. Vice versa: {set(upload_file_df.columns) - set(db_data_df.columns)}")
     return upload_file_df
 
 def get_db_generated_uuid_col(table_name, schema_name):

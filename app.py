@@ -240,28 +240,35 @@ def upload_file():
                 
                 if split_database_table_name == data.edna_wetlab_report():
                     
-                    schema_name = SQL_ALCH_CONFIG["schema_name"]
-                    id_col_name_sheet = data.edna_wetlab_report.fastq_file_id()
-                    id_col_name_table = data.flowcell.fastq_file_id()
-                    sheet_ids_not_found_in_flowcell_table = misc.find_missing_ids(sheet=clean_sheet, 
-                                                                                  table=data.flowcell(), 
-                                                                                  id_col_sheet=id_col_name_sheet, 
-                                                                                  id_col_table=id_col_name_table,
-                                                                                  engine=ENGINE,
-                                                                                  schema=schema_name)
                     lib_id_col_name = data.edna_wetlab_report.library_id()
+                    clean_sheet['prod_res_path'] = paths.prod_res_path(clean_sheet[lib_id_col_name])
                     
-                    #  If there are some IDs found in the sheet that are not in the flowcell table, it means Julie didn't upload her meta data when she finished sequencing
-                    if len(sheet_ids_not_found_in_flowcell_table) != 0:
-                        raise Exception(f''' The data cannot be uploaded because the following {id_col_name_sheet}'s 
-                                        has not been uploaded to the {data.flowcell()} table, which is needed to generate the file paths: {sheet_ids_not_found_in_flowcell_table} \n
-                                            Upload the missing data and try again.''')
+                    # The below commented out code will prevent upload of eDNA wet_lab_reports if the fastq files do not exist in the flowcell table.
+                    
+                    # #  If there are some IDs found in the sheet that are not in the flowcell table, it means Julie didn't upload her meta data when she finished sequencing
+                    
+                    # schema_name = SQL_ALCH_CONFIG["schema_name"]
+                    # id_col_name_sheet = data.edna_wetlab_report.fastq_file_id()
+                    # id_col_name_table = data.flowcell.fastq_file_id()#
+                    
+                    # sheet_ids_not_found_in_flowcell_table = misc.find_missing_ids(sheet=clean_sheet, 
+                                                                                #   table=data.flowcell(), 
+                                                                                #   id_col_sheet=id_col_name_sheet, 
+                                                                                #   id_col_table=id_col_name_table,
+                                                                                #   engine=ENGINE,
+                                                                                #   schema=schema_name)
+                    # 
+                    # if len(sheet_ids_not_found_in_flowcell_table) != 0:
+                    #     raise Exception(f''' The data cannot be uploaded because the following {id_col_name_sheet}'s 
+                    #                     has not been uploaded to the {data.flowcell()} table, which is needed to generate the file paths: {sheet_ids_not_found_in_flowcell_table} \n
+                    #                         Upload the missing data and try again.''')
                                
-                    else:
+                    # else:
                         
                         
-                        clean_sheet['prod_res_path'] = paths.prod_res_path(clean_sheet[lib_id_col_name])
-                        
+                    #     clean_sheet['prod_res_path'] = paths.prod_res_path(clean_sheet[lib_id_col_name])
+                    
+                                            
                         
                 if split_database_table_name == data.flowcell():
                     flowcell_id_col_name = data.flowcell.flowcell_id()
