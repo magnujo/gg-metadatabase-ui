@@ -362,7 +362,7 @@ def upload_file():
 
                 if split_database_table_name in db_table_related_constants.DBTableRelated.PARENTS.keys():
                     
-                    # Check parents precense in DB
+                    # Check parents precense in DB, shouldnt be necessary when foreign keys are in place.
                     
                     parents = db_table_related_constants.DBTableRelated.PARENTS[split_database_table_name]
                     
@@ -377,7 +377,14 @@ def upload_file():
                                                                                             engine=ENGINE, 
                                                                                             schema=SQL_ALCH_CONFIG["schema_name"], 
                                                                                             table=db_table)
+                                
+                                
+                                
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
+                                
+                                if split_database_table_name == data.edna_wetlab_report():
+                                    diff = {value for value in diff if not value.startswith(('exrntc', 'libntc', 'libptc', 'exrptc'))}
+ 
                                 
        
                                 if len(diff) != 0:                                
