@@ -130,7 +130,7 @@ def upload_file():
             else:
                 # TODO Make more general
                 if os.path.exists(os.path.join(UPLOADED_FILES, file.filename)) and file_name != "laneBarcode.html":
-                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. Contact admin you believe this is an error, or if you want to re-upload the file')
+                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. If you want to re-upload existing data, contact admin. Otherwise, rename the file and try again.')
                 
             database_table_name = request.form.get('database_table_name')
             session['database_table_name'] = database_table_name
