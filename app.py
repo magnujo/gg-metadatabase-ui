@@ -383,7 +383,7 @@ def upload_file():
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
                                 
                                 if split_database_table_name == data.edna_wetlab_report():
-                                    diff = {value for value in diff if not value.startswith(('exrntc', 'libntc', 'libptc', 'exrptc'))}
+                                    diff = set()
  
                                 
        
