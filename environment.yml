@@ -24,6 +24,7 @@ dependencies:
   - pip
   - ipympl
   - jupyterlab
+  - paramiko
   - pip:
     - pretty_html_table
     - jupyterlab
