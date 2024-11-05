@@ -1140,7 +1140,7 @@ def PI_download_standardized():
                            "field_sample_id": "Field Sample ID",
                            "archive_sample_id": "Archive Sample ID"})
         
-        encoding_type = request.form['encoding_type']
+        encoding_type = "utf-16"
         
         input_values = request.form['input_values']    
         input_dropdown = request.form['search_type']
@@ -1163,7 +1163,7 @@ def PI_download_standardized():
                 
         directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
                 
-        path_full = os.path.join(directory_path, 'master_depths_etc.csv')
+        path_full = os.path.join(directory_path, 'master_depths_etc.txt')
         # zip_paths.append(path_full)
         # path_zip_query = os.path.join(directory_path, 'query_all.zip')
         
@@ -1185,7 +1185,7 @@ def PI_download_standardized():
         df = df[filter]
         df = df.drop_duplicates(subset=["Archive Sample ID"])
         
-        df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+        df.to_csv(path_or_buf=path_full, sep="\t", index=False, encoding=encoding_type)
         
         # create_zip(zip_paths, path_zip_query)
 
