@@ -284,6 +284,9 @@ def upload_file():
                 
                 if split_database_table_name == data.master_depth():
                     master_ids = clean_sheet[data.master_depth.master_field_sample_id()].unique()
+                    
+                    clean_sheet = clean_sheet.drop(columns=[ "ArchiveSamplePositionInRack","ArchiveSampleRackName","ArchiveSampleRackID"], errors="ignore")
+                    
 
                 if split_database_table_name == data.age_depth_model() or split_database_table_name == data.master_depth():
                     if master_ids == None or len(master_ids) < 1:
@@ -1120,8 +1123,6 @@ def PI_download_standardized():
     with download_lock:
         
         df = get_merged_standardized()
-        
-        
         
         columns = [
             "field_sample_parent_id",
