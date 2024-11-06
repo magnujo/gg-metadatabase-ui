@@ -286,7 +286,10 @@ def upload_file():
                 if split_database_table_name == data.master_depth():
                     master_ids = clean_sheet[data.master_depth.master_field_sample_id()].unique()
                     
-                    clean_sheet = clean_sheet.drop(columns=[ "ArchiveSamplePositionInRack","ArchiveSampleRackName","ArchiveSampleRackID"], errors="ignore")
+                    clean_sheet = clean_sheet.drop(columns=["ArchiveSamplePositionInRack","ArchiveSampleRackName","ArchiveSampleRackID"], errors="ignore")
+                    clean_sheet = clean_sheet.drop(columns=[data.edna_archive_sample.positioninrack(template=True), 
+                                                            data.edna_archive_sample.rackname(template=True),
+                                                            data.edna_archive_sample.rackid(template=True)], errors="ignore")
                     
 
                 if split_database_table_name == data.age_depth_model() or split_database_table_name == data.master_depth():
@@ -1125,16 +1128,26 @@ def PI_download_standardized():
         
         df = get_merged_standardized()
         
+        # columns = [
+        #     "field_sample_parent_id", 
+        #     "field_sample_id",
+        #     "archive_sample_id",
+        #     "Master Depth (cm)",
+            
+        # ]
+        
         columns = [
-            "field_sample_parent_id",
-            "field_sample_id",
-            "archive_sample_id",
-            "Master Depth (cm)",
+            data.master_depth.master_field_sample_id(),
+            data.master_depth.field_sample_id(),
+            data.master_depth.archive_sample_id(),
+            data.master_depth.master_depth(),
             "ArchiveSampleDepthCalTape",
             "ArchiveSamplePositionInRack",
             "ArchiveSampleRackName",
             "ArchiveSampleRackID"
         ]
+        
+        print(columns)
         
         df = df[columns]
         
@@ -1142,10 +1155,12 @@ def PI_download_standardized():
                            "field_sample_id": "Field Sample ID",
                            "archive_sample_id": "Archive Sample ID"})
         
-        encoding_type = "utf-16"
         
-        input_values = request.form['input_values']    
-        input_dropdown = request.form['search_type']
+        encoding_type = request.form.get('encoding_type')
+
+        
+        input_values = request.form.get('input_values')
+        input_dropdown = request.form.get('search_type')
             
             
         # Remove trailing newline characters
@@ -1186,6 +1201,9 @@ def PI_download_standardized():
         
         df = df[filter]
         df = df.drop_duplicates(subset=["Archive Sample ID"])
+        
+        df.insert(1, "Master Field Sample ID correction", None)
+    
         
         df.to_csv(path_or_buf=path_full, sep="\t", index=False, encoding=encoding_type)
         
