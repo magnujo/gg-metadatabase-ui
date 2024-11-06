@@ -102,6 +102,8 @@ FILE_EXTENSIONS = {
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'My data doesn\'t contain dates']
 
+ALLOWED_ENCODINGS = ['UTF-8', 'UTF-16']
+
 
 POSTGRES_TYPES = {'floating_point': ['double precision', 'numeric', 'real', 'decimal', 'float4', 'float8', 'float'],
                   'integer': ['smallint', 'integer', 'bigint', 'int', 'int2', 'int4', 'int8'],

@@ -112,11 +112,21 @@
         
         <div class="section">
             <h3>Upload</h3>
-            <p><strong>Note:</strong> The database only accepts “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac). For Lane Barcodes, use .html format.</p>
+            <p><strong>Note:</strong> The database only accepts tab seperated .txt files as of now. If you use excel: Use “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac) and pick UTF-16 in the encoding menu. For Lane Barcodes, use .html format.</p>
             <form action="/upload" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="file">Choose a file to upload:</label>
                     <input type="file" name="file" accept=".txt, .html, .csv" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="encoding_type">Select the encoding of your file:</label>
+                    <select name="encoding_type" id="encoding_type" required>
+                        <option value="">Choose an option...</option>
+                        {% for ele in ALLOWED_ENCODINGS %}
+                            <option value="{{ ele }}">{{ ele }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="form-group">

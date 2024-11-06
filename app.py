@@ -44,7 +44,7 @@ import pandas as pd
 import numpy as np
 from pandas import testing
 import logging
-from constants.misc_constants import UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS
+from constants.misc_constants import UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS, ALLOWED_ENCODINGS
 from exception_utils import delete_files, delete_db_entries
 from utils.CustomExceptions import DontTriggerFileDeletion
 from utils import parsers
@@ -86,7 +86,7 @@ def index():
         
         example_sheets = os.listdir(misc_constants.PATH_TO_STANDARD_SHEETS)
     
-        return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS)
+        return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS, ALLOWED_ENCODINGS=ALLOWED_ENCODINGS)
  
 
 @app.route('/upload', methods=['POST'])
@@ -143,6 +143,7 @@ def upload_file():
             date_format = request.form.get('date_format')
             decimal_point = request.form.get('decimal_point')
             thousands_seperator = request.form.get('thousands_seperator')
+            encoding_user_input = request.form.get('encoding_type')
             
             if thousands_seperator == "no_choice" or not thousands_seperator:
                 raise DontTriggerFileDeletion('Please select a thousands seperator character')
@@ -198,9 +199,9 @@ def upload_file():
                     sheet = pd.read_csv(file_path, sep=",", dtype=str, header=None, names=l)
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
                 elif database_table_name == data.age_depth_model():
-                    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_8', dtype=str)
+                    sheet = pd.read_csv(file_path, sep='\t', encoding=encoding_user_input, dtype=str)
                 else:
-                    sheet = pd.read_csv(file_path, sep='\t', encoding='utf_16', dtype=str)
+                    sheet = pd.read_csv(file_path, sep='\t', encoding=encoding_user_input, dtype=str)
                 sheets_to_parse.append(sheet)
             
             clean_sheets = []
