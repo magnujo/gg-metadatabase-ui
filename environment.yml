@@ -26,6 +26,7 @@ dependencies:
   - jupyterlab
   - paramiko
   - seaborn
+  - notebook
   - pip:
     - pretty_html_table
     - jupyterlab
