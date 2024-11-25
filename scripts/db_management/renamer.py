@@ -45,6 +45,8 @@ from utils import queries
 from constants.misc_constants import PATH_TO_MOUNT
 from constants.db_names.name_maps import name_maps, get_column_name, get_schema_name, get_table_name
 import psycopg2
+from psycopg2 import errors
+
 import getpass
 from threading import Lock
 
@@ -347,7 +349,7 @@ def rename_db_tables(connection):
 
 
 def rename_db_column(connection):
-    
+    duplicate_names = []
     file_path = os.path.join(PATH_TO_MOUNT, "SUN-GI-metadb-test", "renamer", "db_column_renamer.json")
     
     # Load renamer file
@@ -398,14 +400,20 @@ def rename_db_column(connection):
         # Rename column in database
         old_name = get_column_name(id)
         
-        table_update_q = f'''
-        ALTER TABLE "{schema_name}"."{table_name}" 
-        RENAME COLUMN "{old_name}" TO "{new_name}";
-        '''
+        if not old_name == new_name:
+            table_update_q = f'''
+            ALTER TABLE "{schema_name}"."{table_name}" 
+            RENAME COLUMN "{old_name}" TO "{new_name}";
+            '''
+            full_query = full_query + table_update_q
+            
+        else:
+            duplicate_names.append(key)
+            print(f'WARNING: Old name: {old_name} is equal to new name: {new_name}. Skipping... ')
         
-        full_query = full_query + table_update_q
         
-    user_output = {get_column_name(int(key)): val for key, val in rename_file.items()}
+        
+    user_output = {get_column_name(int(key)): val for key, val in rename_file.items() if key not in duplicate_names}
     print(f"Do you want to complete the following renaming in {schema_name}.{table_name}? (y/n)")
     print(f"{user_output}")
     confirmation = input("")
@@ -416,14 +424,15 @@ def rename_db_column(connection):
         queries.execute_query(full_query, connection)
         cols_after = {key: get_column_name(int(key)) for key in rename_file}
             
-        
-        errors = []
+        errors_list = []
         for key in rename_file:
             if cols_before[key] == cols_after[key]:
-                errors.append(key)
+                errors_list.append(key)
         
-        if len(errors) != 0:
-            raise Exception(f"The following columns where not renamed correctly: {errors}")
+        errors_list = set(errors_list) - set(duplicate_names)
+        
+        if len(errors_list) != 0:
+            raise Exception(f"The following columns where not renamed correctly: {errors_list}")
 
 
 def run():
