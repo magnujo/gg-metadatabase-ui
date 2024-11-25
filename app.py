@@ -1318,7 +1318,7 @@ if __name__ == '__main__':
             raise Exception(f'Unknown value for RUN_MODE')
     print(f"RUNMODE:{constants.db_connections.RUN_MODE}")
     
-    deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
+    # deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])
     
     if constants.db_connections.RUN_MODE == 'production':

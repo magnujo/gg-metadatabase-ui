@@ -48,7 +48,7 @@ def get_table_names(schema_name, database_name, engine=ENGINE_READ_ONLY):
     q = f'''    
     SELECT table_name
     FROM information_schema.tables
-    WHERE table_schema = '{schema_name}' and table_catalog = '{database_name}'
+    WHERE table_schema = '{schema_name}' and table_catalog = '{database_name}' and table_type = 'BASE TABLE';
     '''
     df = pd.read_sql(sql=q, con=engine)
     return list(df['table_name'])
