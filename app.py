@@ -1141,11 +1141,13 @@ def PI_download_standardized():
             data.master_depth.field_sample_id(),
             data.master_depth.archive_sample_id(),
             data.master_depth.master_depth(),
-            "ArchiveSampleDepthCalTape",
-            "ArchiveSamplePositionInRack",
-            "ArchiveSampleRackName",
-            "ArchiveSampleRackID"
+            "archive_sample_depth_cal_tape",
+            "archive_sample_position_in_rack",
+            "archive_sample_rack_name",
+            "archive_sample_rack_id"
         ]
+
+        
         
         print(columns)
         
@@ -1153,7 +1155,11 @@ def PI_download_standardized():
         
         df = df.rename(columns={"field_sample_parent_id": "Master Field Sample ID",
                            "field_sample_id": "Field Sample ID",
-                           "archive_sample_id": "Archive Sample ID"})
+                           "archive_sample_id": "Archive Sample ID",
+                           "archive_sample_depth_cal_tape": "ArchiveSampleDepthCalTape",
+                            "archive_sample_position_in_rack": "ArchiveSamplePositionInRack",
+                            "archive_sample_rack_name": "ArchiveSampleRackName",
+                            "archive_sample_rack_id": "ArchiveSampleRackID"})
         
         
         encoding_type = request.form.get('encoding_type')
