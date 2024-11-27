@@ -9,7 +9,7 @@ if os.environ.get('RUN_MODE'):
     if not RUN_MODE in RUN_MODE_OPTIONS:
         raise Exception(f'Unknown value for RUN_MODE')
 
-pw = os.environ.get('DB_PASSWORD')
+pw = os.environ.get('PGPASSWORD')
 RUN_MODE = 'development'
 
 if RUN_MODE == 'production':

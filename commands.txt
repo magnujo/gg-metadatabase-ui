@@ -1,16 +1,16 @@
 To Run on Windows:
 
 Work
-$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:DB_PASSWORD = ""; c:/Users/glj523/AppData/Local/miniconda3/envs/db_web_app/python.exe "c:/Users/glj523/Documents/github repoes/upload_web_app/app.py"
+$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""; c:/Users/glj523/AppData/Local/miniconda3/envs/db_web_app/python.exe "c:/Users/glj523/Documents/github repoes/upload_web_app/app.py"
 
 Home:
  
 
-$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:DB_PASSWORD = ""; C:/Users/magnu/miniconda3/envs/db_web_app/python.exe "c:/Users/magnu/Documents/Git Repoes/gg-metadatabase-ui/app.py"
+$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""; C:/Users/magnu/miniconda3/envs/db_web_app/python.exe "c:/Users/magnu/Documents/Git Repoes/gg-metadatabase-ui/app.py"
 
 
 To close access to the site for maintainance purposes set:
 $env:MAINTAINANCE = "yes";
 
 debug:
-$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:DB_PASSWORD = ""
+$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""
