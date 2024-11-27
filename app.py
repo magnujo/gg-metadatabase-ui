@@ -1232,7 +1232,7 @@ def download_merged_standardized():
             os.mkdir(download_dir_path)
             file_path = os.path.join(download_dir_path, 'data.tsv.gz')
             query = f"select * from {data()}.outer_coalesced_mega_table_full"
-            command = f'''psql -U postgres -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
             os.system(command)
             return send_file(file_path, as_attachment=True)
             
