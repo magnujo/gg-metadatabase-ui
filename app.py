@@ -1237,29 +1237,39 @@ def download_merged_standardized():
             return send_file(file_path, as_attachment=True)
             
         else:  
-            df = get_merged_standardized(qc_checked)
+            
+            download_id = str(uuid.uuid4())
+            download_dir_path = os.path.join('session_data', download_id)
+            os.mkdir(download_dir_path)
+            file_path = os.path.join(download_dir_path, 'data.tsv.gz')
+            query = f"select * from {data()}.outer_coalesced_mega_table_meta"
+            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+            os.system(command)
+            return send_file(file_path, as_attachment=True)
         
-            encoding_type = request.form['encoding_type']
+            # df = get_merged_standardized(qc_checked)
+        
+            # encoding_type = request.form['encoding_type']
 
-            zip_paths = []
+            # zip_paths = []
                     
-            global search_id 
-            search_id = search_id + 1
-            session["search_id"] = str(search_id)
+            # global search_id 
+            # search_id = search_id + 1
+            # session["search_id"] = str(search_id)
                     
-            directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+            # directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
                     
-            path_full = os.path.join(directory_path, 'query_result_full.csv')
-            zip_paths.append(path_full)
-            path_zip_query = os.path.join(directory_path, 'query_all.zip')
+            # path_full = os.path.join(directory_path, 'query_result_full.csv')
+            # zip_paths.append(path_full)
+            # path_zip_query = os.path.join(directory_path, 'query_all.zip')
             
-            query = f"select * from {data()}.outer_coalesced_mega_table_full"
-            df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
+            # query = f"select * from {data()}.outer_coalesced_mega_table_full"
+            # df.to_csv(path_or_buf=path_full, index=False, encoding=encoding_type)
             
-            create_zip(zip_paths, path_zip_query)
+            # create_zip(zip_paths, path_zip_query)
 
-            # Send the text file as a download to the user
-            return send_file(path_zip_query, as_attachment=True)
+            # # Send the text file as a download to the user
+            # return send_file(path_zip_query, as_attachment=True)
     
     
     
