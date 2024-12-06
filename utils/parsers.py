@@ -75,7 +75,7 @@ def parse(sheet,
         if ele in misc_constants.AUTO_GENERATED_COLUMNS:
             pass
         
-        elif not ele in sheet.rename(columns=rename_map, errors='raise').columns:
+        elif not ele in sheet.columns:
             raise Exception (f"Upload failed. Expected column {primary_key[i]} not found. Are you sure you uploaded the correct spreadsheet?")
 
     # if not constants.RUN_MODE == 'production' and 'uid' not in primary_key:
@@ -300,7 +300,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             sheet[ele] = sheet[ele].astype('float64')
             
         else:
-            raise Exception(f"Did not find expected numeric column {ele} in input. \
+            raise Exception(f"Did not find expected numeric column {ele} in input columns: {sheet.columns}. \
                                 Please make sure the format of your spreadsheet matches \
                                 the the example sheet found on the upload website.\
                                 Contact admin at {misc_constants.ADMIN_EMAIL}")

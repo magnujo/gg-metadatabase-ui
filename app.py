@@ -37,7 +37,7 @@ from utils import queries
 from flask import Flask, render_template, jsonify, after_this_request, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
-from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES
+from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, TEMP_FOLDER
 from constants import paths
 from scripts.ETLFunctions import clean_up
 import pandas as pd
@@ -104,13 +104,14 @@ def upload_file():
         session['email_send'] = False
         session['session_dir_created'] = False
         
+        
         file = request.files['file']
         file_name = file.filename
         session['session_id'] = uuid.uuid4()
         session['session_dir'] = os.path.join(misc_constants.SESSION_DATA, str(session.get("session_id")))
         
         try:
-            if file.filename == '':
+            if file_name == '':
                 raise DontTriggerFileDeletion('No selected file')
             
             session['file_name'] = file_name
@@ -120,8 +121,8 @@ def upload_file():
             if os.path.exists(session_dir):
                 raise DontTriggerFileDeletion("Session dir already exists")
             
-            if file and allowed_file(file.filename):
-                file_path = os.path.join(session_dir, ORIGINAL_FILES, file.filename)
+            if file and allowed_file(file_name):
+                file_path = os.path.join(session_dir, TEMP_FOLDER, file_name)
             else:
                 raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
             
@@ -129,7 +130,7 @@ def upload_file():
                 pass
             else:
                 # TODO Make more general
-                if os.path.exists(os.path.join(UPLOADED_FILES, file.filename)) and file_name != "laneBarcode.html":
+                if os.path.exists(os.path.join(UPLOADED_FILES, file_name)) and file_name != "laneBarcode.html":
                     raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. If you want to re-upload existing data, contact admin. Otherwise, rename the file and try again.')
                 
             database_table_name = request.form.get('database_table_name')
@@ -144,6 +145,7 @@ def upload_file():
             decimal_point = request.form.get('decimal_point')
             thousands_seperator = request.form.get('thousands_seperator')
             encoding_user_input = request.form.get('encoding_type')
+            session['encoding_user_input'] = encoding_user_input
             
             if thousands_seperator == "no_choice" or not thousands_seperator:
                 raise DontTriggerFileDeletion('Please select a thousands seperator character')
@@ -169,6 +171,7 @@ def upload_file():
         try:
             parsed_dir = os.path.join(session_dir, PARSED_SHEETS_FOLDER)
             os.mkdir(os.path.join(session_dir, ORIGINAL_FILES))
+            os.mkdir(os.path.join(session_dir, TEMP_FOLDER))
             os.mkdir(parsed_dir)
             os.mkdir(os.path.join(session_dir, UPLOADED_FILES))
             
@@ -189,6 +192,19 @@ def upload_file():
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
 
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
+                
+                flowcell_id = list(set(flowcell_data[data.flowcell.flowcell_id(template=True)]))
+                
+                num_of_flowcell_ids = len(flowcell_id)
+                
+                if num_of_flowcell_ids != 1:
+                    raise DontTriggerFileDeletion(f'Expected 1 flowcell ID. Found {num_of_flowcell_ids}')
+                
+                flowcell_id = flowcell_id[0]
+                
+                file_name = f'{flowcell_id}_{file_name}'
+                session['file_name'] = file_name
+                
                 sheets_to_parse.append(flowcell_data)
                 sheets_to_parse.append(top_unknown_barcodes)
             else:       
@@ -204,6 +220,28 @@ def upload_file():
                     sheet = pd.read_csv(file_path, sep='\t', encoding=encoding_user_input, dtype=str)
                 sheets_to_parse.append(sheet)
             
+            file_name = f'{database_table_name}_{file_name}'
+            session['file_name'] = file_name
+            
+            if file and allowed_file(file_name):
+                file_path = os.path.join(session_dir, ORIGINAL_FILES, file_name)
+            else:
+                raise DontTriggerFileDeletion('Invalid file type. Please upload a tab seperated .txt or html file. See manual for help')
+            
+            if '--no_file_test' in sys.argv:
+                pass
+            else:
+                # TODO Make more general
+                if os.path.exists(os.path.join(UPLOADED_FILES, file_name)):
+                    raise DontTriggerFileDeletion(f'A file with the exact same name has already been uploaded to the database. If you want to re-upload existing data, contact admin. Otherwise, rename the file and try again.')
+                
+            database_table_name = request.form.get('database_table_name')
+            
+            if not os.path.exists(file_path):
+                file.save(file_path)
+            else:
+                raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
+            
             clean_sheets = []
             
             for i, sheet in enumerate(sheets_to_parse):
@@ -213,15 +251,18 @@ def upload_file():
                 #  Remove trailing and leading whitespace  
                 sheet = sheet.applymap(lambda x: x.strip() if isinstance(x, str) else x)
                 
+                sheet.columns = sheet.columns.str.strip()
+                sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
+                
                 clean_sheet = parsers.parse(sheet=sheet,
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
                                             thousands_seperator=thousands_seperator)    
                        
+                # clean_sheet.columns = clean_sheet.columns.str.strip()
+                # clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     
                 
-                clean_sheet.columns = clean_sheet.columns.str.strip()
-                clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     
                 
                 # TODO: Check that no two columns are the same with lower()
             
@@ -410,7 +451,7 @@ def upload_file():
                 write_path = os.path.join(session_dir, PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
                 if not os.path.exists(write_path): 
                     clean_sheet = clean_sheet.rename(columns=db_to_sheet_col_name_map, errors="raise")      
-                    clean_sheet.to_csv(write_path, index=False, encoding='utf_16', sep="\t")
+                    clean_sheet.to_csv(write_path, index=False, encoding=session.get('encoding_user_input'), sep="\t")
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
 
@@ -451,7 +492,7 @@ def confirmation_request():
         for i, ele in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name]):
             suf = str(Path(str(file_name)).suffix)
             stem = str(Path(str(file_name)).stem)
-            clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding='utf_16', sep='\t')
+            clean_sheet = pd.read_csv(os.path.join(str(str(session.get("session_dir"))), PARSED_SHEETS_FOLDER, f'{stem}_{ele}{suf}'), encoding=session.get('encoding_user_input'), sep='\t')
             # Validate enum columns:   
             caption = lambda x: f'<br><h3 align="center" id="{ele}_{x}">Table {i+1}: {ele}</h3>'
 
@@ -524,8 +565,8 @@ def confirmed():
                 suf = str(Path(str(file_name)).suffix)
                 stem = str(Path(str(file_name)).stem)
                 parsed_file_to_upload = os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table_name}{suf}')
-                clean_sheet = pd.read_csv(parsed_file_to_upload, encoding='utf_16', sep="\t")
-               
+                clean_sheet = pd.read_csv(parsed_file_to_upload, encoding=session.get('encoding_user_input'), sep="\t")
+                
                 
                 # clean_sheet = clean_sheet.map(lambda s: s.lower() if type(s) == str else s)
                 
@@ -845,7 +886,7 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
                 for i, table in enumerate(tables_uploaded_to):
                     suf = str(Path(str(file_name)).suffix)
                     stem = str(Path(str(file_name)).stem)
-                    clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table}{suf}'), encoding='utf_16', sep="\t")
+                    clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table}{suf}'), encoding=session.get('encoding_user_input'), sep="\t")
                     
                     # To make sure to delete the correct number of rows
                     if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
@@ -866,7 +907,7 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
                     for i, table in enumerate(db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)):
                         suf = str(Path(str(file_name)).suffix)
                         stem = str(Path(str(file_name)).stem)
-                        clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table}{suf}'), encoding='utf_16', sep="\t")
+                        clean_sheet = pd.read_csv(os.path.join(str(session.get("session_dir")), PARSED_SHEETS_FOLDER, f'{stem}_{table}{suf}'), encoding=session.get('encoding_user_input'), sep="\t")
                         
                         # To make sure to delete the correct number of rows
                         if num_of_uploaded_rows == -1 or num_of_uploaded_rows == len(clean_sheet):
