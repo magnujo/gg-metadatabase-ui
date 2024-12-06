@@ -1178,32 +1178,22 @@ def PI_download_standardized():
         
         columns = [
             data.master_depth.master_field_sample_id(),
+            data.master_depth.master_field_sample_id_correction(),
             data.master_depth.field_sample_id(),
             data.master_depth.archive_sample_id(),
             data.master_depth.master_depth(),
-            "archive_sample_depth_cal_tape",
-            "archive_sample_position_in_rack",
-            "archive_sample_rack_name",
-            "archive_sample_rack_id"
+            data.edna_archive_sample.depthsampledcaltape(),
+            data.edna_archive_sample.positioninrack(),
+            data.edna_archive_sample.rackname(),
+            data.edna_archive_sample.rackid(),
+            data.master_depth.archive_sample_master_depth_comment()
+       
         ]
-
-        
-        
-        print(columns)
         
         df = df[columns]
         
-        df = df.rename(columns={"field_sample_parent_id": "Master Field Sample ID",
-                           "field_sample_id": "Field Sample ID",
-                           "archive_sample_id": "Archive Sample ID",
-                           "archive_sample_depth_cal_tape": "ArchiveSampleDepthCalTape",
-                            "archive_sample_position_in_rack": "ArchiveSamplePositionInRack",
-                            "archive_sample_rack_name": "ArchiveSampleRackName",
-                            "archive_sample_rack_id": "ArchiveSampleRackID"})
-        
         
         encoding_type = request.form.get('encoding_type')
-
         
         input_values = request.form.get('input_values')
         input_dropdown = request.form.get('search_type')
@@ -1236,21 +1226,19 @@ def PI_download_standardized():
             case "no_choice":
                 raise Exception("You need to choose a search type in the dropdown menu")
             case "fID":
-                filter = df["Field Sample ID"].str.lower().isin(values_list)
+                filter = df[data.master_depth.field_sample_id()].str.lower().isin(values_list)
             
             case "mID":
-                filter = df["Master Field Sample ID"].str.lower().isin(values_list)
+                filter = df[data.master_depth.master_field_sample_id()].str.lower().isin(values_list)
                 
             case _:
                 raise Exception("You need to choose a search type in the dropdown menu")
         
         
         df = df[filter]
-        df = df.drop_duplicates(subset=["Archive Sample ID"])
-        
-        df.insert(1, "Master Field Sample ID correction", None)
-    
-        
+        df = df.drop_duplicates(subset=[data.master_depth.archive_sample_id()])    
+        rename_map = db_to_sheet_rename_map(schema_name=data(), table_name=data.master_depth())
+        df = df.rename(columns=rename_map)
         df.to_csv(path_or_buf=path_full, sep="\t", index=False, encoding=encoding_type)
         
         # create_zip(zip_paths, path_zip_query)

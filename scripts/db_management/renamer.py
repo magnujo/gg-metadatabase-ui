@@ -382,8 +382,7 @@ def rename_db_column(connection):
         
         schema_name, table_name = res[0]
         
-        if str(schema_name) == str(name_maps()):
-            raise Exception(f"Altering table {schema_name} is not allowed.")
+        
         
     
         column_names = name_maps.column_names()
@@ -401,6 +400,8 @@ def rename_db_column(connection):
         old_name = get_column_name(id)
         
         if not old_name == new_name:
+            if str(schema_name) == str(name_maps()):
+                raise Exception(f"Altering table {schema_name} is not allowed.")
             table_update_q = f'''
             ALTER TABLE "{schema_name}"."{table_name}" 
             RENAME COLUMN "{old_name}" TO "{new_name}";
@@ -414,7 +415,7 @@ def rename_db_column(connection):
         
         
     user_output = {get_column_name(int(key)): val for key, val in rename_file.items() if key not in duplicate_names}
-    print(f"Do you want to complete the following renaming in {schema_name}.{table_name}? (y/n)")
+    print(f"Do you want to complete the following renaming (y/n):")
     print(f"{user_output}")
     confirmation = input("")
     
