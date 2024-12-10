@@ -1247,7 +1247,6 @@ def PI_download_standardized():
         return send_file(path_full, as_attachment=True)
     
     
-    
 
 @app.route('/download_merged_standardized', methods=['POST'])
 def download_merged_standardized():
