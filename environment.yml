@@ -27,6 +27,8 @@ dependencies:
   - paramiko
   - seaborn
   - notebook
+  - plotly=5
+  - rise
   - pip:
     - pretty_html_table
     - jupyterlab
