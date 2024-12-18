@@ -209,14 +209,14 @@ def generate(table_name, schema_name, conn, save_path):
     reverse_renamer = {v: k for k, v in renamer.items()}
 
     special_non_mandatory_columns = [
-        col_names.sampling_depth(template=True),
-        col_names.sampling_interval___from(template=True),
-        col_names.sampling_interval___to(template=True)
+        col_names.sampling_depth(),
+        col_names.sampling_interval___from(),
+        col_names.sampling_interval___to()
     ]
 
     #  Columns that are not mandatory in DB but actually should be filled
     should_be_mandatory = [
-        col_names.sample_date(template=True),
+        col_names.sample_date(),
     ]
 
     comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
@@ -300,8 +300,10 @@ def generate(table_name, schema_name, conn, save_path):
     worksheet.cell(row=7, column=1).border = border 
     worksheet.cell(row=8, column=1).fill = feature_dependent_colour 
     worksheet.cell(row=8, column=1).border = border 
+    
     # Set the row height for the header
     worksheet.row_dimensions[1].height = 61  # Adjust the height as needed
+    
     # Set the column width for all columns
     for col in worksheet.columns:
         col_letter = col[0].column_letter
