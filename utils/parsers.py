@@ -1,3 +1,4 @@
+import numpy as np
 import sys
 import constants.db_connections
 import constants.misc_constants as misc_constants
@@ -337,13 +338,12 @@ def parse_booleans(sheet, boolean_columns):
     for col in boolean_columns:
         if col in sheet.columns:
             bad_values[col] = []
-            sheet[col] = sheet[col].str.lower()
-            for index, value in sheet[col].items():
-                if value.lower() in expected_vals:
-                    pass
-                else:
-                    bad_values[col].append(index + 2)
-                    raise_error = True
+            
+            for index, value in sheet[col].astype(str).str.lower().items():
+                if value != 'none' and value != 'nan':
+                    if value.lower() not in expected_vals:
+                        bad_values[col].append(index + 2)
+                        raise_error = True
             
         else:
             raise Exception(f"Did not find expected boolean column {col} in input. \

@@ -216,6 +216,15 @@ def upload_file():
                     sheet = seq_center_sample_sheet_parser.parse(sheet)
                 elif database_table_name == data.age_depth_model():
                     sheet = pd.read_csv(file_path, sep='\t', encoding=encoding_user_input, dtype=str)
+                    
+                elif database_table_name == data.edna_archive_sample():
+                    new_cols = [data.edna_archive_sample.is_master_depth(template=True), 
+                                data.edna_archive_sample.exists_in_storage(template=True)]
+                    
+                    sheet = pd.read_csv(file_path, sep='\t', encoding=encoding_user_input, dtype=str)
+                    for col in new_cols:
+                        if col not in sheet.columns:
+                            sheet[col] = np.nan
                 else:
                     sheet = pd.read_csv(file_path, sep='\t', encoding=encoding_user_input, dtype=str)
                 sheets_to_parse.append(sheet)
@@ -271,7 +280,7 @@ def upload_file():
                 clean_sheet['database_insert_by'] = request.form['email']
                 
                 # Adds information about which file the data came from:
-                clean_sheet['from_spreadsheet'] = file_name
+                clean_sheet['upload_sheet'] = file_name
 
                 # Adds infomation about what date and time the upload took place (only UTC seems to work, when testing below, because postgres converts any timezone to UTC)
                 clean_sheet['database_insert_datetime_utc'] = pd.Timestamp.now(tz='UTC')

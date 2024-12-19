@@ -15,6 +15,9 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 
 
+
+
+
 # Connect to the database
 
 def generate(table_name, schema_name, conn, save_path):

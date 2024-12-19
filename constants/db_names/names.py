@@ -404,6 +404,8 @@ class data(Schema):
         from_spreadsheet = lambda template=False: get_column_name(270, template=template)
         database_insert_datetime_utc = lambda template=False: get_column_name(271, template=template)
         upload_uuid = lambda template=False: get_column_name(272, template=template)
+        exists_in_storage = lambda template=False: get_column_name(383, template=template)
+        is_master_depth = lambda template=False: get_column_name(382, template=template)
 
     class initials_translator(Table):
         _db_id = 15
