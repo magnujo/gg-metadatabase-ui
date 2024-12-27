@@ -1262,8 +1262,9 @@ def download_merged_standardized():
        
     with download_lock:
         qc_checked = 'checkbox_qc' in request.form
-            
-        if qc_checked:
+        checkbox_smdb = 'checkbox_smdb' in request.form
+        
+        if qc_checked and checkbox_smdb:
             download_id = str(uuid.uuid4())
             download_dir_path = os.path.join('session_data', download_id)
             os.mkdir(download_dir_path)
@@ -1272,9 +1273,18 @@ def download_merged_standardized():
             command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
             os.system(command)
             return send_file(file_path, as_attachment=True, )
+        
+        elif qc_checked:
+            download_id = str(uuid.uuid4())
+            download_dir_path = os.path.join('session_data', download_id)
+            os.mkdir(download_dir_path)
+            file_path = os.path.join(download_dir_path, 'data.tsv.gz')
+            query = f"select * from {data()}.mega_table_qc_split"
+            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+            os.system(command)
+            return send_file(file_path, as_attachment=True, )
             
-        else:  
-            
+        elif checkbox_smdb:  
             download_id = str(uuid.uuid4())
             download_dir_path = os.path.join('session_data', download_id)
             os.mkdir(download_dir_path)
@@ -1284,6 +1294,8 @@ def download_merged_standardized():
             os.system(command)
             return send_file(file_path, as_attachment=True)
     
+        else:
+            return 'You need to choose at least 1 database'
     
     
     

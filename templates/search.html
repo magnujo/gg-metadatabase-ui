@@ -98,30 +98,28 @@
 
     <div class="container">
         <h3 id="joined_smdb_data">Download Joined Standardized Data (full outer joined) </h3>
-        <p>Press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
-        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
+        <p>Select which databases you want to include in the table and then press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
+        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues.</p>
 
         <form method="post" action="/download_merged_standardized">
+          
+
+            
             <div class="form-group">
-                <label for="encoding_type">Encoding:</label>
-                <select class="form-control" name="encoding_type" id="encoding_type" required>
-                    <option value="">Choose an option...</option> 
-                    <option value="utf_8">UTF-8</option>
-                </select>
-                <p class="note">Use UTF-8 if in doubt</p>
+                <input type="checkbox" id="checkbox_smdb" name="checkbox_smdb" value="on">
+                <label for="checkbox_smdb">Include SMDB (Sample Metadata DataBase)</label>
             </div>
 
             <div class="form-group">
-                <label for="checkbox_qc">Include Filipes QC data (this will increase download time substantially, ~5-10 min):</label>
-                
                 <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
-                <p class="note">NOTE: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
+                <label for="checkbox_qc">Include MultiQCDB (bioinformatical qc data.) This will increase download time with ~2 min.</label>
+                <p class="note" style="color: red;">WARNING: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
                     If you need data from other sequencing runs, you can find it in the data folders on dandy: projects/caeg/data/production</p>
-                
             </div>
-            <!-- <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download merged table...</button> -->
-            <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download merged table...</button>
-            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
+            <br>
+
+            <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined table...</button>
+            <p class="note">The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
     </div>
 
