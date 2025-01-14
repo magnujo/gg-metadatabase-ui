@@ -436,19 +436,16 @@ def upload_file():
                                                                                             table=db_table)
                                 
                                 
-                                
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
                                 
-                                if split_database_table_name == data.edna_wetlab_report():
-                                    diff = set()
- 
-                                
+                                # if split_database_table_name == data.edna_wetlab_report():
+                                #     diff = set()
        
                                 if len(diff) != 0:                                
                                     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
                                                     {diff} \n \
                                                         Tell the responsible uploader to upload the missing data first, \
-                                                            or make sure that there are no typos in the IDs.")
+                                                            or make sure that there are no typos in the IDs. Below is a list of tables and responsible uploaders: \n {misc_constants.RESPONSIBLE_UPLOADERS}")
                 
                 clean_sheets.append((clean_sheet, split_database_table_name))
                 

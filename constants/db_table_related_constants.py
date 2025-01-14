@@ -66,48 +66,54 @@ class DBTableRelated:
     UTIL_TABLES_LEAFS = sum(list(misc.extract_leaf_values_from_dict(UTIL_TABLES)), [])
     
     # Keeps track of the parent IDs that tables depend on
-    PARENTS = \
-    {
-        data.edna_archive_sample(): { \
-                data.edna_archive_sample.field_sample_id(): { \
+    PARENTS = {
+        data.edna_archive_sample(): { 
+                data.edna_archive_sample.field_sample_id(): { 
                     data.field_sample(): [data.field_sample.field_sample_id()]
                     }
                 },
+        
         data.edna_robot_sample(): { \
-                data.edna_robot_sample.archivesampleid(): { \
+                data.edna_robot_sample.archivesampleid(): { 
                     data.edna_archive_sample(): [data.edna_archive_sample.archivesampleid()]
                     }
                 },
-        data.edna_wetlab_report(): { \
-                data.edna_wetlab_report.robot_sample_id(): { \
+        
+        data.edna_wetlab_report(): { 
+                data.edna_wetlab_report.robot_sample_id(): { 
                     data.edna_robot_sample(): [data.edna_robot_sample.robot_sample_id()]
-                    },
-                data.edna_wetlab_report.fastq_file_id(): { \
-                    data.flowcell(): [data.flowcell.fastq_file_id()],
-                    data.seq_sample_sheet(): [data.seq_sample_sheet.fastq_file_id()]
-                    }             
-                },
-        data.seq_sample_sheet(): { \
-                data.seq_sample_sheet.fastq_file_id(): { \
-                    data.flowcell(): [data.flowcell.fastq_file_id()]
                     }
-                },
-        data.master_depth(): { \
-                data.master_depth.master_field_sample_id(): { \
+        },
+
+        data.flowcell(): { 
+                data.flowcell.fastq_file_id(): { 
+                    data.seq_sample_sheet(): [data.seq_sample_sheet.fastq_file_id()],
+        },
+        
+        data.seq_sample_sheet(): { 
+                data.seq_sample_sheet.fastq_file_id(): { 
+                    data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
+                    }
+        },
+        
+        data.master_depth(): { 
+                data.master_depth.master_field_sample_id(): { 
                     data.field_sample(): [data.field_sample.master_id_parent_sample_id()]
                     },
-                data.master_depth.field_sample_id(): { \
+                data.master_depth.field_sample_id(): { 
                     data.field_sample(): [data.field_sample.field_sample_id()]
                     },
-                data.master_depth.archive_sample_id(): { \
+                data.master_depth.archive_sample_id(): { 
                     data.edna_archive_sample(): [data.edna_archive_sample.archivesampleid()]
                     }
                 },
-        data.age_depth_model(): { \
-                data.age_depth_model.master_field_sample_id(): { \
+        
+        data.age_depth_model(): { 
+                data.age_depth_model.master_field_sample_id(): { 
                     data.field_sample(): [data.field_sample.master_id_parent_sample_id()]
                     }
                 }
+        }
     }
 
     DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
