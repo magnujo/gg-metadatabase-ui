@@ -54,8 +54,8 @@ def match_column_positions(upload_file_df, db_data_df):
         raise Exception(f"Number of columns in database table does match number of columns in upload file. Columns found database that were not found in upload file: {set(db_data_df.columns) - set(upload_file_df.columns)}. Vice versa: {set(upload_file_df.columns) - set(db_data_df.columns)}")
     return upload_file_df
 
-def get_db_generated_uuid_col(table_name, schema_name):
-    table_info_df = queries.get_table_information(table_name, schema_name=schema_name)
+def get_db_generated_uuid_col(table_name, schema_name, engine):
+    table_info_df = queries.get_table_information(table_name, schema_name=schema_name, engine=engine)
     db_generated_uuid = table_info_df[table_info_df["column_default"] == 'gen_random_uuid()']["column_name"]
 
     if len(db_generated_uuid) < 0 or len(db_generated_uuid) > 1:

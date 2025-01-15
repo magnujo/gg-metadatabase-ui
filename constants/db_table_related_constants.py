@@ -2,7 +2,7 @@ from pprint import pprint
 from constants.db_connections import SQL_ALCH_CONFIG, ENGINE
 from constants.db_names.names import data
 from constants.misc_constants import SHEET_TYPES
-from utils import queries, misc
+from utils import misc, queries
 import inspect
 
 data.edna_robot_sample()

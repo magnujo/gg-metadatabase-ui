@@ -267,7 +267,8 @@ def upload_file():
                                             database_table_name=split_database_table_name,
                                             date_format=date_format,
                                             decimal_point=decimal_point,
-                                            thousands_seperator=thousands_seperator)    
+                                            thousands_seperator=thousands_seperator,
+                                            engine=ENGINE_READ_ONLY)    
                        
                 # clean_sheet.columns = clean_sheet.columns.str.strip()
                 # clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     
@@ -407,7 +408,8 @@ def upload_file():
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
-                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'])
+                db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'],
+                                                                   engine=ENGINE_READ_ONLY)
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
                 
                 if database_table_name in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS:
@@ -555,7 +557,8 @@ def confirmed():
             session['upload_id'] = upload_id
             upload_time = pd.Timestamp.now(tz='UTC')
 
-            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=SQL_ALCH_CONFIG['database'], schema=SQL_ALCH_CONFIG['schema_name'], upload_id=session.get('upload_id'))
+            tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=SQL_ALCH_CONFIG['database'], schema=SQL_ALCH_CONFIG['schema_name'], upload_id=session.get('upload_id'), 
+                                                                          engine=ENGINE_READ_ONLY)
             if len(tables_with_uid) != 0:
                 raise Exception(f"Found upload_id already in {tables_with_uid}")            
             
@@ -600,11 +603,12 @@ def confirmed():
                     upload_id = upload_id[0]
                     if str(session.get("upload_id")) != str(upload_id):
                         raise Exception("Upload ID discreprancy accross parsed sheet and session variable")
-                    uid_exists = queries.check_if_upload_id_exists_in_table(schema=SQL_ALCH_CONFIG["schema_name"], table=table_name, upload_id=upload_id)
+                    uid_exists = queries.check_if_upload_id_exists_in_table(schema=SQL_ALCH_CONFIG["schema_name"], table=table_name, upload_id=upload_id, engine=ENGINE_READ_ONLY)
                     if uid_exists:
                         raise Exception(f"Found upload id already in {table_name}")
         
-                row_count_before_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
+                row_count_before_upload = queries.count_rows(SQL_ALCH_CONFIG, 
+                                                             table_name=table_name)
                 row_counts_before_upload[table_name] = row_count_before_upload
             
             except Exception as e:
@@ -629,7 +633,7 @@ def confirmed():
                         # Rolling back to conn.begin()
                         trans.rollback()
                         for table in tables_uploaded_to:
-                            row_count_after_rollback = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table)
+                            row_count_after_rollback = queries.count_rows(SQL_ALCH_CONFIG, table_name=table)
                             if row_count_after_rollback != row_counts_before_upload[table]:
                                 # TODO: Remove only rows that were not rolled back?
                                 raise Exception(f"!!!VERY IMPORTANT!!!: ROLLBACK FAILED: There was an unexpected error rolling back while trying to upload file {file_name} to table {table} with upload_id {upload_id} at {pd.Timestamp.now()}. Contact admin.")
@@ -647,7 +651,7 @@ def confirmed():
         # The following is validation only. Nothing should be created, only moved.           
         try:
             for i, table_name in enumerate(table_splits):
-                row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
+                row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], table_name=table_name)
                 row_counts_after_upload[table_name] = row_count_after_upload
                 expected_rows = len(clean_sheets[table_name])
                 num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
@@ -1315,7 +1319,8 @@ def download_all_individual_tables():
         schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
         database_name = constants.db_connections.SQL_ALCH_CONFIG["database"]
         
-        tables = queries.get_table_names(schema_name=schema_name, database_name=database_name)
+        tables = queries.get_table_names(schema_name=schema_name, database_name=database_name, 
+                                         engine=ENGINE_READ_ONLY)
         tables = set(tables) - set(DBTableRelated.UTIL_TABLES_LEAFS)
         
         for table_name in tables:

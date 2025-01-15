@@ -1,9 +1,8 @@
 import os, sys
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(parent_dir)
-
+from sqlalchemy import create_engine
 import pandas as pd
-from constants.db_connections import ENGINE_READ_ONLY
 from constants.db_names.names import data 
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -11,6 +10,20 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
+DATABASE_CONFIG_READ_ONLY = {
+    'host': 'dandypdb01fl',
+    'dbname': 'aedna_metadata_test',
+    'port': '5432',
+    'user': 'read_user',
+    'password': r'mv5&8B%eKuoE8D',
+}
+ENGINE_READ_ONLY = create_engine(
+    f'''postgresql
+    ://{DATABASE_CONFIG_READ_ONLY['user']}
+    :{DATABASE_CONFIG_READ_ONLY['password']}
+    @{DATABASE_CONFIG_READ_ONLY['host']}
+    :{DATABASE_CONFIG_READ_ONLY['port']}
+    /{DATABASE_CONFIG_READ_ONLY['database']}''')
 
 # Email details
 sender_email = "glj523@dandyweb01fl.unicph.domain"
@@ -34,16 +47,22 @@ input = [
     'test'
 ]
 
+wlr = data.edna_wetlab_report()
+r = data.edna_robot_sample()
+a = data.edna_archive_sample()
+
+
+
 query = lambda library_ids: f'''
 WITH filtered_table AS (
-    select distinct library_id, robot_sample_id from edna_wetlab_report 
-    where library_id in {library_ids})
-select filtered_table.library_id, ers.robot_sample_id, eas.archive_sample_id, fs.field_sample_id
+    select distinct {wlr.library_id()}, {robot_sample_id} from {edna_wetlab_report} 
+    where {library_id} in {library_ids})
+select filtered_table.{library_id}, ers.{robot_sample_id}, eas.{archive_sample_id}, fs.{field_sample_id}
 FROM filtered_table
-left JOIN edna_robot_sample ers on filtered_table.robot_sample_id = ers.robot_sample_id
-left join edna_archive_sample eas on ers.archive_sample_id = eas.archive_sample_id
-left join field_sample fs on eas.field_sample_id = fs.field_sample_id
-order by library_id;
+left JOIN {edna_robot_sample} ers on filtered_table.{robot_sample_id} = ers.{robot_sample_id}
+left join {edna_archive_sample} eas on ers.{archive_sample_id} = eas.{archive_sample_id}
+left join {field_sample} fs on eas.{field_sample_id} = fs.{field_sample_id}
+order by {library_id};
 '''
 
 df = pd.read_sql(query(tuple(input)), ENGINE_READ_ONLY)

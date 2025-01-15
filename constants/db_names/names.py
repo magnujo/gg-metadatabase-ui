@@ -1,12 +1,7 @@
 import os, sys
-
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(parent_dir)
-
-import re
-from constants.db_connections import PSY_CONN
-from constants.db_names.name_maps import get_column_name, get_schema_name, get_table_name, name_maps
-from utils import queries
+from constants.db_names.name_maps import get_column_name, get_schema_name, get_table_name
 
 
 class Table(str):
@@ -17,45 +12,6 @@ class Table(str):
 class Schema(str):
 	def __new__(cls):
 		return super().__new__(cls, get_schema_name(cls._db_id))
-# @classmethod
-# def __str__(cls):
-# 	return cls.__name
-
-	# def __new__(self):
-	# 	return super().__new__(self, get_table_name(get_id(self)))
-    # def __init__(self, db_id):
-    #     self.string = 
-    
-  
-	# def __str__(self) -> str:
-	# 	id = self.get_id()
-	# 	return str(get_table_name(id))
-
-	# def __repr__(self) -> str:
-	# 	id = self.get_id()
-	# 	name = get_table_name(id)
-	# 	return repr(name)
-
-	# def __str__(self):
-	# 	id = self.get_id()
-	# 	return str(get_schema_name(id))
-
-	# def __repr__(self) -> str:
-	# 	id = self.get_id()
-	# 	return repr((get_schema_name(id)))
-
-
-# class Column(str):
-
-
-	# def __str__(self):
-	# 	id = self.get_id()
-	# 	return str(get_column_name(id))
-
-	# def __repr__(self) -> str:
-	# 	id = self.get_id()
-	# 	name = get_column_name(id)
-	# 	return f"'{name}'"
 
 class data(Schema):
     _db_id = 1
@@ -510,107 +466,4 @@ class data(Schema):
         uid = lambda template=False: get_column_name(354, template=template)
         upload_uuid = lambda template=False: get_column_name(355, template=template)
     
-
-
-def print_class_structure(schema_id):
-	'''
-	Prints the class structure above by scraping the database
-	'''
-
-	nm = name_maps()
-	columns = f"{nm.column_names.column_id}, {nm.column_names.column_name_db}, cn.{nm.column_names.table_id}, tn.{nm.table_names.table_id}, {nm.table_names.table_name}, {nm.table_names.schema_id}"
-
-
-	q = f'''
-	select {columns} from "{nm}"."{nm.column_names()}" cn
-	join "{nm}"."{nm.table_names()}" tn on cn."{nm.column_names.table_id}" = tn."{nm.table_names.table_id}"
-	where "{nm.table_names.schema_id}" = '{schema_id}'
- 	order by cn.{nm.column_names.table_id}, cn.{nm.column_names.column_id};
-
-	'''
-	res = queries.execute_query(q, PSY_CONN)
-
-	d = {}
-
-	for ele in res:
-		col_id = ele[0]
-		col_name = ele[1]
-		table_id = ele[2]
-		table_name = ele[4]
-		schema_id = ele[5]
-
-		if table_name not in d:
-			d[table_name] = {"id": table_id, "cols": []}
-
-		d[table_name]["cols"].append((col_name, col_id))
-
-	tab = "    "
-	for key in d:
-		table_id = d[key]["id"]
-		print(f"class {key}(Table):")
-		print(f"{tab}def __init__(self):")
-		print(f'{tab}{tab}super().__init__(db_id={table_id})')
-		print()
-		print(f"{tab}#  Columns:")
-		for ele in d[key]["cols"]:
-
-			var: str = re.sub(r'\(.*?\)', '', ele[0].lower()).strip()
-			var = re.sub(r'[^a-z]', ' ', var).strip()
-			var = var.replace(" ", "_").lower().strip("_")
-
-			id = ele[1]
-
-			print(f"{tab}{var} = Column({id})")
-		print()
-
-
-def print_class_structure_2(schema_id):
-	'''
-	Prints the class structure above by scraping the database
-	'''
-
-	nm = name_maps()
-	columns = f"{nm.column_names.column_id}, {nm.column_names.column_name_db}, cn.{nm.column_names.table_id}, tn.{nm.table_names.table_id}, {nm.table_names.table_name}, {nm.table_names.schema_id}"
-
-
-	q = f'''
-	select {columns} from "{nm}"."{nm.column_names()}" cn
-	join "{nm}"."{nm.table_names()}" tn on cn."{nm.column_names.table_id}" = tn."{nm.table_names.table_id}"
-	where "{nm.table_names.schema_id}" = '{schema_id}'
- 	order by cn.{nm.column_names.table_id}, cn.{nm.column_names.column_id};
-
-	'''
-	res = queries.execute_query(q, PSY_CONN)
-
-	d = {}
-
-	for ele in res:
-		col_id = ele[0]
-		col_name = ele[1]
-		table_id = ele[2]
-		table_name = ele[4]
-		schema_id = ele[5]
-
-		if table_name not in d:
-			d[table_name] = {"id": table_id, "cols": []}
-
-		d[table_name]["cols"].append((col_name, col_id))
-
-	tab = "    "
-	for key in d:
-		table_id = d[key]["id"]
-		print(f"class {key}(Table):")
-		print(f"{tab}_db_id = {table_id}")
-		print()
-		print(f"{tab}#  Columns:")
-		for ele in d[key]["cols"]:
-
-			var: str = re.sub(r'\(.*?\)', '', ele[0].lower()).strip()
-			var = re.sub(r'[^a-z]', ' ', var).strip()
-			var = var.replace(" ", "_").lower().strip("_")
-
-			id = ele[1]
-
-			print(f"{tab}{var} = lambda template=False: get_column_name({id}, template=template)")
-		print()
 

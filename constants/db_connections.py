@@ -39,6 +39,8 @@ PSY_CONN = psycopg2.connect(
             host=SQL_ALCH_CONFIG["host"],
             port=SQL_ALCH_CONFIG["port"]
         )
+
+
 DATABASE_CONFIG_READ_ONLY = {
     'host': SQL_ALCH_CONFIG['host'],
     'dbname': SQL_ALCH_CONFIG['database'],
@@ -57,4 +59,12 @@ PSYCON_CONFIG = {
     'user': SQL_ALCH_CONFIG['user'],
     'password': SQL_ALCH_CONFIG['password'],
 }
+
+PSY_CONN_READ_ONLY = psycopg2.connect(
+            dbname=DATABASE_CONFIG_READ_ONLY["database"],
+            user=DATABASE_CONFIG_READ_ONLY["user"],
+            password=DATABASE_CONFIG_READ_ONLY["password"],
+            host=DATABASE_CONFIG_READ_ONLY["host"],
+            port=DATABASE_CONFIG_READ_ONLY["port"]
+        )
 

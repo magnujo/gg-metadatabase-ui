@@ -23,7 +23,7 @@ def create_schema(conn, schema_name):
         cursor.close()
 
 # Function to copy tables from one schema to another
-def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include_constraints, copy_dtypes):
+def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include_constraints, copy_dtypes, engine):
     try:
         cursor = conn.cursor()
         cursor.execute(f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{source_schema}'")
@@ -39,7 +39,7 @@ def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include
             else:
                 super_cursor.execute(f'CREATE TABLE "{destination_schema}".\"{table_name}\" (LIKE "{source_schema}".\"{table_name}\");')
             if copy_dtypes == False:
-                column_names = queries.get_column_names(table_name=table_name, schema_name=source_schema)
+                column_names = queries.get_column_names(table_name=table_name, schema_name=source_schema, engine=engine)
                 for column_name in column_names:
                     super_cursor.execute(f'ALTER TABLE "{destination_schema}"."{table_name}" ALTER COLUMN "{column_name}" TYPE text')
         
@@ -59,7 +59,7 @@ def copy_tables(conn, super_psy_conn, source_schema, destination_schema, include
             super_cursor.close()
 
 
-def run(conn, source_schema, new_schema, owner, include_constraints, copy_datatypes, privileges):
+def run(conn, source_schema, new_schema, owner, include_constraints, copy_datatypes, privileges, engine):
     """
     Create a new schema, copy all tables from a source schema to the new schema,
     and grant privileges to the specified owner.
@@ -95,7 +95,7 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
         create_schema(super_psy_conn, new_schema)
 
         # Copy tables from source schema to the new schema
-        copy_tables(conn, super_psy_conn, source_schema, new_schema, include_constraints=include_constraints, copy_dtypes=copy_datatypes)
+        copy_tables(conn, super_psy_conn, source_schema, new_schema, include_constraints=include_constraints, copy_dtypes=copy_datatypes, engine=engine)
         
         if len(privileges) > 3:
             raise Exception(f"Expected priviliges list to be max length of 3 but got {len(privileges)}")

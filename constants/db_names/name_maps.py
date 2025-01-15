@@ -18,7 +18,7 @@ To make name callable without parentheses use a meta class like this:
 
 import pandas as pd
 from utils import queries
-from constants.db_connections import ENGINE, PSY_CONN
+from constants.db_connections import ENGINE_READ_ONLY, PSY_CONN_READ_ONLY
 
 
 
@@ -85,7 +85,7 @@ def get_schema_name(schema_id: int):
 
 	query = f'''SELECT "{select_col}" FROM "{schema_name}"."{table_name}" WHERE "{filter_col}" = '%s' '''
 
-	result = queries.execute_query(query, PSY_CONN, params=(schema_id,))
+	result = queries.execute_query(query, PSY_CONN_READ_ONLY, params=(schema_id,))
 
 	if len(result) != 1:
 		raise Exception("Admin error: Length of result not as expected")
@@ -108,7 +108,7 @@ def get_table_name(table_id: int, template=False):
 
         query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = '%s' '''
 
-        result = queries.execute_query(query, PSY_CONN, params=(table_id,))
+        result = queries.execute_query(query, PSY_CONN_READ_ONLY, params=(table_id,))
 
         if len(result) != 1:
             raise Exception("Admin error: Length of result not as expected")
@@ -135,7 +135,7 @@ def get_column_name(column_id: int, template=False):
 
 	query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = %s '''
 
-	result = queries.execute_query(query, PSY_CONN, params=(column_id,))
+	result = queries.execute_query(query, PSY_CONN_READ_ONLY, params=(column_id,))
 
 	if len(result) != 1:
 		raise Exception("Admin error: Length of result not as expected")
@@ -157,7 +157,7 @@ def get_full_name_map():
 	join "{name_maps()}"."{schema_names}" sn on tn."{table_names.schema_id}" = sn."{schema_names.schema_id}";
 	'''
 
-    df = pd.read_sql(q, ENGINE)
+    df = pd.read_sql(q, ENGINE_READ_ONLY)
 
     return df
 
@@ -166,9 +166,9 @@ def sheet_to_db_rename_map(schema_name, table_name):
     # Check that schema and table exists:
     
     existing_tables = pd.read_sql(\
-        f"select table_name from information_schema.tables where table_schema = '{schema_name}';", ENGINE)["table_name"]
+        f"select table_name from information_schema.tables where table_schema = '{schema_name}';", ENGINE_READ_ONLY)["table_name"]
     existing_tables_schemas = pd.read_sql(\
-        f"select distinct table_schema from information_schema.tables;", ENGINE)["table_schema"]
+        f"select distinct table_schema from information_schema.tables;", ENGINE_READ_ONLY)["table_schema"]
     
     
     if schema_name in list(existing_tables_schemas) and table_name in list(existing_tables):
@@ -188,7 +188,7 @@ def sheet_to_db_rename_map(schema_name, table_name):
   	and cn."{column_names.column_name_sheet}" is not null;
 	'''
 
-    df = pd.read_sql(q, ENGINE)
+    df = pd.read_sql(q, ENGINE_READ_ONLY)
     d = {key: value for (key, value) in df.values}
 
     return d
