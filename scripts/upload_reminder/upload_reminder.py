@@ -1,3 +1,7 @@
+import os, sys
+parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(parent_dir)
+
 import pandas as pd
 from constants.db_connections import ENGINE_READ_ONLY
 from constants.db_names.names import data 
@@ -6,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+
 
 # Email details
 sender_email = "glj523@dandyweb01fl.unicph.domain"

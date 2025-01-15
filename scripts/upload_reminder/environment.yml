@@ -1,0 +1,15 @@
+# Use this to create env:
+# conda env create --file environment.yml
+
+# Use this to update env:
+# conda env update --file environment.yml --prune
+name: upload_reminder
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11 
+  - pandas
+  - smtplib
+  - sqlalchemy
+  - psycopg2

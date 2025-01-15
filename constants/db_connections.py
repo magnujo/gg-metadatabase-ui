@@ -44,7 +44,7 @@ DATABASE_CONFIG_READ_ONLY = {
     'dbname': SQL_ALCH_CONFIG['database'],
     'port': SQL_ALCH_CONFIG['port'],
     'user': 'read_user',
-    'password': SQL_ALCH_CONFIG['password'],
+    'password': r'mv5&8B%eKuoE8D',
 }
 ENGINE_READ_ONLY = create_engine(
     f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{SQL_ALCH_CONFIG['host']}:{SQL_ALCH_CONFIG['port']}/{SQL_ALCH_CONFIG['database']}")
