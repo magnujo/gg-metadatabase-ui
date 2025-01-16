@@ -469,3 +469,5 @@ class data(Schema):
         upload_uuid = lambda template=False: get_column_name(355, template=template)
     
 
+class deleted_by_script(Schema):
+    _db_id = 10
