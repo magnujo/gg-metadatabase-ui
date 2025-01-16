@@ -345,7 +345,9 @@ def upload_file():
                     
 
                 if split_database_table_name == data.age_depth_model() or split_database_table_name == data.master_depth():
-                    if master_ids == None or len(master_ids) < 1:
+                
+                    
+                    if len(master_ids) < 1:
                         raise Exception("master_ids is None or empty")
  
                     unique_master_IDs_in_db = queries.get_unique_values_from_db_column(column=data.field_sample.master_id_parent_sample_id(), 
