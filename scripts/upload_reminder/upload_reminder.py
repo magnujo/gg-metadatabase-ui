@@ -1,5 +1,5 @@
-import os, sys
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import os, sys
 sys.path.append(parent_dir)
 from sqlalchemy import create_engine
 import pandas as pd
@@ -10,8 +10,8 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import argparse
-from constants.misc_constants import RESPONSIBLE_UPLOADERS
-
+from constants.misc_constants import RESPONSIBLE_UPLOADERS, ADMIN_EMAIL
+from utils.send_email import send_email
 
 
 def run(input_libs):
@@ -51,7 +51,7 @@ def run(input_libs):
     # Email details
     sender_email = "glj523@dandyweb01fl.unicph.domain"
     xihan_email = "magnus.johannsen@sund.ku.dk"
-    admin_email = "magnus.johannsen@sund.ku.dk"
+    admin_email = ADMIN_EMAIL
     subject = "Missing metadata"
     body = "The sample metadata database (SMDB) is missing data from you. See attached document to see the missing IDs."
     message = MIMEMultipart()
@@ -117,31 +117,16 @@ def run(input_libs):
         message["To"] = ', '.join(recipients)
         
         file_path = "missing_ids.txt"
-        file_name = "missing_ids.txt"  # Name to appear in the email
 
         with open(file_path, "w") as file:
             for item in missing_lib_ids:
                 file.write(f"{item}\n")
         
-        # Attach the file
-        with open(file_path, "rb") as file:
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(file.read())
-
-        # Encode the file for email
-        encoders.encode_base64(part)
-        part.add_header(
-            "Content-Disposition",
-            f"attachment; filename={file_name}",
-        )
-
-        message.attach(part)
-        try:
-            with smtplib.SMTP("localhost", 25) as server:  # Postfix typically listens on port 25
-                server.send_message(message)
-                print("Email sent successfully with attachment!")
-        except Exception as e:
-            print(f"Error: {e}")
+        send_email(sender=sender_email,
+                   receivers=recipients,
+                   message=body,
+                   paths_to_attachments=[file_path],
+                   subject=subject)
 
     _map = {wr_table_name: lib_pk_col_name,
             rs_table_name: rs_pk_col_name,
@@ -151,45 +136,27 @@ def run(input_libs):
             fs_table_name: fs_pk_col_name,
             data.flowcell(): data.flowcell.fastq_file_id(),
             data.seq_sample_sheet(): data.seq_sample_sheet.fastq_file_id()}
-    RESPONSIBLE_UPLOADERS = {key: [_map[ele] for ele in val] for key, val in RESPONSIBLE_UPLOADERS.items()}
+    
+    mapped_responsible_uploaders = {key: [_map[ele] for ele in val] for key, val in RESPONSIBLE_UPLOADERS.items()}
 
     recipients = []
-    for key, val in RESPONSIBLE_UPLOADERS.items():
+    for key, val in mapped_responsible_uploaders.items():
         cols = list(set(val) & set(df.columns))
         if len(cols) > 0:  
             if df[cols].isna().any().any():
                 recipients.append(key)
+    recipients.append(admin_email)
 
     if len(recipients) > 0:
         file_path = "missing_ids.xlsx"
-        file_name = "missing_ids.xlsx"  # Name to appear in the email
 
         df.to_excel(file_path)
         
-        # Create the email
-        message["To"] = ", ".join(recipients)
-        
-            # Attach the file
-        with open(file_path, "rb") as file:
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(file.read())
-
-        # Encode the file for email
-        encoders.encode_base64(part)
-        part.add_header(
-            "Content-Disposition",
-            f"attachment; filename={file_name}",
-        )
-
-        message.attach(part) 
-        
-        # Send the email via Postfix
-        try:
-            with smtplib.SMTP("localhost", 25) as server:  # Postfix typically listens on port 25
-                server.send_message(message)
-                print("Email sent successfully with attachment!")
-        except Exception as e:
-            print(f"Error: {e}")
+        send_email(sender=sender_email,
+                   receivers=recipients,
+                   message=body,
+                   paths_to_attachments=[file_path],
+                   subject=subject)
         
 if __name__ == "__main__":
     

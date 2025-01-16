@@ -1,13 +1,13 @@
 from constants.db_names.names import deleted_by_script
 from constants.db_connections import ENGINE, PSYCON_CONFIG, SQL_ALCH_CONFIG
-from utils import queries
+from utils import queries, send_email
 import logging
 from utils.CustomExceptions import DontTriggerFileDeletion
 from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
-from constants.misc_constants import DELETED_SESSION_DATA, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES
+from constants.misc_constants import DELETED_SESSION_DATA, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES
 import psycopg2
 import shutil
 from datetime import datetime
@@ -80,4 +80,9 @@ def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):
                 connection.commit()
                 cursor.close()
                 connection.close()
+                
+                message = f'Data was deleted by script and {deleted_table} was created'
+                send_email.send_email(message=message,
+                                      receivers=ADMIN_EMAIL,
+                                      subject='Script deleted data!')
 
