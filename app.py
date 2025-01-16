@@ -651,7 +651,7 @@ def confirmed():
         # The following is validation only. Nothing should be created, only moved.           
         try:
             for i, table_name in enumerate(table_splits):
-                row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG['database'], table_name=table_name)
+                row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG, table_name=table_name)
                 row_counts_after_upload[table_name] = row_count_after_upload
                 expected_rows = len(clean_sheets[table_name])
                 num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
