@@ -1,7 +1,5 @@
-from constants.db_connections import RUN_MODE_OPTIONS, pw
 from constants.db_names.names import data
 import os
-from flask import Flask
 import platform
 
 
@@ -100,13 +98,11 @@ FILE_EXTENSIONS = {
 }
 
 RESPONSIBLE_UPLOADERS = {
-    data.field_sample(): 'Jesper Stenderup, jtstenderup@sund.ku.dk', 
-    data.edna_archive_sample(): 'Jesper Stenderup, jtstenderup@sund.ku.dk', 
-    data.edna_robot_sample(): 'Jesper Stenderup, jtstenderup@sund.ku.dk', 
-    data.edna_wetlab_report(): 'Xihan Chen, xihan.chen@sund.ku.dk', 
-    data.flowcell(): 'Julie Bitz-Thorsen, julie.bitz-thorsen@sund.ku.dk', 
-    data.seq_sample_sheet(): 'Julie Bitz-Thorsen, julie.bitz-thorsen@sund.ku.dk', 
-    data.master_depth(): 'Marie-Louise Siggaard-Andersen, mlsandersen@sund.ku.dk', 
+    'jtstenderup@sund.ku.dk': [data.field_sample(), data.edna_archive_sample(), data.edna_robot_sample()],
+    'xihan.chen@sund.ku.dk': [data.edna_wetlab_report()],
+    'julie.bitz-thorsen@sund.ku.dk': [data.flowcell(), data.seq_sample_sheet()],
+    'mlsandersen@sund.ku.dk': [data.master_depth()],
+    'nicl@sund.ku.dk': [data.age_depth_model()]
     }
 
 ALLOWED_DATE_FORMATS = ['YYYY-MM-DD', 'DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'My data doesn\'t contain dates']

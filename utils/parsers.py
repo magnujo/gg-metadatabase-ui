@@ -14,8 +14,7 @@ def parse(sheet,
     
     database_name = constants.db_connections.SQL_ALCH_CONFIG["database"]
     schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
-    tables = queries.get_table_names(schema_name=schema_name, database_name=database_name, engine\
-        )
+    tables = queries.get_table_names(schema_name=schema_name, database_name=database_name, engine=engine)
     
     if not database_table_name in tables:
         raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}. \n {tables}')

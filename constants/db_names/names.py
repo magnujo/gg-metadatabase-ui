@@ -51,6 +51,7 @@ class data(Schema):
         upload_uuid = lambda template=False: get_column_name(24, template=template)
         master_field_sample_id = lambda template=False: get_column_name(25, template=template)
         median = lambda template=False: get_column_name(26, template=template)
+        depth_id = lambda template=False: get_column_name(385, template=template)
 
     class master_depth(Table):
         _db_id = 3
@@ -66,6 +67,7 @@ class data(Schema):
         field_sample_id = lambda template=False: get_column_name(377, template=template)
         master_field_sample_id_correction = lambda template=False: get_column_name(380, template=template)
         archive_sample_master_depth_comment = lambda template=False: get_column_name(381, template=template)
+        depth_id = lambda template=False: get_column_name(384, template=template)
         
 
     class field_sample_types(Table):
