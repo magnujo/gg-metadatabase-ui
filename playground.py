@@ -1,5 +1,2 @@
-t = tuple(['bad_id'])
-
-[]
-
-print(t)
+receivers = ['magnus.johannsen@sund.ku.dk']
+print(", ".join(receivers))

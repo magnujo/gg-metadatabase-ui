@@ -38,11 +38,10 @@ def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj
 
     # Set up the SMTP server and send the email
     try:
-        with smtplib.SMTP('smtp.example.com', 587) as server:
-            server.starttls()  # Secure the connection
-            server.login(sender, 'your_password_here')  # Log in to the SMTP server
-            text = msg.as_string()  # Convert the message to a string
-            server.sendmail(sender, receivers, text)  # Send the email
+        with smtplib.SMTP("localhost", 25) as server:
+            # Omit server.login() if the server doesn't support or require authentication
+            text = msg.as_string()
+            server.sendmail(sender, receivers, text)
             print(f"Email successfully sent to {', '.join(receivers)}")
     except Exception as e:
         print(f"Failed to send email: {e}")
