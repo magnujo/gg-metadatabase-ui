@@ -1,3 +1,4 @@
+import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import os, sys
 sys.path.append(parent_dir)
@@ -106,27 +107,38 @@ def run(input_libs):
     order by {lib_pk_col_name};
     '''
 
-
-    df = pd.read_sql(query(tuple(input_libs)), ENGINE_READ_ONLY)
+    if not len(input_libs) > 0:
+        raise Exception('No input')
+    
+    query_input = tuple(input_libs)
+    
+    
+    if len(input_libs) == 1:
+        query_input = f"('{input_libs[0]}')" # Otherwise a single element tupe will look like this: ('id',), but sql wants ('id')
+    
+    df = pd.read_sql(query(query_input), ENGINE_READ_ONLY)
 
     missing_lib_ids = set(input_libs) - set(df[data.edna_wetlab_report.library_id()])
-
+   
     if len(missing_lib_ids) > 0:         
         # Create the email
         recipients = [xihan_email, admin_email]
         message["To"] = ', '.join(recipients)
-        
-        file_path = "missing_ids.txt"
-
+        file_path = os.path.join("temp", 'missing_ids.txt')
+    
         with open(file_path, "w") as file:
             for item in missing_lib_ids:
                 file.write(f"{item}\n")
+        try:
         
-        send_email(sender=sender_email,
-                   receivers=recipients,
-                   message=body,
-                   paths_to_attachments=[file_path],
-                   subject=subject)
+            send_email(sender=sender_email,
+                    receivers=recipients,
+                    message=body,
+                    paths_to_attachments=[file_path],
+                    subject=subject)
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
     _map = {wr_table_name: lib_pk_col_name,
             rs_table_name: rs_pk_col_name,
@@ -147,33 +159,39 @@ def run(input_libs):
                 recipients.append(key)
     recipients.append(admin_email)
 
+   
     if len(recipients) > 0:
-        file_path = "missing_ids.xlsx"
+        file_path = os.path.join("temp", 'missing_ids.xlsx')
 
         df.to_excel(file_path)
         
-        send_email(sender=sender_email,
-                   receivers=recipients,
-                   message=body,
-                   paths_to_attachments=[file_path],
-                   subject=subject)
+        try:
+            send_email(sender=sender_email,
+                    receivers=recipients,
+                    message=body,
+                    paths_to_attachments=[file_path],
+                    subject=subject)
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            
         
 if __name__ == "__main__":
     
     input_test_cases = [
         ['LV7001885838',
          'LV7008887632',
-         'LV7009026245',],
+         'LV7009026245'],
         ['LV7001885838',
          'LV7008887632',
          'LV7009026245',
          'bad_id'],
-        [],
         ['LV7009026245',
-         'LV7009026245']
-        ['bad_id'],
+         'LV7009026245'],
         ['bad_id',
          'bad_id'],
+        ['bad_id'],
+        []
     ]
     
     for test in input_test_cases:

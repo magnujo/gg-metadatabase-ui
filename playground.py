@@ -1,3 +1,5 @@
-from constants.db_names.names import deleted_by_script
+t = tuple(['bad_id'])
 
-print(deleted_by_script())
+[]
+
+print(t)
