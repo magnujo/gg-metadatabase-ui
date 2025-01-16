@@ -11,7 +11,7 @@ DATABASE_CONFIG_READ_ONLY = {
     'dbname': active_database_name,
     'port': active_port,
     'user': 'read_user',
-    'password': r'mv5&8B%eKuoE8D',
+    'password': r'5J8DhII0RRsPW1',
 }
 
 ENGINE_READ_ONLY = create_engine(
