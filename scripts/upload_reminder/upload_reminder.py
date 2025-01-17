@@ -23,30 +23,10 @@ def find_project_root():
         path = path.parent
     return None  # Project root not found
 
-def run(input_libs):
+def run(input_libs, customer_emails):
 
     project_root = find_project_root()
-    print(project_root)
-    # # Parse command-line arguments
-    # parser = argparse.ArgumentParser(description="Process a list of library IDs.")
-    # parser.add_argument(
-    #     "library_ids",
-    #     type=str,
-    #     nargs="+",
-    #     help="List of library IDs to process (space-separated)."
-    # )
-    # parser.add_argument(
-    #     "customer_email",
-    #     type=str,
-    #     nargs="+",
-    #     help="Email of customer(s) that should receive an overview of missing metadata (space-separated)."
-    # )
 
-    # args = parser.parse_args()
-
-    # # Use the provided library IDs
-    # input_libs = args.library_ids
-    # customer_email = args.customer_email
     DATABASE_CONFIG_READ_ONLY = {
         'host': 'dandypdb01fl',
         'dbname': 'aedna_metadata_test',
@@ -59,15 +39,10 @@ def run(input_libs):
 
     # Email details
     sender_email = "glj523@dandyweb01fl.unicph.domain"
-    xihan_email = "magnus.johannsen@sund.ku.dk"
+    xihan_email = "xihan.chen@sund.ku.dk"
     admin_email = ADMIN_EMAIL
     subject = "Missing metadata"
     body = "The sample metadata database (SMDB) is missing data from you. See attached document to see the missing IDs."
-    message = MIMEMultipart()
-    message["From"] = sender_email
-    message["Subject"] = subject
-    message.attach(MIMEText(body, "plain"))
-
 
     lib_pk_col_name = data.edna_wetlab_report.library_id()
     lib_fk_col_name = data.edna_wetlab_report.robot_sample_id()
@@ -114,7 +89,7 @@ def run(input_libs):
     left join {fs_table_name} fs on eas.{as_fk_col_name} = fs.{fs_pk_col_name}
     order by {lib_pk_col_name};
     '''
-
+    
     if not len(input_libs) > 0:
         raise Exception('No input')
     
@@ -125,83 +100,92 @@ def run(input_libs):
         query_input = f"('{input_libs[0]}')" # Otherwise a single element tupe will look like this: ('id',), but sql wants ('id')
     
     df = pd.read_sql(query(query_input), ENGINE_READ_ONLY)
-
-    missing_lib_ids = set(input_libs) - set(df[data.edna_wetlab_report.library_id()])
-    
     temp_path = os.path.join(project_root, 'temp')
-    if len(missing_lib_ids) > 0:         
-        # Create the email
-        recipients = [xihan_email, admin_email]
-        message["To"] = ', '.join(recipients)
-        file_path = os.path.join(temp_path, 'missing_ids.txt')
+    missing_lib_ids = set(input_libs) - set(df[data.edna_wetlab_report.library_id()])
+    file_path_xihan = os.path.join(temp_path, 'missing_ids.txt')
+    file_path_rest = os.path.join(temp_path, 'missing_ids.xlsx')
     
-        with open(file_path, "w") as file:
-            for item in missing_lib_ids:
-                file.write(f"{item}\n")
-        try:
+    try:
+        if len(missing_lib_ids) > 0:         
+            # Create the email
+            recipients = [xihan_email, admin_email]
+            
+        
+            with open(file_path_xihan, "w") as file:
+                for item in missing_lib_ids:
+                    file.write(f"{item}\n")
         
             send_email(sender=sender_email,
                     receivers=recipients,
                     message=body,
-                    paths_to_attachments=[file_path],
+                    paths_to_attachments=[file_path_xihan],
                     subject=subject)
-        finally:
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            
 
-    _map = {wr_table_name: lib_pk_col_name,
-            rs_table_name: rs_pk_col_name,
-            as_table_name: as_pk_col_name,
-            md_table_name: master_depth_col_name,
-            adm_table_name: mean_age_col_name,
-            fs_table_name: fs_pk_col_name,
-            data.flowcell(): data.flowcell.fastq_file_id(),
-            data.seq_sample_sheet(): data.seq_sample_sheet.fastq_file_id()}
-    
-    mapped_responsible_uploaders = {key: [_map[ele] for ele in val] for key, val in RESPONSIBLE_UPLOADERS.items()}
-
-    recipients = []
-    for key, val in mapped_responsible_uploaders.items():
-        cols = list(set(val) & set(df.columns))
-        if len(cols) > 0:  
-            if df[cols].isna().any().any():
-                recipients.append(key)
-    recipients.append(admin_email)
-
-   
-    if len(recipients) > 0:
-        file_path = os.path.join(temp_path, 'missing_ids.xlsx')
-
-        df.to_excel(file_path)
+        _map = {wr_table_name: lib_pk_col_name,
+                rs_table_name: rs_pk_col_name,
+                as_table_name: as_pk_col_name,
+                md_table_name: master_depth_col_name,
+                adm_table_name: mean_age_col_name,
+                fs_table_name: fs_pk_col_name,
+                data.flowcell(): data.flowcell.fastq_file_id(),
+                data.seq_sample_sheet(): data.seq_sample_sheet.fastq_file_id()}
         
-        try:
+        mapped_responsible_uploaders = {key: [_map[ele] for ele in val] for key, val in RESPONSIBLE_UPLOADERS.items()}
+
+        recipients = []
+        for key, val in mapped_responsible_uploaders.items():
+            cols = list(set(val) & set(df.columns))
+            if len(cols) > 0:  
+                if df[cols].isna().any().any():
+                    recipients.append(key)
+    
+        if len(recipients) > 0:
+            recipients.append(admin_email)
+
+            df.to_excel(file_path_rest)
+            
             send_email(sender=sender_email,
                     receivers=recipients,
                     message=body,
-                    paths_to_attachments=[file_path],
+                    paths_to_attachments=[file_path_rest],
                     subject=subject)
-        finally:
-            if os.path.exists(file_path):
-                os.remove(file_path)
+        
+        
+        send_email(sender=sender_email,
+                    receivers=customer_emails,
+                    message=body,
+                    paths_to_attachments=[file_path_rest],
+                    subject=subject)
+            
+    finally:
+        if os.path.exists(file_path_rest):
+            os.remove(file_path_rest)
+        if os.path.exists(file_path_xihan):
+            os.remove(file_path_xihan)
             
         
 if __name__ == "__main__":
+        # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Send emails reminding people to upload missing meta data")
+    parser.add_argument(
+        "-l",
+        "--library_ids",
+        type=str,
+        nargs="+",
+        required=True,
+        help="List of library IDs to process (space-separated)."
+    )
+    parser.add_argument(
+        "-c",
+        "--customer_emails",
+        type=str,
+        required=True,
+        nargs="+",
+        help="Email of customer(s) that should receive an overview of missing metadata (space-separated)."
+    )
+
+    args = parser.parse_args()
     
-    input_test_cases = [
-        ['LV7001885838',
-         'LV7008887632',
-         'LV7009026245'],
-        ['LV7001885838',
-         'LV7008887632',
-         'LV7009026245',
-         'bad_id'],
-        ['LV7009026245',
-         'LV7009026245'],
-        ['bad_id',
-         'bad_id'],
-        ['bad_id'],
-        []
-    ]
+    run(args.library_ids, args.customer_emails)
     
-    for test in input_test_cases:
-        run(test)
