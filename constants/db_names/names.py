@@ -75,6 +75,12 @@ class data(Schema):
 
         #  Columns:
         name = lambda template=False: get_column_name(35, template=template)
+        
+    class field_sample_types_at_gm(Table):
+        _db_id = 45
+
+        #  Columns:
+        name = lambda template=False: get_column_name(386, template=template)
 
     class cgg_animal_plant(Table):
         _db_id = 5

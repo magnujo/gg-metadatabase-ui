@@ -654,6 +654,7 @@ def confirmed():
             for i, table_name in enumerate(table_splits):
                 row_count_after_upload = queries.count_rows(SQL_ALCH_CONFIG, table_name=table_name)
                 row_counts_after_upload[table_name] = row_count_after_upload
+                
                 expected_rows = len(clean_sheets[table_name])
                 num_of_uploaded_rows[table_name] = row_counts_after_upload[table_name]-row_counts_before_upload[table_name]
                 q = queries.upload_id_filter(schema=SQL_ALCH_CONFIG['schema_name'], table=table_name, upload_id=upload_id)
@@ -671,7 +672,6 @@ def confirmed():
                     # If there are more upload_ids then uploaded rows, then we might delete some data that is not supposed to be deleted and if there are less upload_ids then uploaded rows then it's impossible to revert using upload_id.
                     if num_of_uploaded_rows[table_name] != num_of_upload_ids_in_db[table_name]:
                         raise ValueError("!!!CRITICAL ERROR OCCURED!!!: IMPORTANT: Report error below to notify admin. Some rows were uploaded with incorrect upload_id")
-                   
                     # Here we can trust upload_id to be correct because of the above conditional, so we can delete data based on it.
                     if expected_rows != num_of_uploaded_rows[table_name]:
                         row_count_errors[table_name].append(f"Error happened during upload. Expected to find {expected_rows} added rows in {table_name} but {num_of_uploaded_rows[table_name]} were found. Rolling back...")

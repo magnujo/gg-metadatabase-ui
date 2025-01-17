@@ -21,7 +21,8 @@ class DBTableRelated:
                                                                     data.cgg_animal_plant(), 
                                                                     data.cgg_sediment_water(), 
                                                                     data.age_depth_model(), 
-                                                                    data.initials_translator()],
+                                                                    data.initials_translator(),
+                                                                    ],
                                                          "LIBRARY": [data.flowcell(), 
                                                                      data.seq_sample_sheet(), 
                                                                      data.top_unknown_seq_barcodes(), 
@@ -150,9 +151,15 @@ class DBTableRelated:
         TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES = sum(list(misc.extract_leaf_values_from_dict(DBTableRelated.TABLE_TYPES_FOR_ENUM_VALIDATION)), [])
         UTIL_TABLE_NAMES = set(sum(list(misc.extract_leaf_values_from_dict(DBTableRelated.UTIL_TABLES)), []))
         table_names = table_names - UTIL_TABLE_NAMES
-     
+        
+        diff_ = set(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES) ^ (set(table_names))
+
         if set(table_names) != set(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES):
-            raise Exception(f"TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema. Make sure to update either the UTIL_TABLES or the TABLE_TYPES_FOR_ENUM_VALIDATION. Found the following tables in the database: \n {table_names} and the following tables in TABLE_TYPES_FOR_ENUM_VALIDATION: \n {TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES}")
+            raise Exception(f'''
+                            TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema.
+                            Make sure to update either the UTIL_TABLES or the TABLE_TYPES_FOR_ENUM_VALIDATION.
+                            Found the following discrepancies between the database and 
+                            TABLE_TYPES_FOR_ENUM_VALIDATION: \n {diff_}''')
         else:
             print("TABLE_TYPES_FOR_ENUM_VALIDATION contains all tables from schema")
         

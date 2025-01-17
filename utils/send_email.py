@@ -9,7 +9,12 @@ def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj
     # Set up the MIME message
     msg = MIMEMultipart()
     msg['From'] = sender
-    msg['To'] = ", ".join(receivers)
+    if type(receivers) == list:
+        msg['To'] = ", ".join(receivers)
+    elif type(receivers) == str:
+        msg['To'] = receivers
+    else:
+        raise Exception('Only list or string input allowed for receivers')
     msg['Subject'] = subject
 
     # Attach the message body

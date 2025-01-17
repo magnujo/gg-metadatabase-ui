@@ -13,6 +13,7 @@ import shutil
 from datetime import datetime
 import time
 import random
+from constants.db_names.names import deleted_by_script
 
 
 def delete_files(file_name, session_dir, delete_session_dir, original=False, parsed=False, uploaded=False):
@@ -56,20 +57,19 @@ def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):
                 
                 q = f'''
                 BEGIN;
-                
+
+                -- Create the deleted rows table if it doesn't exist
                 CREATE TABLE IF NOT EXISTS "{deleted_schema}"."{deleted_table}" AS
                 SELECT * 
                 FROM "{schema}"."{database_table_name}" 
-                WHERE false
+                WHERE false;
 
-                -- Delete data from the source table and return the deleted rows
+                -- Capture the rows to be deleted into a temporary table
                 WITH deleted_rows AS (
-                DELETE FROM "{schema}"."{database_table_name}" f 
-                WHERE upload_uuid = \'{upload_id}\'
+                DELETE FROM "{schema}"."{database_table_name}" 
+                WHERE upload_uuid = '{upload_id}'
                 RETURNING *
                 )
-                
-                -- Insert the deleted rows into the destination table
                 INSERT INTO "{deleted_schema}"."{deleted_table}"  
                 SELECT *
                 FROM deleted_rows;
@@ -81,8 +81,8 @@ def delete_db_entries(database_table_name, upload_id, num_of_rows_to_del):
                 cursor.close()
                 connection.close()
                 
-                message = f'Data was deleted by script and {deleted_table} was created'
+                message = f'Data was deleted by script and {deleted_table} was created in {deleted_by_script()} schema'
                 send_email.send_email(message=message,
-                                      receivers=ADMIN_EMAIL,
+                                      receivers=[ADMIN_EMAIL],
                                       subject='Script deleted data!')
 
