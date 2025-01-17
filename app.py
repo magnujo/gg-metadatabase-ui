@@ -1,3 +1,4 @@
+import argparse
 import generate_template
 import numpy as np
 import constants.db_connections
@@ -1363,6 +1364,10 @@ if __name__ == '__main__':
     development_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['development']
     current_date = datetime.now().strftime('%Y%m%d')
 
+    parser = argparse.ArgumentParser(description="This will run the SMDB interface web app")
+    parser.add_argument("-p", "--port", type=int, required=False, help="Port to run the app on")
+    args = parser.parse_args()
+
     if os.environ.get('RUN_MODE'):
         constants.db_connections.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.db_connections.RUN_MODE in constants.db_connections.RUN_MODE_OPTIONS:
@@ -1372,10 +1377,19 @@ if __name__ == '__main__':
     # deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])
     
+    
+    port = 5100
+    if args.port:
+        port = args.port
+    
     if constants.db_connections.RUN_MODE == 'production':
-        app.run(host='0.0.0.0', port=5100)
+        app.run(host='0.0.0.0', port=port)
     elif constants.db_connections.RUN_MODE == 'development':
-        app.run(debug=True)
+        if args.port:
+            port = args.port
+            app.run(debug=True, port=port)
+        else:
+            app.run(debug=True)
     else:
         raise Exception('Error')    
 
