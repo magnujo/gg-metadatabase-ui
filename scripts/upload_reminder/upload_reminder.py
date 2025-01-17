@@ -150,13 +150,6 @@ def run(input_libs, customer_emails):
                     message=body,
                     paths_to_attachments=[file_path_rest],
                     subject=subject)
-        
-        
-        send_email(sender=sender_email,
-                    receivers=customer_emails,
-                    message=body,
-                    paths_to_attachments=[file_path_rest],
-                    subject=subject)
             
     finally:
         if os.path.exists(file_path_rest):
@@ -182,7 +175,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
         nargs="+",
-        help="Email of customer(s) that should receive an overview of missing metadata (space-separated)."
+        help="Email of customer(s) that should receive an overview of missing metadata (space-separated). NOT IMPLEMENTED."
     )
 
     args = parser.parse_args()

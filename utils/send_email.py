@@ -33,7 +33,7 @@ def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj
                     # Add file headers
                     part.add_header(
                         'Content-Disposition',
-                        f'attachment; filename="{attachment_path}"'
+                        f'attachment; filename="{base_name}"'
                     )
                     
                     # Attach the file to the message
