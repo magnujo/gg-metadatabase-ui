@@ -13,11 +13,20 @@ from email import encoders
 import argparse
 from constants.misc_constants import RESPONSIBLE_UPLOADERS, ADMIN_EMAIL
 from utils.send_email import send_email
+from pathlib import Path
 
+def find_project_root():
+    path = Path(__file__).resolve()
+    while path != path.root:
+        if (path / 'very_rootsy_file.txt').exists():
+            return path
+        path = path.parent
+    return None  # Project root not found
 
 def run(input_libs):
 
-
+    project_root = find_project_root()
+    print(project_root)
     # # Parse command-line arguments
     # parser = argparse.ArgumentParser(description="Process a list of library IDs.")
     # parser.add_argument(
@@ -38,7 +47,6 @@ def run(input_libs):
     # # Use the provided library IDs
     # input_libs = args.library_ids
     # customer_email = args.customer_email
-
     DATABASE_CONFIG_READ_ONLY = {
         'host': 'dandypdb01fl',
         'dbname': 'aedna_metadata_test',
@@ -119,12 +127,13 @@ def run(input_libs):
     df = pd.read_sql(query(query_input), ENGINE_READ_ONLY)
 
     missing_lib_ids = set(input_libs) - set(df[data.edna_wetlab_report.library_id()])
-   
+    
+    temp_path = os.path.join(project_root, 'temp')
     if len(missing_lib_ids) > 0:         
         # Create the email
         recipients = [xihan_email, admin_email]
         message["To"] = ', '.join(recipients)
-        file_path = os.path.join("temp", 'missing_ids.txt')
+        file_path = os.path.join(temp_path, 'missing_ids.txt')
     
         with open(file_path, "w") as file:
             for item in missing_lib_ids:
@@ -161,7 +170,7 @@ def run(input_libs):
 
    
     if len(recipients) > 0:
-        file_path = os.path.join("temp", 'missing_ids.xlsx')
+        file_path = os.path.join(temp_path, 'missing_ids.xlsx')
 
         df.to_excel(file_path)
         
