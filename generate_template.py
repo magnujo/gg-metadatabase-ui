@@ -10,9 +10,13 @@ from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_ren
 from constants.db_names.names import data
 from constants.db_connections import ENGINE_READ_ONLY, DATABASE_CONFIG_READ_ONLY, PSY_CONN
 from utils import misc
+from openpyxl.utils import get_column_letter
+
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
+from openpyxl.worksheet.datavalidation import DataValidation
+
 
 
 
@@ -24,6 +28,7 @@ def generate(table_name, schema_name, conn, save_path):
 
     table_name = 'field_sample'
     schema_name = 'test_1'
+    max_rows = 1048576
 
     if table_name == data.field_sample():
         col_names = data.field_sample
@@ -40,12 +45,14 @@ def generate(table_name, schema_name, conn, save_path):
     material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
     sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
     country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}"', con=ENGINE_READ_ONLY)[data.country_ocean.name()]
+    field_sample_types_gm = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types_gm()}"', con=ENGINE_READ_ONLY)[data.field_sample_types_gm.name()]
 
     enum_sheet = pd.DataFrame({
         data.field_sample.sample_context(template=True): context_types,
         data.field_sample.sample_environment(template=True): environment_types,
         data.field_sample.sample_material(template=True): material_types,
         data.field_sample.sample_type(template=True): sample_types,
+        data.field_sample.sample_type_in_storage_at_gm(template=True): field_sample_types_gm,
         data.field_sample.country_ocean(template=True): country_ocean
     })
 
@@ -155,8 +162,6 @@ def generate(table_name, schema_name, conn, save_path):
     data_sheet_name = 'Insert Data Here'
     
     # Write the DataFrame to Excel
-    
-    
 
     # Get the xlsxwriter workbook and worksheet objects
     workbook = writer.book
@@ -198,6 +203,30 @@ def generate(table_name, schema_name, conn, save_path):
     
     worksheet = writer.sheets[data_sheet_name]
     # bold_format = workbook.add_format({'bold': True})
+    
+    dropdowns = {}
+    
+    # Apply the dropdown to the desired column (e.g., 'Choice' column)
+    
+        
+    for i, col in enumerate(df_translated.columns):
+        if col in enum_sheet.columns:
+            print(col)
+            dropdown_values = list(enum_sheet[col].dropna())
+            formula = f'"{",".join(dropdown_values)}"'
+            print(formula)
+
+            column_letter_data = get_column_letter(i + 1)
+            column_index = enum_sheet.columns.get_loc(col)
+            enums_length = len(dropdown_values)
+            col_letter_enum = get_column_letter(column_index + 1)
+            formula = f"'Allowed categorical values'!${col_letter_enum}$2:${col_letter_enum}${enums_length+1}"
+            dropdown = DataValidation(type="list", formula1=formula, allow_blank=False)
+            worksheet.add_data_validation(dropdown)
+            for row in range(2, 1000):  # Excel rows start at 1, header is row 1
+                cell = f'{column_letter_data}{row}'  # 'B' is the second column (Choice column)
+                dropdown.add(worksheet[cell])
+    
     
     # Define header formats
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')

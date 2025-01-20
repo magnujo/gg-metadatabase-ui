@@ -344,6 +344,12 @@ class data(Schema):
 
         #  Columns:
         name = lambda template=False: get_column_name(253, template=template)
+        
+    class field_sample_types_gm(Table):
+        _db_id = 45
+
+        #  Columns:
+        name = lambda template=False: get_column_name(386, template=template)
 
     class edna_archive_sample(Table):
         _db_id = 14

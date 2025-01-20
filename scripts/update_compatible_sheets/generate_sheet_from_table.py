@@ -39,7 +39,7 @@ def si(value):
 
 def generate_excel_from_table(output_folder, table_name, database_name, schema_name, user, password):
     '''
-    Generates spreaddsheet with a tables column names and corresponding data types and comments.
+    Generates spreadsheet from a DB table with corresponding data types and comments.
     '''
     # Connect to your PostgreSQL database
     
