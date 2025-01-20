@@ -47,6 +47,6 @@ def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj
             # Omit server.login() if the server doesn't support or require authentication
             text = msg.as_string()
             server.sendmail(sender, receivers, text)
-            print(f"Email successfully sent to {', '.join(receivers)}")
+            print(f"Email successfully sent to {receivers}")
     except Exception as e:
         print(f"Failed to send email: {e}")

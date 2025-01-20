@@ -23,7 +23,10 @@ def find_project_root():
         path = path.parent
     return None  # Project root not found
 
-def run(input_libs, customer_emails):
+def run(input_libs, customer_emails, test):
+    
+    if test:
+        print("Running tests...")
 
     project_root = find_project_root()
 
@@ -38,9 +41,9 @@ def run(input_libs, customer_emails):
         f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{DATABASE_CONFIG_READ_ONLY['host']}:{DATABASE_CONFIG_READ_ONLY['port']}/{DATABASE_CONFIG_READ_ONLY['dbname']}")
 
     # Email details
-    sender_email = "glj523@dandyweb01fl.unicph.domain"
-    xihan_email = "xihan.chen@sund.ku.dk"
     admin_email = ADMIN_EMAIL
+    sender_email = "glj523@dandyweb01fl.unicph.domain"
+    xihan_email = 'xihan.chen@sund.ku.dk'
     subject = "Missing metadata"
     body = "The sample metadata database (SMDB) is missing data from you. See attached document to see the missing IDs."
 
@@ -110,17 +113,18 @@ def run(input_libs, customer_emails):
             # Create the email
             recipients = [xihan_email, admin_email]
             
-        
+            if test:
+                recipients = admin_email
+            
             with open(file_path_xihan, "w") as file:
                 for item in missing_lib_ids:
                     file.write(f"{item}\n")
-        
+                    
             send_email(sender=sender_email,
                     receivers=recipients,
-                    message=body,
+                    message=body + ' Xihan',
                     paths_to_attachments=[file_path_xihan],
-                    subject=subject)
-            
+                    subject=subject + ' Xihan')
 
         _map = {wr_table_name: lib_pk_col_name,
                 rs_table_name: rs_pk_col_name,
@@ -132,24 +136,28 @@ def run(input_libs, customer_emails):
                 data.seq_sample_sheet(): data.seq_sample_sheet.fastq_file_id()}
         
         mapped_responsible_uploaders = {key: [_map[ele] for ele in val] for key, val in RESPONSIBLE_UPLOADERS.items()}
-
+        
         recipients = []
         for key, val in mapped_responsible_uploaders.items():
             cols = list(set(val) & set(df.columns))
             if len(cols) > 0:  
                 if df[cols].isna().any().any():
-                    recipients.append(key)
-    
+                    if test:
+                        recipients.append(admin_email)
+                    else: 
+                        recipients.append(key)        
+            
         if len(recipients) > 0:
+           
             recipients.append(admin_email)
 
             df.to_excel(file_path_rest)
             
             send_email(sender=sender_email,
                     receivers=recipients,
-                    message=body,
+                    message=body + ' ML and Jesper',
                     paths_to_attachments=[file_path_rest],
-                    subject=subject)
+                    subject=subject + ' ML and Jesper')
             
     finally:
         if os.path.exists(file_path_rest):
@@ -177,8 +185,17 @@ if __name__ == "__main__":
         nargs="+",
         help="Email of customer(s) that should receive an overview of missing metadata (space-separated). NOT IMPLEMENTED."
     )
+    
+    parser.add_argument(
+        "-t",
+        "--test",
+        type=bool,
+        required=False,
+        nargs=1,
+        help="Only for testing the script"
+    )
 
     args = parser.parse_args()
     
-    run(args.library_ids, args.customer_emails)
+    run(args.library_ids, args.customer_emails, args.test)
     
