@@ -466,6 +466,7 @@ class data(Schema):
         sample_type_in_storage_at_gm = lambda template=False: get_column_name(345, template=template)
         permit_for_dna_analysis = lambda template=False: get_column_name(346, template=template)
 
+        sample_environment_secondary = lambda template=False: get_column_name(387, template=template)
     class top_unknown_seq_barcodes(Table):
         _db_id = 18
 
