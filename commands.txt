@@ -6,7 +6,7 @@ $env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""
 Home:
  
 
-$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""; C:/Users/magnu/miniconda3/envs/db_web_app/python.exe "c:/Users/magnu/Documents/Git Repoes/gg-metadatabase-ui/app.py"
+$env:MAINTAINANCE = "no"; $env:RUN_MODE = "production"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""; C:/Users/magnu/miniconda3/envs/db_web_app/python.exe "c:/Users/magnu/GitHub Repoes/gg-metadatabase-ui/app.py"
 
 
 To close access to the site for maintainance purposes set:

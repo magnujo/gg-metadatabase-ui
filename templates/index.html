@@ -94,26 +94,34 @@
         <h1>Upload to <i>SMDB</i> (Sample Metadata DataBase)</h1>
 
         <div class="section">
-            <p><strong>READ AND UNDERSTAND THE FOLLOWING THOROUGHLY BEFORE CONTINUING:</strong></p>
+            <h2>READ THIS BEFORE UPLOADING:</h2>
+            <p>It is very important that you download, read and understand the manual below <b>before uploading any data</b>. If you have any questions to the manual, contact magnus.johannsen@sund.ku.dk</p>
             <p><a href="/download_manual" download>Download Manual (PDF)</a></p>
-            <p>The manual guides you through the upload process and contains important information about the data you can upload and what happens during the upload process</p>
         </div>
 
         <div class="section">
-            <h3>Accepted upload spreadsheet templates</h3>
-            <p>The database is picky. Use one of the upload spreadsheet templates below, or it will not be happy.
+            <h2>Accepted upload file templates</h2>
+            <p>To ensure high data quality, only strictly formatted files are allowed for uploading. These formats can be ensured using an upload file template for filling out meta data. 
+                If you do not have a template, 
+                you might be able to find it below. Otherwise contact the database administrator for help (magnus.johannsen@sund.ku.dk).
                 <br>
-                They are updated regularly. To make sure you have the latest version, <b>download a new one everytime you need to fill out meta data</b>.
+                <br>
+                NOTE: The below templates are updated automatically as changes are made to the database. So make sure to <b>download a new one everytime you need to fill out meta data</b>, or it might not be
+                compatible with the database.
+                <br>
+                <br>
+                <h3>Download templates here:</h3>
             </p>
             {% for sheet in example_sheets %}
             <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
             {% endfor %}
             <p>Template for master depth specification can be found <a href="{{ url_for('search') }}">here</a></p>
         </div>
-        
+
         <div class="section">
-            <h3>Upload</h3>
-            <p><strong>Note:</strong> The database only accepts tab seperated .txt files as of now. If you use excel: Use “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac) and pick UTF-16 in the encoding menu. For Lane Barcodes, use .html format.</p>
+            <h2>Upload</h2>
+            <p><strong>Note:</strong> The database only accepts tab seperated .txt files as of now. If you use excel: Use “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac) 
+                and pick UTF-16 in the encoding dropdown menu below. For Lane Barcodes, use .html format and UTF-8.</p>
             <form action="/upload" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="file">Choose a file to upload:</label>
