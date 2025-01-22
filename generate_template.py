@@ -149,10 +149,11 @@ def generate(table_name, schema_name, conn, save_path):
         col_names.alias(template=True),
         col_names.cultural_affiliation(template=True),
         col_names.museum_institution(template=True),
-        col_names.other_relevant_information(template=True),
         col_names.site_grid_elev(template=True),
         col_names.site_grid_latitude(template=True),
-        col_names.site_grid_longitude(template=True)
+        col_names.site_grid_longitude(template=True),
+        col_names.other_relevant_information(template=True)
+
     ]
 
     df_translated = df_translated[new_order]
@@ -231,8 +232,7 @@ def generate(table_name, schema_name, conn, save_path):
             for row in range(2, 1000):  # Excel rows start at 1, header is row 1
                 cell = f'{column_letter_data}{row}'  # 'B' is the second column (Choice column)
                 dropdown.add(worksheet[cell])
-    
-    
+        
     # Define header formats
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
     non_mandatory_colour = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
@@ -248,7 +248,8 @@ def generate(table_name, schema_name, conn, save_path):
     special_non_mandatory_columns = [
         col_names.sampling_depth(),
         col_names.sampling_interval___from(),
-        col_names.sampling_interval___to()
+        col_names.sampling_interval___to(),
+        col_names.sample_environment_secondary()
     ]
 
     #  Columns that are not mandatory in DB but actually should be filled
