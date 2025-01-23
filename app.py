@@ -865,10 +865,9 @@ def download_manual():
 @decorators.log_info(app)
 def download_file(filename): 
     if filename == 'Field Sampling Meta data reporting template.xlsx':
-        save_path = os.path.join(misc_constants.PATH_TO_STANDARD_SHEETS, filename)
-        generate_template.generate(data.field_sample(), data(), ENGINE_READ_ONLY, save_path=save_path)
+        save_path = generate_template.generate(data.field_sample(), data(), ENGINE_READ_ONLY)    
 
-    return send_from_directory(misc_constants.PATH_TO_STANDARD_SHEETS, filename, as_attachment=True)
+        return send_from_directory(os.path.dirname(save_path), os.path.basename(save_path), as_attachment=True)
 
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name

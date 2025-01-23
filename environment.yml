@@ -29,6 +29,7 @@ dependencies:
   - notebook
   - plotly=5
   - rise
+  - pywin32
   - pip:
     - pretty_html_table
     - jupyterlab
