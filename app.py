@@ -115,8 +115,8 @@ def upload_file():
             if file_name == '':
                 raise DontTriggerFileDeletion('No selected file')
             
-            session['file_name'] = file_name
-
+            session['file_name'] = file_name            
+            
             session_dir = str(str(session.get("session_dir"))) 
         
             if os.path.exists(session_dir):
@@ -718,39 +718,44 @@ def confirmed():
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
         
         
-        try:                        
-            if database_table_name == 'field_sample':
-                for table_name in table_splits:
-                        clean_sheet = clean_sheets[table_name]
-                        dirs_to_create = misc.generate_field_sample_dir_paths(clean_sheet, projects_root_dir=misc_constants.GEO_DATA_PROJECTS_DIR_PATH, 
-                                                                                          samples_root_dir=misc_constants.GEO_DATA_SAMPLES_DIR)
-                        created_dirs = []
-                        for path in dirs_to_create:
-                            os.makedirs(path)
-                            created_dirs.append(path)
-                                              
-                        
-        # except FileExistsError as e:
-        #     return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])                       
-        
-        except Exception as e:
+        # if database_table_name == 'field_sample':          
+        #     make_field_sample_dirs(clean_sheets, table_splits)
             
-            if "created_dirs" in locals().keys():
-                for dir_path in created_dirs:
-                    # Check if dirpath exist and is not None (this is because make_dir_on_network_mount returns None if the folder already exists)
-                    if dir_path != None:
-                        if os.path.exists(dir_path):
-                            if str(dir_path)[-1] == str(os.path.sep):
-                                destination_path = os.path.join(misc_constants.PATH_TO_MOUNT, misc_constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
-                            else:
-                                destination_path = os.path.join(misc_constants.PATH_TO_MOUNT, misc_constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
-                            timestamp = time.strftime("%Y%m%d%H%M%S")
-                            destination_path = f"{destination_path}_{timestamp}"
-                            shutil.move(dir_path, destination_path)
-            return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])
         
                         
         return redirect(url_for("success")) 
+
+def make_field_sample_dirs(clean_sheets, table_splits):
+    try:
+        for table_name in table_splits:
+                            clean_sheet = clean_sheets[table_name]
+                            dirs_to_create = misc.generate_field_sample_dir_paths(clean_sheet, projects_root_dir=misc_constants.GEO_DATA_PROJECTS_DIR_PATH, 
+                                                                                            samples_root_dir=misc_constants.GEO_DATA_SAMPLES_DIR)
+                            created_dirs = []
+                            for path in dirs_to_create:
+                                os.makedirs(path)
+                                created_dirs.append(path)
+                                                
+                            
+            # except FileExistsError as e:
+            #     return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])                       
+        
+    except Exception as e:
+        
+        if "created_dirs" in locals().keys():
+            for dir_path in created_dirs:
+                # Check if dirpath exist and is not None (this is because make_dir_on_network_mount returns None if the folder already exists)
+                if dir_path != None:
+                    if os.path.exists(dir_path):
+                        if str(dir_path)[-1] == str(os.path.sep):
+                            destination_path = os.path.join(misc_constants.PATH_TO_MOUNT, misc_constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.normpath(dir_path))
+                        else:
+                            destination_path = os.path.join(misc_constants.PATH_TO_MOUNT, misc_constants.GEO_DATA_NETWORK_DIR_DELETIONS, os.path.basename(dir_path))
+                        timestamp = time.strftime("%Y%m%d%H%M%S")
+                        destination_path = f"{destination_path}_{timestamp}"
+                        shutil.move(dir_path, destination_path)
+        return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['After Upload'])
+    
 
 #TODO: Catch errors and delete stuff if catched.
 @app.route('/cancel_upload', methods=['POST'])
