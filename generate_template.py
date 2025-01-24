@@ -11,8 +11,6 @@ from constants.db_names.names import data
 from constants.db_connections import ENGINE_READ_ONLY, DATABASE_CONFIG_READ_ONLY, PSY_CONN
 from utils import misc
 from openpyxl.utils import get_column_letter
-import win32com
-import pythoncom
 from pathlib import Path
 
 def find_project_root():
@@ -31,7 +29,6 @@ from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 from openpyxl.worksheet.datavalidation import DataValidation
 
 
-import win32com.client as win32
 
 def generate(table_name, schema_name, conn): 
 
