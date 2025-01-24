@@ -403,7 +403,7 @@ def upload_file():
                     
                     bad_project_ids = [id for id in unique_project_IDs_in_parsed_sheet if id in unique_project_IDs_in_db]
                     
-                    if len(bad_master_ids) > 0 or len(bad_project_ids) > 0:
+                    if len(bad_master_ids) > 0:
                         raise Exception(f''' The data cannot be uploaded because the following '{parent_col}' values already exists in the database: {bad_master_ids} \n
                                         and/or the following '{project_col}' values already exist in the database {bad_project_ids}. \n
                                         If you want to add the data anyways, contact {ADMIN_EMAIL}
