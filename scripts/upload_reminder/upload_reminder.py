@@ -48,20 +48,30 @@ def run(input_libs, customer_emails, test):
     
 
     lib_pk_col_name = data.edna_wetlab_report.library_id()
+    lib_pk_col_name_alias = data.edna_wetlab_report.library_id()
     lib_fk_col_name = data.edna_wetlab_report.robot_sample_id()
+    lib_fk_col_name_alias = data.edna_wetlab_report.robot_sample_id()
 
     rs_pk_col_name = data.edna_robot_sample.robot_sample_id()
+    rs_pk_col_name_alias = data.edna_robot_sample.robot_sample_id()
     rs_fk_col_name = data.edna_robot_sample.archivesampleid()
+    rs_fk_col_name_alias = data.edna_robot_sample.archivesampleid()
 
     as_pk_col_name = data.edna_archive_sample.archivesampleid()
+    as_pk_col_name_alias = 'data.edna_archive_sample.archivesampleid()'
     as_fk_col_name = data.edna_archive_sample.field_sample_id()
+    as_fk_col_name_alias = data.edna_archive_sample.field_sample_id()
 
     md_fk_col_name = data.master_depth.depth_id()
+    md_fk_col_name_alias = 'referenced_master_depth_id'
     md_pk_col_name = data.master_depth.archive_sample_id()
+    md_pk_col_name_alias = 'referencing_archive_sample_id'
     master_depth_col_name = data.master_depth.master_depth()
 
     adm_pk_col_name = data.age_depth_model.depth_id()
+    adm_pk_col_name_alias = data.age_depth_model.depth_id()
     mean_age_col_name = data.age_depth_model.mean()
+    mean_age_col_name_alias = data.age_depth_model.mean()
 
     fs_pk_col_name = data.field_sample.field_sample_id()
 
@@ -72,18 +82,33 @@ def run(input_libs, customer_emails, test):
     md_table_name = data.master_depth()
     adm_table_name = data.age_depth_model()
 
+    lib_fk_col_name_alias = 'referencing_robot_sample_id'
+    rs_pk_col_name_alias = 'referenced_robot_sample_id'
+    rs_fk_col_name_alias = 'referencing_archive_sample_id' 
+    as_pk_col_name_alias = 'referenced_archive_sample_id'
+    as_fk_col_name_alias = 'referencing_field_sample_id'
+    fs_pk_col_name_alias = 'referenced_field_sample_id'
+    md_fk_col_name_alias = 'master_depth_id'
+    md_pk_col_name_alias = 'referencing_archive_sample_id_2'
+    adm_pk_col_name_alias = 'referenced_master_age_id'
+
+
 
     query = lambda library_ids: f'''
     WITH filtered_table AS (
         select distinct {lib_pk_col_name}, {lib_fk_col_name} from {wr_table_name} 
         where {lib_pk_col_name} in {library_ids})
     select 
-    filtered_table.{lib_pk_col_name}, 
-    ers.{rs_pk_col_name}, 
-    eas.{as_pk_col_name}, 
-    md.{master_depth_col_name},
-    adm.{mean_age_col_name},
-    fs.{fs_pk_col_name}
+    filtered_table.{lib_pk_col_name},
+    filtered_table.{lib_fk_col_name} as {lib_fk_col_name_alias},
+    ers.{rs_pk_col_name} as {rs_pk_col_name_alias},
+    ers.{rs_fk_col_name} as {rs_fk_col_name_alias}, 
+    eas.{as_pk_col_name} as {as_pk_col_name_alias},
+    eas.{as_fk_col_name} as {as_fk_col_name_alias},
+    fs.{fs_pk_col_name} as {fs_pk_col_name_alias},
+    md.{md_fk_col_name} as {md_fk_col_name_alias},
+    md.{md_pk_col_name} as {md_pk_col_name_alias},
+    adm.{adm_pk_col_name} {adm_pk_col_name_alias}
     FROM filtered_table
     left JOIN {rs_table_name} ers on filtered_table.{lib_fk_col_name} = ers.{rs_pk_col_name}
     left join {as_table_name} eas on ers.{rs_fk_col_name} = eas.{as_pk_col_name}
@@ -135,18 +160,17 @@ def run(input_libs, customer_emails, test):
                     message=body,
                     paths_to_attachments=[file_path_xihan],
                     subject=subject)
-
+        
         _map = {wr_table_name: lib_pk_col_name,
-                rs_table_name: rs_pk_col_name,
-                as_table_name: as_pk_col_name,
-                md_table_name: master_depth_col_name,
-                adm_table_name: mean_age_col_name,
-                fs_table_name: fs_pk_col_name,
+                rs_table_name: rs_pk_col_name_alias,
+                as_table_name: as_pk_col_name_alias,
+                md_table_name: md_fk_col_name_alias,
+                adm_table_name: adm_pk_col_name,
+                fs_table_name: fs_pk_col_name_alias,
                 data.flowcell(): data.flowcell.fastq_file_id(),
                 data.seq_sample_sheet(): data.seq_sample_sheet.fastq_file_id()}
         
         mapped_responsible_uploaders = {key: [_map[ele] for ele in val] for key, val in RESPONSIBLE_UPLOADERS.items()}
-        
         recipients = []
         for key, val in mapped_responsible_uploaders.items():
             cols = list(set(val) & set(df.columns))
@@ -165,13 +189,16 @@ def run(input_libs, customer_emails, test):
             
             body = f'''
             THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}
-            \n
+    
+    
             Dear Jesper, Marie-Louise and Nicolaj,           
-            \n
-            The sample metadata database (SMDB) is missing data from you. 
-            See attached document to see which data is missing (the empty cells), and what IDs they should reference 
-            (the non-empty cells). 
-            \n 
+    
+            The sample metadata database (SMDB) is missing data from you. See attached document to see which data is missing.
+           
+            The columns that begins with 'referencing', shows any uploaded IDs that are trying to reference another ID. 
+            However, if the cell in the 'referenced' column on the same row is empty, the ID is not referencing anything.
+            This means that there is no meta data associated with that ID and it needs to be uploaded.
+            
             Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
             '''
             
