@@ -45,7 +45,7 @@ def run(input_libs, customer_emails, test):
     sender_email = "glj523@dandyweb01fl.unicph.domain"
     xihan_email = 'xihan.chen@sund.ku.dk'
     subject = "Missing metadata"
-    body = "The sample metadata database (SMDB) is missing data from you. See attached document to see the missing IDs."
+    
 
     lib_pk_col_name = data.edna_wetlab_report.library_id()
     lib_fk_col_name = data.edna_wetlab_report.robot_sample_id()
@@ -120,11 +120,21 @@ def run(input_libs, customer_emails, test):
                 for item in missing_lib_ids:
                     file.write(f"{item}\n")
                     
+            body = f'''
+            THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}
+            \n
+            Dear Xihan,           
+            \n
+            The sample metadata database (SMDB) is missing data about certain libraries. See attached document to see which. 
+            \n 
+            Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
+            '''
+            
             send_email(sender=sender_email,
                     receivers=recipients,
-                    message=body + ' Xihan',
+                    message=body,
                     paths_to_attachments=[file_path_xihan],
-                    subject=subject + ' Xihan')
+                    subject=subject)
 
         _map = {wr_table_name: lib_pk_col_name,
                 rs_table_name: rs_pk_col_name,
@@ -153,11 +163,23 @@ def run(input_libs, customer_emails, test):
 
             df.to_excel(file_path_rest)
             
+            body = f'''
+            THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}
+            \n
+            Dear Jesper, Marie-Louise and Nicolaj,           
+            \n
+            The sample metadata database (SMDB) is missing data from you. 
+            See attached document to see which data is missing (the empty cells), and what IDs they should reference 
+            (the non-empty cells). 
+            \n 
+            Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
+            '''
+            
             send_email(sender=sender_email,
                     receivers=recipients,
-                    message=body + ' ML and Jesper',
+                    message=body,
                     paths_to_attachments=[file_path_rest],
-                    subject=subject + ' ML and Jesper')
+                    subject=subject)
             
     finally:
         if os.path.exists(file_path_rest):
@@ -165,7 +187,6 @@ def run(input_libs, customer_emails, test):
         if os.path.exists(file_path_xihan):
             os.remove(file_path_xihan)
             
-        
 if __name__ == "__main__":
         # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Send emails reminding people to upload missing meta data")
@@ -181,7 +202,7 @@ if __name__ == "__main__":
         "-c",
         "--customer_emails",
         type=str,
-        required=True,
+        required=False,
         nargs="+",
         help="Email of customer(s) that should receive an overview of missing metadata (space-separated). NOT IMPLEMENTED."
     )
@@ -189,9 +210,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-t",
         "--test",
-        type=bool,
+        action='store_true',
         required=False,
-        nargs=1,
         help="Only for testing the script"
     )
 
