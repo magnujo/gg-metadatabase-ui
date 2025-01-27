@@ -556,7 +556,7 @@ def confirmed():
             row_count_errors = {}
             num_of_uploaded_rows = {}
             num_of_upload_ids_in_db = {}
-            upload_id = uuid.uuid4()
+            upload_id = str(session.get("session_dir"))
             session['upload_id'] = upload_id
             upload_time = pd.Timestamp.now(tz='UTC')
 
