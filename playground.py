@@ -1,28 +1,27 @@
-import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import PatternFill
+from openpyxl.formatting.rule import CellIsRule, FormulaRule
 
-# Create a DataFrame
-data = {'Name': ['Alice', 'Bob', 'Charlie'], 'Choice': [''] * 3}
-df = pd.DataFrame(data)
+# Open the .xlsm workbook
+file_path = "example.xlsm"
+workbook = load_workbook(file_path, keep_vba=True)
+sheet = workbook.active  # Select the active worksheet
 
-# Write DataFrame to an Excel file
-excel_path = 'example.xlsx'
-with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
-    df.to_excel(writer, index=False, sheet_name='Sheet1')
+# Define a fill for conditional formatting
+green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
 
-# Open the file with openpyxl to add dropdowns
-wb = load_workbook(excel_path)
-ws = wb['Sheet1']
+# Add conditional formatting for cells greater than 50
+sheet.conditional_formatting.add(
+    "A1:A10",  # Range to apply the rule
+    CellIsRule(operator="greaterThan", formula=["50"], stopIfTrue=True, fill=green_fill)
+)
 
-# Create a dropdown list
-dropdown = DataValidation(type='list', formula1='"Option1,Option2,Option3"', allow_blank=True)
-ws.add_data_validation(dropdown)
+# Add conditional formatting for even numbers using a formula
+sheet.conditional_formatting.add(
+    "B1:B10",  # Range to apply the rule
+    FormulaRule(formula=["MOD(ROW(), 2) = 0"], stopIfTrue=True, fill=red_fill)
+)
 
-# Apply the dropdown to the desired column (e.g., 'Choice' column)
-for row in range(2, len(df) + 2):  # Excel rows start at 1, header is row 1
-    cell = f'B{row}'  # 'B' is the second column (Choice column)
-    dropdown.add(ws[cell])
-
-# Save the updated file
-wb.save(excel_path)
+# Save the workbook
+workbook.save("example_with_conditional_formatting.xlsm")

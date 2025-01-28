@@ -163,7 +163,7 @@ def upload_file():
             if database_table_name == "no_choice" or not database_table_name:
                 raise DontTriggerFileDeletion('Please select a spreadsheet type')
             
-            os.makedirs(session_dir)
+            os.makedirs(session_dir, exist_ok=False)
         
         # Dont delete session dir on error before the session dir has been created. This might otherwise delete a dir by mistake.
         except Exception as e:
@@ -233,6 +233,8 @@ def upload_file():
             file_name = f'{database_table_name}_{file_name}'
             session['file_name'] = file_name
             
+            file_path_temp = file_path
+            
             if file and allowed_file(file_name):
                 file_path = os.path.join(session_dir, ORIGINAL_FILES, file_name)
             else:
@@ -248,7 +250,8 @@ def upload_file():
             database_table_name = request.form.get('database_table_name')
             
             if not os.path.exists(file_path):
-                file.save(file_path)
+                shutil.copy(file_path_temp, file_path)
+                # file.save(file_path)
             else:
                 raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
             
@@ -556,7 +559,7 @@ def confirmed():
             row_count_errors = {}
             num_of_uploaded_rows = {}
             num_of_upload_ids_in_db = {}
-            upload_id = uuid.uuid4()
+            upload_id = str(session.get("session_id"))
             session['upload_id'] = upload_id
             upload_time = pd.Timestamp.now(tz='UTC')
 
@@ -710,7 +713,10 @@ def confirmed():
             if '--no_file_test' in sys.argv and os.path.exists(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name)) or file_name=="laneBarcode.html":
                 pass
             else:
-                shutil.copy(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name), UPLOADED_FILES)
+                suf = str(Path(str(file_name)).suffix)
+                stem = str(Path(str(file_name)).stem)
+                file_name_with_upload_id = stem + '_' + str(session.get('session_id')) + suf
+                shutil.copy(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name), os.path.join(UPLOADED_FILES, file_name_with_upload_id))
                 # shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
                 
                        
