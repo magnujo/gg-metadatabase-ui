@@ -5,13 +5,14 @@ from sqlalchemy import create_engine
 active_database_name = 'aedna_metadata_test'
 active_host = 'dandypdb01fl'
 active_port = '5432'
+pw = os.environ.get('PGPASSWORD')
 
 DATABASE_CONFIG_READ_ONLY = {
     'host': active_host,
     'dbname': active_database_name,
     'port': active_port,
     'user': 'read_user',
-    'password': r'mv5&8B%eKuoE8D',
+    'password': pw,
 }
 
 ENGINE_READ_ONLY = create_engine(
@@ -25,7 +26,6 @@ PSY_CONN_READ_ONLY = psycopg2.connect(
             port=DATABASE_CONFIG_READ_ONLY["port"]
         )
 
-pw = os.environ.get('PGPASSWORD')
 
 if pw:
     RUN_MODE_OPTIONS = ['production', 'development']
