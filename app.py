@@ -742,10 +742,10 @@ def confirmed():
                 print(send_receipt_to)
                 send_email([send_receipt_to],
                            f'''                           
-                           Meta data has been uploaded on your behalf to the GeoGenetics Sample Metadata Database (SMDB). See appended file to review the data. 
-                           NOTE: If the data is incorrect, it is your responsibility to fix it. 
-                           
-                           This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
+Meta data has been uploaded on your behalf to the GeoGenetics Sample Metadata Database (SMDB). See appended file to review the data. 
+NOTE: If the data is incorrect, it is your responsibility to fix it. 
+
+This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
                            ''',
                            'Action required: Your data was uploaded to the SMDB',
                            [path_to_excel_receipt])
