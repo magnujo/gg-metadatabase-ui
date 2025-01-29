@@ -337,9 +337,10 @@ def parse_booleans(sheet, boolean_columns):
     
     for col in boolean_columns:
         if col in sheet.columns:
+            sheet[col] = sheet[col].astype(str).str.lower()
             bad_values[col] = []
             
-            for index, value in sheet[col].astype(str).str.lower().items():
+            for index, value in sheet[col].items():
                 if value != 'none' and value != 'nan':
                     if value.lower() not in expected_vals:
                         bad_values[col].append(index + 2)
