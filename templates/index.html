@@ -87,6 +87,10 @@
         .form-group {
             margin-bottom: 15px;
         }
+        .note {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -179,9 +183,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Your e-mail:</label>
+                    <label for="email">Your email address:</label>
                     <input type="email" id="email" name="email" required>
                 </div>
+
+                <div class="form-group">
+                    <label for="send_receipt_to">Email address of upload receipt recipient: </label>
+                    <p class="note">Enter the email address of the person who should receive an email with all the uploaded data attached, so that they can review and validate.</p>         
+                    <input type="email" id="send_receipt_to" name="send_receipt_to" required>
+                </div>
+
+                
 
                 <div>
                     <button type="submit">Begin the 2-step upload process</button>

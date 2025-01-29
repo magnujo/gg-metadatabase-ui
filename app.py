@@ -146,6 +146,8 @@ def upload_file():
             decimal_point = request.form.get('decimal_point')
             thousands_seperator = request.form.get('thousands_seperator')
             encoding_user_input = request.form.get('encoding_type')
+            send_receipt_to = request.form.get('encoding_type')
+            session['send_receipt_to'] = send_receipt_to
             session['encoding_user_input'] = encoding_user_input
             
             if thousands_seperator == "no_choice" or not thousands_seperator:
@@ -735,9 +737,15 @@ def confirmed():
                         uploaded_data = uploaded_data.rename(columns=rename_map)
                         uploaded_data.to_excel(writer, sheet_name=table_name, index=False)
                 
-                send_email(['magnus.johannsen@sund.ku.dk'],
-                           'Hello',
-                           'hello',
+                send_receipt_to = session.get('send_receipt_to')
+                send_email([send_receipt_to],
+                           'Sample metadata database upload receipt',
+                           f'''
+                           This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
+                           
+                           Meta data has been uploaded on your behalf to the Sample Metadata Database (SMDB). See appended file to review the data. 
+                           NOTE: If the data is incorrect, it is your responsibility to fix it. 
+                           ''',
                            [path_to_excel_receipt])
                        
         except Exception as e:
