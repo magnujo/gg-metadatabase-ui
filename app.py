@@ -146,7 +146,7 @@ def upload_file():
             decimal_point = request.form.get('decimal_point')
             thousands_seperator = request.form.get('thousands_seperator')
             encoding_user_input = request.form.get('encoding_type')
-            send_receipt_to = request.form.get('encoding_type')
+            send_receipt_to = request.form.get('send_receipt_to')
             session['send_receipt_to'] = send_receipt_to
             session['encoding_user_input'] = encoding_user_input
             
@@ -737,15 +737,17 @@ def confirmed():
                         uploaded_data = uploaded_data.rename(columns=rename_map)
                         uploaded_data.to_excel(writer, sheet_name=table_name, index=False)
                 
-                send_receipt_to = session.get('send_receipt_to')
+                send_receipt_to = str(session.get('send_receipt_to'))
+                print('EMAIL:')
+                print(send_receipt_to)
                 send_email([send_receipt_to],
-                           'Sample metadata database upload receipt',
-                           f'''
-                           This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
-                           
-                           Meta data has been uploaded on your behalf to the Sample Metadata Database (SMDB). See appended file to review the data. 
+                           f'''                           
+                           Meta data has been uploaded on your behalf to the GeoGenetics Sample Metadata Database (SMDB). See appended file to review the data. 
                            NOTE: If the data is incorrect, it is your responsibility to fix it. 
+                           
+                           This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
                            ''',
+                           'Action required: Your data was uploaded to the SMDB',
                            [path_to_excel_receipt])
                        
         except Exception as e:
