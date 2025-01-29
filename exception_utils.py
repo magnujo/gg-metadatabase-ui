@@ -7,6 +7,7 @@ from functools import wraps
 from flask import redirect, url_for, session
 import pandas as pd
 import os
+from pathlib import Path
 from constants.misc_constants import DELETED_SESSION_DATA, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, UPLOADED_FILES
 import psycopg2
 import shutil
@@ -26,9 +27,13 @@ def delete_files(file_name, session_dir, delete_session_dir, original=False, par
                         raise Exception("Session dir could not be found")
         
         if uploaded:
-                
-                origin_path = os.path.join(UPLOADED_FILES, file_name)
+                uploaded_id = str(session.get('session_id'))
+                suf = str(Path(str(file_name)).suffix)
+                stem = str(Path(str(file_name)).stem)
+                file_name_with_upload_id = stem + '_' + uploaded_id + suf
+                origin_path = os.path.join(UPLOADED_FILES, file_name_with_upload_id)
                 timestamp = str(datetime.now().strftime("%Y%m%d_%H%M%S"))
+                
                 destination_dir = os.path.join(DELETED_SESSION_DATA, "failed_upload_files", timestamp)
                 
                 if os.path.exists(origin_path):

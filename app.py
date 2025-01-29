@@ -1,3 +1,4 @@
+from utils.send_email import send_email
 import argparse
 import generate_template
 import numpy as np
@@ -24,7 +25,6 @@ from utils import misc
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import Email, DataRequired
-import send_email
 import lane_barcode_parser
 from sqlalchemy.exc import SQLAlchemyError
 import psycopg2
@@ -87,8 +87,8 @@ def index():
         
         example_sheets = os.listdir(misc_constants.PATH_TO_STANDARD_SHEETS)
     
-        return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS, ALLOWED_ENCODINGS=ALLOWED_ENCODINGS)
- 
+        return render_template('index.html', example_sheets=example_sheets, SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS, ALLOWED_ENCODINGS=ALLOWED_ENCODINGS)         
+
 
 @app.route('/upload', methods=['POST'])
 @decorators.log_info(app)
@@ -468,6 +468,8 @@ def upload_file():
                     clean_sheet.to_csv(write_path, index=False, encoding=session.get('encoding_user_input'), sep="\t")
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
+                
+
 
             return redirect(url_for("confirmation_request"))
         
@@ -545,6 +547,8 @@ def confirmation_request():
 @decorators.log_info(app)
 def confirmed():
     with lock:
+        path_to_excel_receipt = os.path.join(session.get('session_dir'), 'excel_receipts', 'excel_receipt.xlsx')
+
         print("Confirmed")
         try:
             if session.get("error") == True:
@@ -719,9 +723,26 @@ def confirmed():
                 shutil.copy(os.path.join(str(session.get("session_dir")), ORIGINAL_FILES, file_name), os.path.join(UPLOADED_FILES, file_name_with_upload_id))
                 # shutil.move(os.path.join(ORIGINAL_FILES, file_name), UPLOAD_FOLDER)
                 
+                os.mkdir(os.path.dirname(path_to_excel_receipt))
+                with pd.ExcelWriter(path_to_excel_receipt, engine='openpyxl') as writer:
+                    for i, table_name in enumerate(table_splits):
+
+                        uploaded_data = pd.read_sql(f'''
+                                                    select * from "{data()}"."{table_name}" where upload_uuid = '{str(session.get('upload_id'))}'
+                                                    ''', con=ENGINE_READ_ONLY)
+                        uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
+                        rename_map = db_to_sheet_rename_map(data(), table_name)
+                        uploaded_data = uploaded_data.rename(columns=rename_map)
+                        uploaded_data.to_excel(writer, sheet_name=table_name, index=False)
+                
+                send_email(['magnus.johannsen@sund.ku.dk'],
+                           'Hello',
+                           'hello',
+                           [path_to_excel_receipt])
                        
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
+        
         
         
         # if database_table_name == 'field_sample':          
@@ -772,10 +793,11 @@ def cancel_upload():
 @app.route('/success', methods=['GET'])
 @decorators.log_info(app)
 def success():
+    
     try:
         if session.get('error') == True:
             return redirect(url_for("index"))
-              
+
         file_name = session.get('file_name')
         database_table_name = session.get('database_table_name')
         summaries = []
@@ -784,6 +806,7 @@ def success():
             caption = f'<br><h3 align="center" id="{table}">Table {i+1}: {table}</h3>'
             
             uploaded_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{table} where upload_uuid = \'{session.get('upload_id')}\';", con=ENGINE)
+            
             uploaded_data = misc.drop_auto_generated_columns(uploaded_data) # To not display the auto generated columns
             summary = (
                 uploaded_data
@@ -796,18 +819,22 @@ def success():
                 .to_html(classes='table table-striped', na_rep=" ", justify="center")
             )
             
+            
+                        
             summary = caption + summary
             summaries.append(summary)
             uploaded_data = uploaded_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
             uploaded_data = caption + uploaded_data
             all_tables.append(uploaded_data)
+            
         return render_template('results.html',  admin_emails=ADMIN_EMAIL, table_names=db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name], 
                            uploaded_data=all_tables, summaries=summaries, file_name=file_name, database_table_name=database_table_name)
 
 
     except Exception as e:
-        return general_error_handling(message=e, delete_db_entries=True, 
+        return general_error_handling(message=e, revert_db=True, delete_session_dir=True,
                                       files_to_del=files_to_del['After Upload'])
+
 
 @app.route('/error', methods=['GET'])
 @decorators.log_info(app)
@@ -900,6 +927,7 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
         session["error"] = True
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
+        session_dir = session.get('session_dir')
         error_messages_user = []
         user_error, admin_error = generate_html_message(message)
         error_messages_user.append(user_error)
@@ -940,7 +968,10 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
                     
                         delete_db_entries(table, upload_id=upload_id, num_of_rows_to_del=num_of_rows_to_del)
                         
-        delete_files(file_name=file_name, **files_to_del, session_dir=str(session.get("session_dir")), delete_session_dir=delete_session_dir)
+        delete_files(file_name=file_name, 
+                     **files_to_del, 
+                     session_dir=str(session.get("session_dir")), 
+                     delete_session_dir=delete_session_dir)
         # session.clear()
         
         session['error_message_user'] = error_messages_user
