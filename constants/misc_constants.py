@@ -124,7 +124,8 @@ AUTO_GENERATED_COLUMNS = ['database_insert_by',
                           'upload_uuid',
                           'depth_id',
                           'fastq_path',
-                          'prod_res_path']
+                          'prod_res_path',
+                          'clean_id']
 
 
 DB_CHARACTER_ENCODING = 'UTF-8'

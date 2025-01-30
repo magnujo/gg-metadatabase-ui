@@ -1,0 +1,198 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Data Upload and Verification Interface">
+    <title>⚠️Warning ⚠️</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="#">
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/css/jquery.dataTables.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #ff4646;
+            --danger-color: #dc3545;
+            --success-color: rgb(0, 0, 0);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .upload-steps {
+            background: #ff2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .alert-info {
+            background: #000000;
+            border: 1px solid #ff9f9f31;
+
+        }
+
+        .summary-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border: 1px solid #ff000031;
+            border-radius: 8px;
+        }
+
+        .data-tables-section {
+    margin: 4rem 0 4rem 0; /* Adjust top and bottom margin */
+    width: 100vw; /* Make it span the full viewport width */
+    max-width: 145%; /* Prevents it from shrinking */
+    position: relative;
+    left: -15vw; /* Moves it slightly off-center to the left */
+}
+        .table-responsive {
+            margin: 2rem 0;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .action-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .btn-confirm {
+            background-color: var(--success-color);
+            color: rgb(255, 0, 0);
+            padding: 0.5rem 2rem;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 0.5rem 2rem;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-confirm:hover, .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            background-color: red;
+        }
+
+        .btn-confirm:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* DataTables customization */
+        .dataTables_wrapper {
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+            <!-- Header Section -->
+            <div class="upload-steps">
+                
+                <br>
+                <h1 class="h3 text-center mb-3">!⚠️ DUPLICATE GPS COORDINATES WARNING ⚠️! <br><br><br> READ THE BELOW WARNING MESSAGE CAREFULLY BEFORE CONTINUING:</h1>
+                
+                <br>
+                <div class="alert alert-info">
+                    <p class="mb-0" style="color: #ff5959;">
+                        ⚠️ WARNING: The GPS coordinates you are trying upload falls within 10km of coordinates 
+                        that are already in the database. To make sure you are not uploading already uploaded data,
+                        review the below data from the database. When you are certain you are not trying
+                        to upload data that already exists in the database, you can click Continue which will start the 2 step upload process. 
+
+                    </p>
+                </div>
+            </div>
+
+            <!-- Data Tables Section -->
+            <div class="data-tables-section">
+                <h2 class="h4 text-center mb-4">⚠️ Similar data already in the database:</h2>
+                {% for df in duplicates %}
+                    <div class="table-responsive">
+                        {{ df|safe }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+
+    <!-- Fixed Action Buttons -->
+    <div class="action-buttons">
+        <form action="/cancel_upload" method="get" enctype="multipart/form-data" class="d-inline">
+            <button type="submit" class="btn btn-cancel">Cancel Upload</button>
+        </form>
+        <form id="confirmForm" action="/accept_warning" method="post" enctype="multipart/form-data" class="d-inline">
+            <button id="confirmButton" type="submit" class="btn btn-confirm">Continue ⚠️</button><p></p>
+        </form>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize DataTables with enhanced configuration
+            const tables = document.querySelectorAll('table');
+            tables.forEach(table => {
+                $(table).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    responsive: true,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    language: {
+                        search: "Search data:",
+                        lengthMenu: "Show _MENU_ entries per page",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries"
+                    }
+                });
+            });
+
+            // Handle form submission and button state
+            const confirmForm = document.getElementById('confirmForm');
+            const confirmButton = document.getElementById('confirmButton');
+
+            confirmForm.addEventListener('submit', function(e) {
+                confirmButton.disabled = true;
+                confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+            });
+        });
+    </script>
+</body>
+</html>

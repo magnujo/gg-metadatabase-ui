@@ -56,6 +56,8 @@ from logging.handlers import RotatingFileHandler
 import uuid
 from geopy.distance import geodesic
 
+lat_lon_warning_path = os.path.join('warnings', 'latlon_warning.html')
+
 
 def is_similar_location(lat1, lon1, lat2, lon2, threshold=1):
     return geodesic((lat1, lon1), (lat2, lon2)).km <= threshold
@@ -95,7 +97,7 @@ def index():
 
 
 @app.route('/upload', methods=['POST'])
-@decorators.log_info(app)
+# @decorators.log_info(app)
 def upload_file():
     with upload_lock:
         # logger.info('Running: ' + str(index.__name__))
@@ -387,18 +389,24 @@ def upload_file():
                     # Check for similar lat long
                     existing_data = pd.read_sql(f'SELECT * FROM "{data()}"."{data.field_sample()}"', ENGINE_READ_ONLY)
                     # Check for exact matches or very similar coordinates
-                    matches = []
+                    latlon_warnings = pd.DataFrame(columns=clean_sheet.columns)
                     
+                    for _, row in clean_sheet[~clean_sheet.duplicated(subset=['latitude', 'longitude'])].iterrows():
+                        lat = row['latitude']
+                        lon = row['longitude']
+                        
+                        distances = queries.get_geo_distances_from_db_table(latitiude_coord=lat, 
+                                                                            longitude_coord=lon, 
+                                                                            table='field_sample', 
+                                                                            schema='test_1', 
+                                                                            longitude_column_name='longitude', 
+                                                                            latitude_column_name='latitude',
+                                                                            distance_threshold=10000,
+                                                                            db_engine=ENGINE_READ_ONLY)
+                        distances = misc.drop_auto_generated_columns(distances)
+                        latlon_warnings = pd.concat([latlon_warnings, distances])
                     
-                    for _, row in clean_sheet.iterrows():
-                        lat, lon = row[data.field_sample.latitude()], row[data.field_sample.longitude()]
-                        for _, existing_row in existing_data.iterrows():
-                            existing_lat, existing_lon = existing_row[data.field_sample.latitude()], existing_row[data.field_sample.longitude()]
-                            if is_similar_location(lat, lon, existing_lat, existing_lon):
-                                matches.append(existing_row)
-                    
-                    similar_coords = pd.DataFrame(columns=existing_data.columns, index=matches)
-
+                    latlon_warnings = latlon_warnings.drop(columns='distance')
                     
                     parent_col = data.field_sample.master_id_parent_sample_id()
                     project_col = data.field_sample.running_project_title()
@@ -492,17 +500,28 @@ def upload_file():
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
             
-            if matches: 
-                return render_template(
-                'duplicate_warning.html',
-                duplicates=[similar_coords]
-            )
+            if len(latlon_warnings) > 0: 
+                warnings_path = os.path.join(session_dir, lat_lon_warning_path)
+                os.mkdir(os.path.dirname(warnings_path))
+                latlon_warnings = latlon_warnings.rename(columns=db_to_sheet_col_name_map, errors="raise")
+                latlon_warnings.to_csv(warnings_path, index=False)
+                return redirect(url_for("duplicate_warning"))
+                
             
+    
             return redirect(url_for("confirmation_request"))
         
                 
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
+
+@app.route('/duplicate_warning')
+def duplicate_warning():
+    latlon_warnings_path = os.path.join(str(session.get('session_dir')), lat_lon_warning_path)
+    latlon_warnings = pd.read_csv(latlon_warnings_path)
+    return render_template('duplicate_warning.html',
+                           duplicates=[latlon_warnings.to_html(na_rep=" ", justify="center", classes="table table-striped")])
+    
 
 
 def handle_enum_columns(parsed_sheet, table_name):
@@ -824,6 +843,11 @@ def make_field_sample_dirs(clean_sheets, table_splits):
 @decorators.log_info(app)
 def cancel_upload():
     return redirect(url_for("index"))
+
+@app.route('/accept_warning', methods=['POST'])
+@decorators.log_info(app)
+def accept_warning():
+    return redirect(url_for("confirmation_request"))
 
 @app.route('/success', methods=['GET'])
 @decorators.log_info(app)

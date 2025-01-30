@@ -70,7 +70,41 @@ def get_primary_key(table_name, schema_name, database_name, engine):
     '''
     df = pd.read_sql_query(q, engine)
     return list(df['column_name'])
+
+def get_geo_distances_from_db_table(latitiude_coord,
+                                longitude_coord,
+                                table,
+                                schema, 
+                                longitude_column_name, 
+                                latitude_column_name,  
+                                db_engine,
+                                distance_threshold: int=None):
     
+    '''
+    Returns a dataframe with a distance column added that contains the distance from the input coordinates to the
+    coordinates in the table.
+    
+    If distance_threshold is set, only records where distance (m) is lower than distance_threshold (m) will be returned. 
+    '''
+    
+    query = f'''
+    SELECT *, (point({longitude_column_name}, {latitude_column_name}) <@> point({longitude_coord}, {latitiude_coord})) * 1609.344 AS distance
+    FROM
+    "{schema}"."{table}"
+    '''
+         
+    if distance_threshold:
+        query = f'''
+        SELECT *, (point({longitude_column_name}, {latitude_column_name}) <@> point({longitude_coord}, {latitiude_coord})) * 1609.344 AS distance
+        FROM
+        "{schema}"."{table}"
+        WHERE
+            (point({longitude_column_name}, {latitude_column_name}) <@> point({longitude_coord}, {latitiude_coord})) < ({distance_threshold} / 1609.344)
+        ORDER BY
+        distance;
+        '''   
+    
+    return pd.read_sql(query, db_engine)
     
 
 def get_table_information(table_name, schema_name, engine):
