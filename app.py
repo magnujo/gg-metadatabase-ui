@@ -54,7 +54,11 @@ from datetime import datetime
 import logging
 from logging.handlers import RotatingFileHandler
 import uuid
+from geopy.distance import geodesic
 
+
+def is_similar_location(lat1, lon1, lat2, lon2, threshold=1):
+    return geodesic((lat1, lon1), (lat2, lon2)).km <= threshold
 
 search_id = 0
 env_vars = {'PRODUCTION': None}
@@ -350,6 +354,7 @@ def upload_file():
                     
 
                 if split_database_table_name == data.age_depth_model() or split_database_table_name == data.master_depth():
+                    
                 
                     
                     if len(master_ids) < 1:
@@ -378,6 +383,23 @@ def upload_file():
                             raise Exception(f"Master ID '{master_id}' is not allowed or does not exist in the database. Please rename your Master ID(s) so it refers to an existing Master ID or upload the missing Field Samples data")
                 
                 if split_database_table_name == data.field_sample():
+                    
+                    # Check for similar lat long
+                    existing_data = pd.read_sql(f'SELECT * FROM "{data()}"."{data.field_sample()}"', ENGINE_READ_ONLY)
+                    # Check for exact matches or very similar coordinates
+                    matches = []
+                    
+                    
+                    for _, row in clean_sheet.iterrows():
+                        lat, lon = row[data.field_sample.latitude()], row[data.field_sample.longitude()]
+                        for _, existing_row in existing_data.iterrows():
+                            existing_lat, existing_lon = existing_row[data.field_sample.latitude()], existing_row[data.field_sample.longitude()]
+                            if is_similar_location(lat, lon, existing_lat, existing_lon):
+                                matches.append(existing_row)
+                    
+                    similar_coords = pd.DataFrame(columns=existing_data.columns, index=matches)
+
+                    
                     parent_col = data.field_sample.master_id_parent_sample_id()
                     project_col = data.field_sample.running_project_title()
                     id_col = data.field_sample.field_sample_id()
@@ -457,8 +479,7 @@ def upload_file():
                                                         Tell the responsible uploader to upload the missing data first, \
                                                             or make sure that there are no typos in the IDs. Below is a list of tables and responsible uploaders: \n {misc_constants.RESPONSIBLE_UPLOADERS}")
                 
-                clean_sheets.append((clean_sheet, split_database_table_name))
-                
+                clean_sheets.append((clean_sheet, split_database_table_name))                
 
             for i, (clean_sheet, table_name) in enumerate(clean_sheets):
                 db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=table_name)
@@ -470,9 +491,13 @@ def upload_file():
                     clean_sheet.to_csv(write_path, index=False, encoding=session.get('encoding_user_input'), sep="\t")
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
-                
-
-
+            
+            if matches: 
+                return render_template(
+                'duplicate_warning.html',
+                duplicates=[similar_coords]
+            )
+            
             return redirect(url_for("confirmation_request"))
         
                 
