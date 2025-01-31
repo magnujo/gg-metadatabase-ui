@@ -288,10 +288,12 @@ def upload_file():
                 
                 
                 # TODO: Check that no two columns are the same with lower()
-            
+
+                uploader_email = request.form['email']
+                session['uploader_email'] = uploader_email
                 
                 # Adds rows about which user was responsible for the upload:
-                clean_sheet['database_insert_by'] = request.form['email']
+                clean_sheet['database_insert_by'] = uploader_email
                 
                 # Adds information about which file the data came from:
                 clean_sheet['upload_sheet'] = file_name
@@ -784,8 +786,7 @@ def confirmed():
                         uploaded_data.to_excel(writer, sheet_name=table_name, index=False)
                 
                 send_receipt_to = str(session.get('send_receipt_to'))
-                print('EMAIL:')
-                print(send_receipt_to)
+
                 send_email([send_receipt_to],
                            f'''                           
 Meta data has been uploaded on your behalf to the GeoGenetics Sample Metadata Database (SMDB). See appended file to review the data. 
