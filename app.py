@@ -501,7 +501,7 @@ def upload_file():
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
             
-            if latlon_warnings:
+            if type(latlon_warnings) == pd.DataFrame:
                 if len(latlon_warnings) > 0: 
                     warnings_path = os.path.join(session_dir, lat_lon_warning_path)
                     os.mkdir(os.path.dirname(warnings_path))
