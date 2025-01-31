@@ -110,6 +110,7 @@ def upload_file():
         session['visited_success'] = False
         session['email_send'] = False
         session['session_dir_created'] = False
+        latlon_warnings = None
         
         
         file = request.files['file']
@@ -500,13 +501,14 @@ def upload_file():
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
             
-            if len(latlon_warnings) > 0: 
-                warnings_path = os.path.join(session_dir, lat_lon_warning_path)
-                os.mkdir(os.path.dirname(warnings_path))
-                latlon_warnings = latlon_warnings.rename(columns=db_to_sheet_col_name_map, errors="raise")
-                latlon_warnings.to_csv(warnings_path, index=False)
-                return redirect(url_for("duplicate_warning"))
-                
+            if latlon_warnings:
+                if len(latlon_warnings) > 0: 
+                    warnings_path = os.path.join(session_dir, lat_lon_warning_path)
+                    os.mkdir(os.path.dirname(warnings_path))
+                    latlon_warnings = latlon_warnings.rename(columns=db_to_sheet_col_name_map, errors="raise")
+                    latlon_warnings.to_csv(warnings_path, index=False)
+                    return redirect(url_for("duplicate_warning"))
+                    
             
     
             return redirect(url_for("confirmation_request"))
