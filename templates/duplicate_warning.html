@@ -53,10 +53,6 @@
 
         .data-tables-section {
     margin: 4rem 0 4rem 0; /* Adjust top and bottom margin */
-    width: 100vw; /* Make it span the full viewport width */
-    max-width: 145%; /* Prevents it from shrinking */
-    position: relative;
-    left: -15vw; /* Moves it slightly off-center to the left */
 }
         .table-responsive {
             margin: 2rem 0;
@@ -190,7 +186,7 @@
 
             confirmForm.addEventListener('submit', function(e) {
                 confirmButton.disabled = true;
-                confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+                confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
             });
         });
     </script>

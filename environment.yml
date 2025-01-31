@@ -30,6 +30,7 @@ dependencies:
   - plotly=5
   - rise
   - pywin32
+  - geopy
   - pip:
     - pretty_html_table
     - jupyterlab
