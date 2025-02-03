@@ -35,7 +35,7 @@ def run(input_libs, customer_emails, test):
         'dbname': 'aedna_metadata_test',
         'port': '5432',
         'user': 'read_user',
-        'password': r'mv5&8B%eKuoE8D',
+        'password': r'5J8DhII0RRsPW1',
     }
     ENGINE_READ_ONLY = create_engine(
         f"postgresql://{DATABASE_CONFIG_READ_ONLY['user']}:{DATABASE_CONFIG_READ_ONLY['password']}@{DATABASE_CONFIG_READ_ONLY['host']}:{DATABASE_CONFIG_READ_ONLY['port']}/{DATABASE_CONFIG_READ_ONLY['dbname']}")
