@@ -288,10 +288,12 @@ def upload_file():
                 
                 
                 # TODO: Check that no two columns are the same with lower()
-            
+
+                uploader_email = request.form['email']
                 
+                session['uploader_email'] = uploader_email
                 # Adds rows about which user was responsible for the upload:
-                clean_sheet['database_insert_by'] = request.form['email']
+                clean_sheet['database_insert_by'] = uploader_email
                 
                 # Adds information about which file the data came from:
                 clean_sheet['upload_sheet'] = file_name
@@ -784,17 +786,31 @@ def confirmed():
                         uploaded_data.to_excel(writer, sheet_name=table_name, index=False)
                 
                 send_receipt_to = str(session.get('send_receipt_to'))
-                print('EMAIL:')
-                print(send_receipt_to)
-                send_email([send_receipt_to],
-                           f'''                           
+                uploader_email = str(session.get('uploader_email'))
+                
+                
+                receipt_message = f'''                           
 Meta data has been uploaded on your behalf to the GeoGenetics Sample Metadata Database (SMDB). See appended file to review the data. 
 NOTE: If the data is incorrect, it is your responsibility to fix it. 
 
 This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
-                           ''',
+                           '''
+                uploader_message = f'''
+The appended data was succesfully uploaded to SMDB. 
+
+This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
+                '''
+
+                send_email([send_receipt_to],
+                           receipt_message,
                            'Action required: Your data was uploaded to the SMDB',
                            [path_to_excel_receipt])
+                
+                if not uploader_email == send_receipt_to:
+                    send_email([uploader_email],
+                            uploader_message,
+                            'SMDB Upload Receipt',
+                            [path_to_excel_receipt])
                        
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
