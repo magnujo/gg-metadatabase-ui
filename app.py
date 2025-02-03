@@ -481,8 +481,9 @@ def upload_file():
                                 
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
                                 
-                                # if split_database_table_name == data.edna_wetlab_report():
-                                #     diff = set()
+                                # TODO: Remove this after all data has been uploaded by Jesper
+                                if split_database_table_name == data.edna_wetlab_report():
+                                    diff = set()
        
                                 if len(diff) != 0:                                
                                     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
