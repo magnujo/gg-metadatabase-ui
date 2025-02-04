@@ -146,13 +146,13 @@ def run(input_libs, customer_emails, test):
                     file.write(f"{item}\n")
                     
             body = f'''
-            THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}
-            \n
-            Dear Xihan,           
-            \n
-            The sample metadata database (SMDB) is missing data about certain libraries. See attached document to see which. 
-            \n 
-            Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
+THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}.
+
+
+Dear Xihan,           
+
+The sample metadata database (SMDB) is missing data about certain libraries. See attached document to see which. 
+Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
             '''
             
             send_email(sender=sender_email,
@@ -188,18 +188,18 @@ def run(input_libs, customer_emails, test):
             df.to_excel(file_path_rest)
             
             body = f'''
-            THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}
-    
-    
-            Dear Jesper, Marie-Louise and Nicolaj,           
-    
-            The sample metadata database (SMDB) is missing data from you. See attached document to see which data is missing.
-           
-            The columns that begins with 'referencing', shows any uploaded IDs that are trying to reference another ID. 
-            However, if the cell in the 'referenced' column on the same row is empty, the ID is not referencing anything.
-            This means that there is no meta data associated with that ID and it needs to be uploaded.
-            
-            Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
+THIS EMAIL IS AUTO-GENERATED. DO NOT REPLY. If you have any questions write to {ADMIN_EMAIL}.
+
+
+Dear Jesper, Marie-Louise and Nicolaj,           
+
+The sample metadata database (SMDB) is missing data from you. See attached document to see which data is missing.
+
+The columns that begins with 'referencing', shows any uploaded IDs that are trying to reference another ID. 
+However, if the cell in the 'referenced' column on the same row is empty, the ID is not referencing anything.
+This means that there is no meta data associated with that ID and it needs to be uploaded.
+
+Please upload the missing data as soon as possible by going to http://dandyweb01fl.unicph.domain:5100/
             '''
             
             send_email(sender=sender_email,

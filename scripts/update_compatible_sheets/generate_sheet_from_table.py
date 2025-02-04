@@ -79,7 +79,7 @@ full outer join information_schema.columns c on (
     # Create a DataFrame from the fetched data
     df = pd.DataFrame(rows, columns=['Column Name', 'Data Type', 'Is Nullable', 'Description'])
     # auto_generated_cols_in_df = [col for col in constants.auto_generated_columns if col in df.columns]
-    df = df[~df['Column Name'].isin(misc_constants.AUTO_GENERATED_COLUMNS)]
+    df = df[~df['Column Name'].isin(misc_constants.SCRIPT_GENERATED_COLUMNS)]
 
 
     # Export the DataFrame to an Excel file

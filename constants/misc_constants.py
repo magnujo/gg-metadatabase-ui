@@ -116,7 +116,7 @@ POSTGRES_TYPES = {'floating_point': ['double precision', 'numeric', 'real', 'dec
                            'timestamp without time zone'],
                   'int_range': ['int4range', 'int8range']}
 
-AUTO_GENERATED_COLUMNS = ['database_insert_by', 
+SCRIPT_GENERATED_COLUMNS = ['database_insert_by', 
                           'from_spreadsheet', 
                           'database_insert_datetime_utc', 
                           'uid', 

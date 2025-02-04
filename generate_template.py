@@ -5,7 +5,7 @@ from utils.misc import calculate_text_box_height, calculate_text_width
 from openpyxl.comments import Comment
 import pandas as pd
 import psycopg2
-from constants.misc_constants import AUTO_GENERATED_COLUMNS, ADMIN_EMAIL
+from constants.misc_constants import SCRIPT_GENERATED_COLUMNS, ADMIN_EMAIL
 from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_rename_map
 from constants.db_names.names import data
 from constants.db_connections import ENGINE_READ_ONLY, DATABASE_CONFIG_READ_ONLY, PSY_CONN
@@ -115,7 +115,7 @@ def generate(table_name, schema_name, conn):
     constraints_df = pd.read_sql(constraints_query, conn)
 
     # Drop auto-generated columns
-    df = df.drop(columns=AUTO_GENERATED_COLUMNS, errors='ignore')
+    df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
 
     # Rename columns based on the renaming map
     renamer = db_to_sheet_rename_map(schema_name=schema_name, table_name=table_name)
@@ -481,7 +481,7 @@ def generate_original(table_name, schema_name, conn):
     constraints_df = pd.read_sql(constraints_query, conn)
 
     # Drop auto-generated columns
-    df = df.drop(columns=AUTO_GENERATED_COLUMNS, errors='ignore')
+    df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
 
     # Rename columns based on the renaming map
     renamer = db_to_sheet_rename_map(schema_name=schema_name, table_name=table_name)

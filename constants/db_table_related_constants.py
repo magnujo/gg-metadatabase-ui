@@ -120,7 +120,8 @@ class DBTableRelated:
     DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
                             data.master_depth(): ['depth_id'],
                             data.age_depth_model(): ['depth_id'],
-                            data.field_sample(): ['clean_id']}
+                            data.field_sample(): ['clean_id', 'field_sample_uuid'],
+                            data.edna_wetlab_report(): ['composite_id']}
 
     def check_for_duplicates():
         print(f"\nRunning tests in {str(inspect.stack()[1].code_context[0]).strip()}...\n")
