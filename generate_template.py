@@ -1,3 +1,4 @@
+from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from PIL import ImageFont, ImageDraw, Image
 import math
 import os
@@ -28,9 +29,15 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 from openpyxl.worksheet.datavalidation import DataValidation
 
-
-
 def generate(table_name, schema_name, conn): 
+    
+    mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
+    non_mandatory_colour = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+    feature_dependent_colour = PatternFill(start_color='D9EFCD', end_color='D9EFCD', fill_type='solid')
+    yellow_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+    center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    border = Border(top=Side('thin'), bottom=Side('thin'), left=Side('thin'), right=Side('thin'))
+    warning_fill = PatternFill(start_color='ff0000', end_color='ff0000', fill_type='solid')
 
     file_name = 'Field Sampling Meta data reporting template'
     extension = '.xlsm'
@@ -73,10 +80,16 @@ def generate(table_name, schema_name, conn):
 
     new_rows = [
         {col_names.field_label(): ""},
-        {col_names.field_sample_id(): "Column colour legend:"},
+        {col_names.field_sample_id(): "Colour legend:"},
+        {col_names.field_label(): " = Bad value. For example if a categorical value is not in the Allowed categorical values sheet or if a latitude value is not between -90 and 90"},
         {col_names.field_label(): " = Mandatory column"},
         {col_names.field_label(): " = Non-mandatory column"},
-        {col_names.field_label(): " = Mandatory depending on environment, type or other features"},
+        {col_names.field_label(): " = Mandatory column depending on environment, type or other features"},
+        {col_names.field_sample_id(): '''
+IMPORTANT: If you get a warning about macros being blocked please do the necessary steps described here to unblock 
+https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216
+         '''},
+        {col_names.field_sample_id(): ""},
         {col_names.field_sample_id(): "Delete this and all rows above before uploading (except row 1 ofcourse!)"}
     ]
     
@@ -181,7 +194,7 @@ def generate(table_name, schema_name, conn):
     for sheet, df in data_map.items():
     
         sheet = workbook[sheet]
-
+    
         # Write DataFrame headers to the first row
         for col_num, header in enumerate(df.columns, start=1):
             sheet.cell(row=1, column=col_num, value=header)
@@ -190,6 +203,8 @@ def generate(table_name, schema_name, conn):
         for row_num, row in enumerate(df.values, start=2):  # Start writing from the second row
             for col_num, value in enumerate(row, start=1):
                 sheet.cell(row=row_num, column=col_num, value=value)
+                
+
     
     # Create a Pandas Excel writer using openpyxl as the engine
     
@@ -205,9 +220,9 @@ def generate(table_name, schema_name, conn):
     instructions = [
         "To limit data insertion errors, please read the instructions below before you begin to insert data:",
         f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. samples that were collected directly from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). If your sample was not collected directly from a sample environment, but was sub sampled from an existing sample, you need to report it as a sub sample using '{data.edna_archive_sample(template=True)}' (find it the same place you found this template). Contact jtstenderup@sund.ku.dk for help with this.",
-        "2. When inserting data in a column, hover over the column name to see its definition.Read the column definition thoroughly before inserting the data, to make sure you are inserting it in the correct column",
-        f"3. There are some columns that only accepts a finite set of categorical values. Inspect the sheet '{enum_sheet_name}', to see what those values are. If you wish to include a categorical value contact {ADMIN_EMAIL} (it wont help if you just add it to the template yourself)", 
-        "4. Before uploading/sending the file, ensure all entries are accurate and complete.",
+        "2. When inserting data in a column, hover over the column name to see its definition. Read the column definition thoroughly before inserting the data, to make sure you are inserting it in the correct column",
+        f"3. There are some columns where you will see a drop-down list when you click on a cell. This means that you can only insert values from that list. You can also see the lists in the '{enum_sheet_name}' sheet. If you wish to include a value to one of these lists, contact {ADMIN_EMAIL} (it wont help if you just add it to the template yourself)", 
+        "4. Before uploading/sending the file, ensure all entries are accurate and complete. It's better to leave a cell empty than to insert a wrong value!",
         "5. Delete any empty rows and columns",
         "6. Delete the yellow row and all the rows above it, except the row with the column names.",
         f"Feel free to contact {ADMIN_EMAIL} if you have any questions or feedback to this template"
@@ -216,6 +231,7 @@ def generate(table_name, schema_name, conn):
     for idx, instruction in enumerate(instructions, start=1):
         guide_sheet[f'A{idx}'] = instruction
 
+    
     # Optionally, adjust column width for better readability
     for col in guide_sheet.columns:
         max_length = 0
@@ -233,19 +249,32 @@ def generate(table_name, schema_name, conn):
     worksheet = workbook[data_sheet_name]
     # bold_format = workbook.add_format({'bold': True})
     
-    # Apply the dropdown to the desired column (e.g., 'Choice' column)
+    # Apply the dropdown validation and conditional formatting
     
-        
+    num_of_rows = 1000  # Number of rows to apply dropdown and conditional formatting to
+    start_row = 2  # The row where the data begins (ie. not including column header)
+
     for i, col in enumerate(df_translated.columns):
+        column_letter_data = get_column_letter(i + 1)
+        print(col)
+        if col == data.field_sample.latitude(template=True):
+            rule = FormulaRule(formula=[f"=OR({column_letter_data}{start_row}< -90, {column_letter_data}{start_row} > 90)"], stopIfTrue=True, fill=warning_fill)
+            worksheet.conditional_formatting.add(f"{column_letter_data}{start_row}:{column_letter_data}{num_of_rows}", rule)  # Adjust the range accordingly
+        
+        if col == data.field_sample.longitude(template=True):
+            rule = FormulaRule(formula=[f"=OR({column_letter_data}{start_row}< -180, {column_letter_data}{start_row} > 180)"], stopIfTrue=True, fill=warning_fill)
+            worksheet.conditional_formatting.add(f"{column_letter_data}{start_row}:{column_letter_data}{num_of_rows}", rule)  # Adjust the range accordingly
+
+        
         if col in enum_sheet.columns:
             dropdown_values = list(enum_sheet[col].dropna())
             formula = f'"{",".join(dropdown_values)}"'
 
-            column_letter_data = get_column_letter(i + 1)
+            
             column_index = enum_sheet.columns.get_loc(col)
             enums_length = len(dropdown_values)
             col_letter_enum = get_column_letter(column_index + 1)
-            formula = f"'Allowed categorical values'!${col_letter_enum}$2:${col_letter_enum}${enums_length+1}"
+            formula = f"'Allowed categorical values'!${col_letter_enum}${start_row}:${col_letter_enum}${enums_length+1}"
             dropdown = DataValidation(
                 type="list",
                 formula1=formula,
@@ -255,17 +284,21 @@ def generate(table_name, schema_name, conn):
                 error="The value you entered is not in the allowed list. Please select a valid value from the dropdown."
             )
             worksheet.add_data_validation(dropdown)
-            for row in range(2, 1000):  # Excel rows start at 1, header is row 1
+            for row in range(start_row, num_of_rows):  # Excel rows start at 1, header is row 1
                 cell = f'{column_letter_data}{row}'  # 'B' is the second column (Choice column)
                 dropdown.add(worksheet[cell])
+
+            # Define the conditional formatting rule
+            formula = f'=AND({column_letter_data}{start_row}<>"", COUNTIF({formula}, {column_letter_data}2)=0)'
+
+            # Apply the formula rule to a range of cells (adjust range as needed)
+            rule = FormulaRule(formula=[formula], stopIfTrue=True, fill=warning_fill)
+
+            
+            worksheet.conditional_formatting.add(f"{column_letter_data}{start_row}:{column_letter_data}{num_of_rows}", rule)  # Adjust the range accordingly
         
     # Define header formats
-    mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
-    non_mandatory_colour = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
-    feature_dependent_colour = PatternFill(start_color='D9EFCD', end_color='D9EFCD', fill_type='solid')
-    yellow_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
-    center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    border = Border(top=Side('thin'), bottom=Side('thin'), left=Side('thin'), right=Side('thin'))
+
 
 
     # Map renamed columns back to the original names for constraint checking
@@ -301,40 +334,6 @@ def generate(table_name, schema_name, conn):
         else:
             cell.fill = non_mandatory_colour
         
-        
-        def calculate_text_width_in_pixels(text, font_path="C:/Windows/Fonts/calibri.ttf", font_size=11):
-            # Load the Calibri font with the specified size
-            font = ImageFont.truetype(font_path, font_size)
-            
-            # Create a dummy image to use ImageDraw
-            img = Image.new('RGB', (1, 1))
-            draw = ImageDraw.Draw(img)
-            
-            # Get the bounding box of the text
-            left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
-            
-            # Calculate the width of the text
-            text_width_pixels = right - left
-            
-            return text_width_pixels
-        
-        
-        def set_comment_height(comment_text, max_chars_per_line=50):
-            base_height = 20  # Base height in pixels
-            extra_height_per_line = 15  # Extra height per line in pixels
-            num_lines = (len(comment_text) // max_chars_per_line) + 1
-            height = base_height + num_lines * extra_height_per_line
-            return height
-        
-        def pixels_to_excel_units(pixel_width, font_size=11):
-            # Excel's default font width assumption (calculated based on width of '0' character)
-            # The value 7 is an approximation for a standard character width in Excel (in pixels)
-            character_width_in_pixels = font_size * 0.6  # Approximate character width based on font size
-            excel_width = pixel_width / character_width_in_pixels
-    
-            return excel_width
-        
-        
         comment = str(comments[comments['Column Name'] == original_col_name]['Comment'].iloc[0])
         
     
@@ -354,16 +353,22 @@ def generate(table_name, schema_name, conn):
         # Align the text in the cell
         cell.alignment = center_alignment
     
-        example_cell = worksheet.cell(row=9, column=col_num + 1)
+        macro_warning_cell = worksheet.cell(row=10, column=col_num + 1)
+        example_cell = worksheet.cell(row=12, column=col_num + 1)
+        
         example_cell.fill = yellow_fill
         example_cell.font = Font(bold=True)
+        macro_warning_cell.fill = warning_fill
+        macro_warning_cell.font = Font(bold=True)
 
-    worksheet.cell(row=6, column=1).fill = mandatory_colour 
+    worksheet.cell(row=6, column=1).fill = warning_fill 
     worksheet.cell(row=6, column=1).border = border 
     worksheet.cell(row=7, column=1).fill = non_mandatory_colour 
     worksheet.cell(row=7, column=1).border = border 
     worksheet.cell(row=8, column=1).fill = feature_dependent_colour 
     worksheet.cell(row=8, column=1).border = border 
+    worksheet.cell(row=9, column=1).fill = mandatory_colour 
+    worksheet.cell(row=9, column=1).border = border 
     
     # Set the row height for the header
     worksheet.row_dimensions[1].height = 61  # Adjust the height as needed
@@ -378,16 +383,6 @@ def generate(table_name, schema_name, conn):
     for col in worksheet.columns:
         col_letter = col[0].column_letter
         worksheet.column_dimensions[col_letter].width = 30
-        
-    vba_macro = """
-    Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
-        On Error Resume Next
-        Application.EnableEvents = False
-        Target.Value = Target.Value ' Revert to values only
-        Application.EnableEvents = True
-        On Error GoTo 0
-    End Sub
-    """
     
     # Save and close the Excel file
     workbook.save(save_path)
