@@ -121,7 +121,7 @@ class DBTableRelated:
                             data.master_depth(): ['depth_id'],
                             data.age_depth_model(): ['depth_id'],
                             data.field_sample(): ['clean_id', 'field_sample_uuid'],
-                            data.edna_wetlab_report(): ['composite_id']}
+                            data.edna_wetlab_report(): ['wet_lab_comp_id']}
 
     def check_for_duplicates():
         print(f"\nRunning tests in {str(inspect.stack()[1].code_context[0]).strip()}...\n")
