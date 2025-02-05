@@ -269,7 +269,7 @@ def upload_file():
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
                 sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
-                
+                db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 #  Remove trailing and leading whitespace  
                 sheet = sheet.applymap(lambda x: x.strip() if isinstance(x, str) else x)
                 
@@ -457,7 +457,9 @@ def upload_file():
                     for db_generated_col in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
                         if db_generated_col in list(db_table_data.columns):
                             db_table_data.drop(db_generated_col, axis=1, inplace=True)
-                clean_sheet = misc.match_column_positions(clean_sheet, db_table_data)
+                
+                clean_sheet = misc.match_column_positions(clean_sheet.rename(columns=db_to_sheet_col_name_map), 
+                                                          db_table_data.rename(columns=db_to_sheet_col_name_map))
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
                 if split_database_table_name in db_table_related_constants.DBTableRelated.PARENTS.keys():
