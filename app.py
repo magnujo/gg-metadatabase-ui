@@ -458,8 +458,8 @@ def upload_file():
                         if db_generated_col in list(db_table_data.columns):
                             db_table_data.drop(db_generated_col, axis=1, inplace=True)
                 
-                clean_sheet = misc.match_column_positions(clean_sheet.rename(columns=db_to_sheet_col_name_map), 
-                                                          db_table_data.rename(columns=db_to_sheet_col_name_map))
+                clean_sheet = misc.match_column_positions(clean_sheet, 
+                                                          db_table_data)
                 assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
                 if split_database_table_name in db_table_related_constants.DBTableRelated.PARENTS.keys():
