@@ -256,7 +256,6 @@ https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been
 
     for i, col in enumerate(df_translated.columns):
         column_letter_data = get_column_letter(i + 1)
-        print(col)
         if col == data.field_sample.latitude(template=True):
             rule = FormulaRule(formula=[f"=OR({column_letter_data}{start_row}< -90, {column_letter_data}{start_row} > 90)"], stopIfTrue=True, fill=warning_fill)
             worksheet.conditional_formatting.add(f"{column_letter_data}{start_row}:{column_letter_data}{num_of_rows}", rule)  # Adjust the range accordingly
