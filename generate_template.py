@@ -362,11 +362,11 @@ https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been
 
     worksheet.cell(row=6, column=1).fill = warning_fill 
     worksheet.cell(row=6, column=1).border = border 
-    worksheet.cell(row=7, column=1).fill = non_mandatory_colour 
+    worksheet.cell(row=7, column=1).fill = mandatory_colour
     worksheet.cell(row=7, column=1).border = border 
-    worksheet.cell(row=8, column=1).fill = feature_dependent_colour 
+    worksheet.cell(row=8, column=1).fill = non_mandatory_colour 
     worksheet.cell(row=8, column=1).border = border 
-    worksheet.cell(row=9, column=1).fill = mandatory_colour 
+    worksheet.cell(row=9, column=1).fill = feature_dependent_colour
     worksheet.cell(row=9, column=1).border = border 
     
     # Set the row height for the header
