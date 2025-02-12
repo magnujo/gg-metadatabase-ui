@@ -35,3 +35,4 @@ dependencies:
     - pretty_html_table
     - jupyterlab
     - pillow
+    - reverse-geocode
