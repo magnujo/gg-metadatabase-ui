@@ -31,6 +31,8 @@ dependencies:
   - rise
   - pywin32
   - geopy
+  - cartopy
+  - geopandas
   - pip:
     - pretty_html_table
     - jupyterlab
