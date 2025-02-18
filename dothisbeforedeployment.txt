@@ -1,9 +1,0 @@
-truncate all data in the database
-delete files from uploads (probably not necessary as it will be empty on the server)
-Complete all todos in python files.
-remove print statements.
-change db config in constants.py?
-update manual
-Remove all sql statements that delete data. It is too dangerous. Instead upload the sheet to a duplicate database and if the tests gets approved, only then upload to the actual db.
-Delete log file
-Empty uploaded_sheets, parsed_sheets and original_sheets
