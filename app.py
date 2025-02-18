@@ -262,18 +262,21 @@ def upload_file():
                 shutil.copy(file_path_temp, file_path)
                 # file.save(file_path)
             else:
-                raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user')
+                raise DontTriggerFileDeletion(f'File {file_path} is trying to be uploaded by other user. Please change the file name and try again')
             
             clean_sheets = []
             
             for i, sheet in enumerate(sheets_to_parse):
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
+                
                 sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 #  Remove trailing and leading whitespace  
                 sheet = sheet.applymap(lambda x: x.strip() if isinstance(x, str) else x)
                 
                 sheet.columns = sheet.columns.str.strip()
+                
+                
                 sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
                 
                 clean_sheet = parsers.parse(sheet=sheet,
@@ -287,8 +290,6 @@ def upload_file():
                 # clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     
                 
                 
-                # TODO: Check that no two columns are the same with lower()
-
                 uploader_email = request.form['email']
                 
                 session['uploader_email'] = uploader_email
@@ -389,6 +390,8 @@ def upload_file():
                 
                 if split_database_table_name == data.field_sample():
                     
+                    
+                    
                     # Check for similar lat long
                     existing_data = pd.read_sql(f'SELECT * FROM "{data()}"."{data.field_sample()}"', ENGINE_READ_ONLY)
                     # Check for exact matches or very similar coordinates
@@ -412,6 +415,8 @@ def upload_file():
                     latlon_warnings = latlon_warnings.drop(columns='distance')
                     
                     parent_col = data.field_sample.master_id_parent_sample_id()
+                    lat_col = data.field_sample.latitude()
+                    lon_col = data.field_sample.longitude()
                     project_col = data.field_sample.running_project_title()
                     id_col = data.field_sample.field_sample_id()
                     
@@ -435,7 +440,7 @@ def upload_file():
                         
                     unique_master_IDs_in_parsed_sheet = set(clean_sheet[parent_col].str.lower().unique())
                     unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
-                                        
+
                     
                     bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
                     
@@ -446,6 +451,18 @@ def upload_file():
                                         and/or the following '{project_col}' values already exist in the database {bad_project_ids}. \n
                                         If you want to add the data anyways, contact {ADMIN_EMAIL}
                                         ''') 
+                    
+                    # Check lat lon is the same per master ID, to precent excel fill handle errors
+                    lat_col = data.field_sample.latitude()
+                    lon_col = data.field_sample.longitude()
+                    chk = (clean_sheet[[parent_col, lat_col, lon_col]].groupby(parent_col).nunique() == 1).all(axis='columns')  # Checks that each master ID has only 1 unique coordinate
+                    bad_master_ids = "<br>".join((chk[~chk]).index.astype(str).to_list())
+                    assert chk.all(), f'''
+Unique Master IDs should only have 1 unique GPS coordinates. The following Master IDs do not: <br>
+{bad_master_ids}. <br><br>
+
+NOTE: This error is most likely caused by wrong usage of Excels fill handle.
+                    '''
                 
                 db_table_data = pd.read_sql(sql=f"SELECT * from {SQL_ALCH_CONFIG['schema_name']}.{split_database_table_name} LIMIT 1;", con=ENGINE)
 
