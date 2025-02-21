@@ -877,7 +877,7 @@ def make_field_sample_dirs(clean_sheets, table_splits):
     
 
 #TODO: Catch errors and delete stuff if catched.
-@app.route('/cancel_upload', methods=['POST'])
+@app.route('/cancel_upload', methods=['GET'])
 @decorators.log_info(app)
 def cancel_upload():
     return redirect(url_for("index"))
