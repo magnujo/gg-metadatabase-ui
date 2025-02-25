@@ -276,8 +276,10 @@ def upload_file():
                 
                 sheet.columns = sheet.columns.str.strip()
                 
-                
-                sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
+                try:
+                    sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
+                except KeyError as e:
+                    raise KeyError(f'''{str(e.args[0])}. This means that the listed column names were expected to be in the upload sheet, but were not found. This often happens when you are using an upload sheet template with deprecated column names. Solution: Make sure your upload sheet contains the listed column names, and try again.''')
                 
                 clean_sheet = parsers.parse(sheet=sheet,
                                             database_table_name=split_database_table_name,
@@ -834,7 +836,6 @@ This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
                        
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])
-        
         
         
         # if database_table_name == 'field_sample':          

@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import sys
 import constants.db_connections
@@ -243,12 +244,33 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
         f"Found {bad_char} in numeric column: {col}, in the following rows: {rows[0:10]} among others, but you didn't choose \
         it as either decimal point or thousands seperator character. Please go back and make sure you chose the correct upload settings"
     
+    period_chk = sheet[float_columns].map(lambda x: "." in str(x)).any().any()
+    comma_chk = sheet[float_columns].map(lambda x: "," in str(x)).any().any()
+    
+    # Test for what should be there
+    match (decimal_point, thousands_seperator, period_chk, comma_chk):
+        case ('.', ',', False, False) | (',', '.', False, False):
+            raise Exception('''Thousand seperator and decimal point was chosen but no "." and "," was found in the numerical columns.''')
+        
+        case ('.', ',', True, False) | (',', '.', True, False):
+            raise Exception('''Thousand seperator and decimal point was chosen but only "." was found in the numerical columns.''')
+        
+        case ('.', ',', False, True) | (',', '.', False, True):
+            raise Exception('''Thousand seperator and decimal point was chosen but only "," was found in the numerical columns.''')
+        
+        case ('not_relevant', ',', _, False) | (',', 'not_relevant', _, False):
+            raise Exception('''Thousand seperator or decimal point was chosen as "," but no "," was found in the numerical columns.''')
+        
+        case ('not_relevant', '.', False, _) | ('.', 'not_relevant', False, _):
+            raise Exception('''Thousand seperator or decimal point was chosen as "." but no "." was found in the numerical columns.''')
+        
+    # TODO Make regex for allowed formats like digit followed by thousand sep should be followed by 3 digits
+    ts_escaped = re.escape(thousands_seperator)
+    dp_escaped = re.escape(decimal_point)
     for ele in float_columns:
         if ele in sheet.columns:
-        
             # Checks for inconsistencies in data and user input
             match (decimal_point, thousands_seperator):
-            
                 case ("not_relevant", ","):
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
@@ -275,7 +297,9 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     
                 case ("not_relevant", "."):
                     # returns the rows that contains ","
+                    
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
+                    bad_rows = sheet[ele].apply(str).str.match(rf"^(?:\d+|\d{{1,3}}(?:{ts_escaped}\d{{3}})+)$", na=False)
                     if bad_rows.any():
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
                         raise Exception(error_message(ele, bad_rows_indices, "comma"))
@@ -283,6 +307,8 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "")
 
                 case ("not_relevant", "not_relevant"):
+                   
+                    
                     bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
                     if bad_rows.any():
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
