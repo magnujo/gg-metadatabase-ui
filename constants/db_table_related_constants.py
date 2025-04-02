@@ -157,7 +157,7 @@ class DBTableRelated:
 
         print(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES)
         print(table_names)
-        if set(table_names) != set(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES):
+        if not len(diff_) == 0:
             raise Exception(f'''
                             TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema.
                             Make sure to update either the UTIL_TABLES or the TABLE_TYPES_FOR_ENUM_VALIDATION.
