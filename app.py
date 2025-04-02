@@ -97,7 +97,7 @@ def index():
 
 
 @app.route('/upload', methods=['POST'])
-# @decorators.log_info(app)
+@decorators.log_info(app)
 def upload_file():
     with upload_lock:
         # logger.info('Running: ' + str(index.__name__))
@@ -939,7 +939,12 @@ def error():
     error_messages = session.get('error_message_user')
     error_message_admin = session.get("error_message_admin")
     session['error'] = True
+    #  Might happen if the error is unknown:
+    # if not type(error_messages) == list:
+    #     error_messages = [error_messages]
 
+    # if not type(error_message_admin) == list:
+    #     error_message_admin = [error_message_admin]
     #error_message = request.args.get('error_message', 'An error occurred.')
     return render_template('error_basic.html', email_send=session.get('email_send'), error_messages=error_messages, error_message_admin=error_message_admin, admin=ADMIN_EMAIL)
 
@@ -1027,7 +1032,7 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
         session_dir = session.get('session_dir')
         error_messages_user = []
         user_error, admin_error = generate_html_message(message)
-        error_messages_user.append(user_error)
+        error_messages_user.append(user_error[:2000]) # Limit length to not overflow session cookie
         
         if revert_db:
             if tables_uploaded_to:
@@ -1073,7 +1078,7 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
         
         session['error_message_user'] = error_messages_user
         current_time = datetime.now()
-        session['error_message_admin'] = f'{str(current_time)}: {str(admin_error)}'
+        session['error_message_admin'] = f'{str(current_time)}: {str(admin_error[:3000])}' # Limit length to now overflow session cookie
         return redirect(url_for('error'))
 
 @app.route('/send_error_details', methods=['POST'])
