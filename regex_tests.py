@@ -1,20 +1,5 @@
 import re
 
-"""
-Determine if commas in a number string are used as decimal or thousand separators using regex.
-
-Returns:
-- "decimal" if comma appears to be a decimal separator
-- "thousand" if commas appear to be thousand separators
-- "unknown" if usage can't be determined
-- "no_comma" if no comma is present
-"""
-
-# if user choses comma as tsep and period as decimal
-case_1_mj = re.compile(r'^(?!0\d)-?(\d+(\.\d*[1-9])?|(\d{1,3}(,\d{3})+(\.\d*[1-9])?|(\.\d*[1-9])?))$')
-case_1_claude = re.compile(r'^-?(?:0|(?:[1-9](?:,\d{3})+)|[1-9]\d*)(?:\.[0-9]*[1-9])?$')
-
-
 # Matches comma as t sep and period as decimal
 case_1 = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:,\d{3})+)|(?:[1-9]\d*)|0)(?:\.\d*[1-9])?$')
 print('testing case 1')

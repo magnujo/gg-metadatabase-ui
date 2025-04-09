@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import sys
 import constants.db_connections
@@ -250,6 +251,10 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             match (decimal_point, thousands_seperator):
             
                 case ("not_relevant", ","):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:,\d{3})+)|(?:[1-9]\d*)|0)$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
+                    
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
@@ -260,6 +265,10 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
                         
                 case (",", "not_relevant"):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d*)|0)(?:,\d*[1-9])?$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
+                    
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
                     if bad_rows.any():
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
@@ -268,12 +277,20 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         sheet[ele] = sheet[ele].astype(str).str.replace(decimal_point, ".", regex=False)
                         
                 case (".", "not_relevant"):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d*)|0)(?:\.\d*[1-9])?$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
+                    
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
                         raise Exception(error_message(ele, bad_rows_indices, "comma"))
                     
                 case ("not_relevant", "."):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)|0)$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
+                    
                     # returns the rows that contains ","
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
                     if bad_rows.any():
@@ -283,17 +300,30 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "")
 
                 case ("not_relevant", "not_relevant"):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d*)|0)$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
+                    
                     bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
                     if bad_rows.any():
                         bad_rows_indices = list(sheet[bad_rows].index + 1)
                         raise Exception(error_message(ele, bad_rows_indices, "comma or period"))
                         
                 case (",", "."):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)|0)(?:,\d*[1-9])?$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
+                    
                     sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
                     sheet[ele] = sheet[ele].astype(str).str.replace(decimal_point, ".", regex=False)
                         
                 case (".", ","):
+                    allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:,\d{3})+)|(?:[1-9]\d*)|0)(?:\.\d*[1-9])?$')
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperators?'
+                    
                     sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
+                    
                 
                 case _:
                     raise Exception(f"case _ reached in {parse_floats.__name__}. Contact database admin.")
