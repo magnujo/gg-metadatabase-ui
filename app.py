@@ -57,6 +57,7 @@ import uuid
 from geopy.distance import geodesic
 
 lat_lon_warning_path = os.path.join('warnings', 'latlon_warning.html')
+warnings_data_dir = 'warnings'
 
 
 def is_similar_location(lat1, lon1, lat2, lon2, threshold=1):
@@ -110,7 +111,7 @@ def upload_file():
         session['visited_success'] = False
         session['email_send'] = False
         session['session_dir_created'] = False
-        latlon_warnings = None
+        latlon_warnings_data = None
         
         
         file = request.files['file']
@@ -395,7 +396,9 @@ def upload_file():
                     # Check for similar lat long
                     existing_data = pd.read_sql(f'SELECT * FROM "{data()}"."{data.field_sample()}"', ENGINE_READ_ONLY)
                     # Check for exact matches or very similar coordinates
-                    latlon_warnings = pd.DataFrame(columns=clean_sheet.columns)
+                    latlon_warnings_data = pd.DataFrame(columns=clean_sheet.columns)
+                
+                    
                     
                     for _, row in clean_sheet[~clean_sheet.duplicated(subset=['latitude', 'longitude'])].iterrows():
                         lat = row['latitude']
@@ -410,9 +413,9 @@ def upload_file():
                                                                             distance_threshold=10000,
                                                                             db_engine=ENGINE_READ_ONLY)
                         distances = misc.drop_auto_generated_columns(distances)
-                        latlon_warnings = pd.concat([latlon_warnings, distances])
+                        latlon_warnings_data = pd.concat([latlon_warnings_data, distances])
                     
-                    latlon_warnings = latlon_warnings.drop(columns='distance')
+                    latlon_warnings_data = latlon_warnings_data.drop(columns='distance')
                     
                     parent_col = data.field_sample.master_id_parent_sample_id()
                     lat_col = data.field_sample.latitude()
@@ -442,7 +445,9 @@ def upload_file():
                     unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
 
                     
-                    bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
+                    warning_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
+                    
+                    warning_master_id_rows_in_db = existing_data[existing_data[parent_col].isin(warning_master_ids)]
                     
                     bad_project_ids = [id for id in unique_project_IDs_in_parsed_sheet if id in unique_project_IDs_in_db]
                     
@@ -456,10 +461,10 @@ def upload_file():
                     lat_col = data.field_sample.latitude()
                     lon_col = data.field_sample.longitude()
                     chk = (clean_sheet[[parent_col, lat_col, lon_col]].groupby(parent_col).nunique() == 1).all(axis='columns')  # Checks that each master ID has only 1 unique coordinate
-                    bad_master_ids = "<br>".join((chk[~chk]).index.astype(str).to_list())
+                    warning_master_ids = "<br>".join((chk[~chk]).index.astype(str).to_list())
                     assert chk.all(), f'''
 Unique Master IDs should only have 1 unique GPS coordinates. The following Master IDs do not: <br>
-{bad_master_ids}. <br><br>
+{warning_master_ids}. <br><br>
 
 NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                     '''
@@ -523,13 +528,32 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
             
-            if type(latlon_warnings) == pd.DataFrame:
-                if len(latlon_warnings) > 0: 
-                    warnings_path = os.path.join(session_dir, lat_lon_warning_path)
-                    os.mkdir(os.path.dirname(warnings_path))
-                    latlon_warnings = latlon_warnings.rename(columns=db_to_sheet_col_name_map, errors="raise")
-                    latlon_warnings.to_csv(warnings_path, index=False)
-                    return redirect(url_for("duplicate_warning"))
+            warnings_data_all = {}
+            
+            if type(latlon_warnings_data) == pd.DataFrame and len(latlon_warnings_data) > 0:
+                warnings_data_all['latlon'] = latlon_warnings_data.rename(columns=db_to_sheet_col_name_map, errors="raise")
+                
+            if len(warning_master_id_rows_in_db) > 0:
+                warnings_data_all['latlon'] = warning_master_id_rows_in_db.rename(columns=db_to_sheet_col_name_map, errors="raise")
+            
+            if len(warnings_data_all) > 0:
+                for key, value in warnings_data_all.items():  
+                    warning_file_name = str(key) + '.html'
+                    warnings_full_path = os.path.join(session_dir, warnings_data_dir, warning_file_name)
+                    os.mkdir(os.path.dirname(warnings_full_path))
+                    value.to_csv(warnings_full_path, index=False)
+                
+                return redirect(url_for("duplicate_warning"))
+
+                
+            
+            # if type(latlon_warnings_data) == pd.DataFrame:
+            #     if len(latlon_warnings_data) > 0: 
+            #         warnings_path = os.path.join(session_dir, lat_lon_warning_path)
+            #         os.mkdir(os.path.dirname(warnings_path))
+            #         latlon_warnings_data = latlon_warnings_data.rename(columns=db_to_sheet_col_name_map, errors="raise")
+            #         latlon_warnings_data.to_csv(warnings_path, index=False)
+            #         return redirect(url_for("duplicate_warning"))
                     
             
     
@@ -541,10 +565,21 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
 
 @app.route('/duplicate_warning')
 def duplicate_warning():
-    latlon_warnings_path = os.path.join(str(session.get('session_dir')), lat_lon_warning_path)
-    latlon_warnings = pd.read_csv(latlon_warnings_path)
+    all_warnings = []
+    warnings_path = os.path.join(str(session.get('session_dir')), warnings_data_dir)
+    warning_files = os.listdir(warnings_path)
+    
+    if not len(warning_files) > 0:
+        raise Exception('Error related to file system management. Try again and if it doesnt help contact system administrator')
+    
+    for file in os.listdir(warnings_path):
+        file_path = os.path.join(warnings_path, file)
+        warning_data = pd.read_csv(file_path)
+        all_warnings.append(warning_data
+                            .to_html(na_rep=" ", justify="center", classes="table table-striped"))
+        
     return render_template('duplicate_warning.html',
-                           duplicates=[latlon_warnings.to_html(na_rep=" ", justify="center", classes="table table-striped")])
+                           duplicates=warning_files)
     
 
 
