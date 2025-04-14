@@ -43,12 +43,12 @@ def match_column_positions(upload_file_df, db_data_df):
     Tries to rearrange the column positions of upload_file to match db_data. 
     If number of columns or column names differ an exception gets raised.
     '''
-    print('-------------------------------------------------------')
-    print("TEST")
-    print('upload_file')
-    print(upload_file_df.columns)
-    print('db_data')
-    print(db_data_df.columns)
+    '-------------------------------------------------------')
+    "TEST")
+    'upload_file')
+    upload_file_df.columns)
+    'db_data')
+    db_data_df.columns)
   
     if len(upload_file_df.columns) == len(db_data_df.columns):
         try:

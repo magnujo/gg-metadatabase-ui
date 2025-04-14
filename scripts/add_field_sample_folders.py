@@ -18,6 +18,6 @@ dirs_to_create = misc.generate_field_sample_dir_paths(df, projects_root_dir=proj
 created_dirs = []
 for path_ in dirs_to_create:
     if not os.path.exists(path_):
-        print(path_)
+        path_)
         os.mkdir(path_)
         created_dirs.append(path_)
