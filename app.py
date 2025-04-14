@@ -57,6 +57,7 @@ import uuid
 from geopy.distance import geodesic
 
 lat_lon_warning_path = os.path.join('warnings', 'latlon_warning.html')
+warnings_data_dir = 'warnings'
 
 
 def is_similar_location(lat1, lon1, lat2, lon2, threshold=1):
@@ -110,7 +111,7 @@ def upload_file():
         session['visited_success'] = False
         session['email_send'] = False
         session['session_dir_created'] = False
-        latlon_warnings = None
+        latlon_warnings_data = None
         
         
         file = request.files['file']
@@ -395,7 +396,9 @@ def upload_file():
                     # Check for similar lat long
                     existing_data = pd.read_sql(f'SELECT * FROM "{data()}"."{data.field_sample()}"', ENGINE_READ_ONLY)
                     # Check for exact matches or very similar coordinates
-                    latlon_warnings = pd.DataFrame(columns=clean_sheet.columns)
+                    latlon_warnings_data = pd.DataFrame(columns=clean_sheet.columns)
+                
+                    
                     
                     for _, row in clean_sheet[~clean_sheet.duplicated(subset=['latitude', 'longitude'])].iterrows():
                         lat = row['latitude']
@@ -410,9 +413,9 @@ def upload_file():
                                                                             distance_threshold=10000,
                                                                             db_engine=ENGINE_READ_ONLY)
                         distances = misc.drop_auto_generated_columns(distances)
-                        latlon_warnings = pd.concat([latlon_warnings, distances])
+                        latlon_warnings_data = pd.concat([latlon_warnings_data, distances])
                     
-                    latlon_warnings = latlon_warnings.drop(columns='distance')
+                    latlon_warnings_data = latlon_warnings_data.drop(columns='distance')
                     
                     parent_col = data.field_sample.master_id_parent_sample_id()
                     lat_col = data.field_sample.latitude()
@@ -442,7 +445,9 @@ def upload_file():
                     unique_project_IDs_in_parsed_sheet = set(clean_sheet[project_col].str.lower().unique())
 
                     
-                    bad_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
+                    warning_master_ids = [id for id in unique_master_IDs_in_parsed_sheet if id in unique_master_IDs_in_db]
+                    
+                    warning_master_id_rows_in_db = existing_data[existing_data[parent_col].isin(warning_master_ids)]
                     
                     bad_project_ids = [id for id in unique_project_IDs_in_parsed_sheet if id in unique_project_IDs_in_db]
                     
@@ -456,10 +461,10 @@ def upload_file():
                     lat_col = data.field_sample.latitude()
                     lon_col = data.field_sample.longitude()
                     chk = (clean_sheet[[parent_col, lat_col, lon_col]].groupby(parent_col).nunique() == 1).all(axis='columns')  # Checks that each master ID has only 1 unique coordinate
-                    bad_master_ids = "<br>".join((chk[~chk]).index.astype(str).to_list())
+                    warning_master_ids = "<br>".join((chk[~chk]).index.astype(str).to_list())
                     assert chk.all(), f'''
 Unique Master IDs should only have 1 unique GPS coordinates. The following Master IDs do not: <br>
-{bad_master_ids}. <br><br>
+{warning_master_ids}. <br><br>
 
 NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                     '''
@@ -523,13 +528,38 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                 else:
                     raise Exception("Error happened during writing parsed sheet. Contact admin.")
             
-            if type(latlon_warnings) == pd.DataFrame:
-                if len(latlon_warnings) > 0: 
-                    warnings_path = os.path.join(session_dir, lat_lon_warning_path)
-                    os.mkdir(os.path.dirname(warnings_path))
-                    latlon_warnings = latlon_warnings.rename(columns=db_to_sheet_col_name_map, errors="raise")
-                    latlon_warnings.to_csv(warnings_path, index=False)
-                    return redirect(url_for("duplicate_warning"))
+            warnings_data_all = {}
+            
+            if type(latlon_warnings_data) == pd.DataFrame and len(latlon_warnings_data) > 0:
+                warnings_data_all['GPS Coordinates'] = latlon_warnings_data.rename(columns=db_to_sheet_col_name_map, errors="raise")
+                
+            if len(warning_master_id_rows_in_db) > 0:
+                warnings_data_all['Master ID'] = warning_master_id_rows_in_db.rename(columns=db_to_sheet_col_name_map, errors="raise")
+            
+            
+            
+            "==============================")
+            latlon_warnings_data)
+
+            if len(warnings_data_all) > 0:
+                session_warnings_data_dir = os.path.join(session_dir, warnings_data_dir)
+                os.mkdir(session_warnings_data_dir)
+                for key, value in warnings_data_all.items():  
+                    warning_file_name = str(key) + '.csv'
+                    warnings_full_path = os.path.join(session_warnings_data_dir, warning_file_name)
+                    value.to_csv(warnings_full_path, index=False)
+                
+                return redirect(url_for("duplicate_warning"))
+
+                
+            
+            # if type(latlon_warnings_data) == pd.DataFrame:
+            #     if len(latlon_warnings_data) > 0: 
+            #         warnings_path = os.path.join(session_dir, lat_lon_warning_path)
+            #         os.mkdir(os.path.dirname(warnings_path))
+            #         latlon_warnings_data = latlon_warnings_data.rename(columns=db_to_sheet_col_name_map, errors="raise")
+            #         latlon_warnings_data.to_csv(warnings_path, index=False)
+            #         return redirect(url_for("duplicate_warning"))
                     
             
     
@@ -541,10 +571,46 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
 
 @app.route('/duplicate_warning')
 def duplicate_warning():
-    latlon_warnings_path = os.path.join(str(session.get('session_dir')), lat_lon_warning_path)
-    latlon_warnings = pd.read_csv(latlon_warnings_path)
+    all_warnings = []
+    warnings_path = os.path.join(str(session.get('session_dir')), warnings_data_dir)
+    warning_files = os.listdir(warnings_path)
+    
+    warning_message_gps = '''
+Explanation: The GPS coordinate(s) you are trying upload falls within 10km of coordinates 
+that are already in the database. Double check, that the
+data from your upload sheet is actually new data about new samples (or subsamples).<br><br>
+    '''
+
+    warning_message_master_id = '''
+Explanation: The Master ID(s) you are trying upload already exists in the database. Double check, that the
+data from your upload sheet is actually new data about new samples.<br><br>
+    '''
+    
+    warning_messages = {
+        'Master ID': warning_message_master_id,
+        'GPS Coordinates': warning_message_gps
+    }
+    
+    if not len(warning_files) > 0:
+        raise Exception('Error related to file system management. Try again and if it doesnt help contact system administrator')
+    
+    for i, file in enumerate(os.listdir(warnings_path)):
+        file_path = os.path.join(warnings_path, file)
+        warning_data = pd.read_csv(file_path)
+        warning_type = str(file).split('.')[0]
+        warning_data = warning_data.to_html(na_rep=" ", justify="center", classes="table table-striped")
+        caption = f'''
+        <br><h4 align="center">Duplicates caused by {warning_type}</h4>
+        {warning_messages[warning_type]}
+        '''
+ 
+    
+        all_warnings.append(caption + warning_data)
+        
+
+        
     return render_template('duplicate_warning.html',
-                           duplicates=[latlon_warnings.to_html(na_rep=" ", justify="center", classes="table table-striped")])
+                           duplicates=all_warnings)
     
 
 
@@ -601,7 +667,6 @@ def confirmation_request():
             
             clean_sheets.append(html_table_with_caption)
             
-            
         # if invalid_values:            
         #     return render_template('enum_validation_fail.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
         # return render_template('confirmation_request copy.html', table=summaries[0])
@@ -619,7 +684,7 @@ def confirmed():
     with lock:
         path_to_excel_receipt = os.path.join(session.get('session_dir'), 'excel_receipts', 'excel_receipt.xlsx')
 
-        print("Confirmed")
+        "Confirmed")
         try:
             if session.get("error") == True:
                 return redirect(url_for("index"))
@@ -977,21 +1042,21 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     assert clean_sheet.shape == uploaded_data.shape, "Shape input file does not match shape of uploaded data."
     
     # for i in range(len(clean_sheet.dtypes)):
-    #     print(clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
+    #     clean_sheet.dtypes[i] + " " + uploaded_data.dtypes[i])
         
             # TODO: Before deployment: Try to remove any sql statements that delete data. It is too dangerous. ONLY delete data from db if below tests that compares uploaded data with the cleaned sheet fails. Otherwise we might delete data by mistake. Make a custom DeleteDataException to make sure only that exception will delete data. Also make sure that the deletion is not only based on from_spreadsheet column as there might be cases where the same file names occur.
             # TODO: Instead of deleting data that doesnt pass the tests, upload the sheet to a duplicate database first and test on that. If the tests gets approved, only then upload to the actual db. When everything is in the actual db, maybe delete from the duplicate db.
 
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
     
-    print('Running integrity test')       
+    'Running integrity test')       
     testing.assert_frame_equal(uploaded_data, clean_sheet)
-    print('Integrity test passed')
+    'Integrity test passed')
     
-    print('Running extra integrity test')
+    'Running extra integrity test')
     if not clean_sheet.equals(uploaded_data):
         raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
-    print('Extra integrity test passed')
+    'Extra integrity test passed')
     
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -1025,7 +1090,7 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
                            num_of_uploaded_rows=-1, 
                            files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
-        print("\n General error handling... \n")
+        "\n General error handling... \n")
         session["error"] = True
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
@@ -1502,7 +1567,7 @@ def download_individual_unfiltered_tables():
 
 
 if __name__ == '__main__':
-    print("Start")
+    "Start")
     db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()
     db_table_related_constants.DBTableRelated.check_for_duplicates()
     production_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['production']
@@ -1517,7 +1582,7 @@ if __name__ == '__main__':
         constants.db_connections.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.db_connections.RUN_MODE in constants.db_connections.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    print(f"RUNMODE:{constants.db_connections.RUN_MODE}")
+    f"RUNMODE:{constants.db_connections.RUN_MODE}")
     
     # deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])

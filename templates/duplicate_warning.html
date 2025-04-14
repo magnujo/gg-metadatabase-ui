@@ -117,41 +117,63 @@
             <div class="upload-steps">
                 
                 <br>
-                <h1 class="h3 text-center mb-3">!⚠️ DUPLICATE GPS COORDINATES WARNING ⚠️! <br><br><br> READ THE BELOW WARNING MESSAGE CAREFULLY BEFORE CONTINUING:</h1>
+                <h1 class="h3 text-center mb-3">⚠️ DUPLICATE WARNING ⚠️ <br><br><br> READ THE BELOW WARNING MESSAGE(S) CAREFULLY BEFORE CONTINUING:</h1>
                 
                 <br>
                 <div class="alert alert-info">
                     <p class="mb-0" style="color: #ff5959;">
-                        ⚠️ WARNING: The GPS coordinates you are trying upload falls within 10km of coordinates 
-                        that are already in the database. To make sure you are not uploading already uploaded data,
-                        review the below data from the database. When you are certain you are not trying
-                        to upload data that already exists in the database, you can click Continue which will start the 2 step upload process. 
+                        ⚠️ WARNING: ⚠️
+                        The data you are trying to upload, is similar or identical to data has already been uploaded to the database. 
+                        To make sure you are not uploading already uploaded data,
+                        review the displayed tables below. They contain data from the database that is similar or
+                        identical
+                        to your upload file.   
+                        When you are certain your data is new data about new samples, confirm by marking the checkboxes.
+                        Then click Continue which will start the 2 step upload process. Note: Scroll down the page to view the data.
 
                     </p>
                 </div>
             </div>
-
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
             <!-- Data Tables Section -->
-            <div class="data-tables-section">
-                <h2 class="h4 text-center mb-4">⚠️ Similar data already in the database:</h2>
+            <div class="data-tables-section"> 
+                <h3 class="h3 text-center mb-4">Below you will see tables with data extracted from the database
+                     that is similar or identical to the data you are trying to upload. 
+                     There might be be multiple depending on how many variables caused the warning.
+                    This might cause overlapping data in the tables
+                    </h3>
+                    <br>
+                    <br>
+                    <br>
+              
                 {% for df in duplicates %}
-                    <div class="table-responsive">
-                        {{ df|safe }}
-                    </div>
+                  <div class="table-responsive">
+                    {{ df|safe }}
+                  </div>
+                  <label>
+                    <input type="checkbox" class="myCheckbox">
+                            I confirm that I have reviewed the above data table and 
+                            that the my upload sheet contains new data describing new sample(s).
+                </label>
                 {% endfor %}
             </div>
+            <br>
+            
         </div>
+        
+          
     </div>
     <br>
     <br>
 
     <!-- Fixed Action Buttons -->
     <div class="action-buttons">
-        <form action="/cancel_upload" method="get" enctype="multipart/form-data" class="d-inline">
+        <form action="/" method="get" enctype="multipart/form-data" class="d-inline">
             <button type="submit" class="btn btn-cancel">Cancel Upload</button>
         </form>
         <form id="confirmForm" action="/accept_warning" method="post" enctype="multipart/form-data" class="d-inline">
-            <button id="confirmButton" type="submit" class="btn btn-confirm">Continue ⚠️</button><p></p>
+            <button id="confirmButton" disabled type="submit" class="btn btn-confirm">Continue ⚠️</button><p></p>
         </form>
     </div>
 
@@ -190,5 +212,16 @@
             });
         });
     </script>
+<script>
+    const checkboxes = document.querySelectorAll('.myCheckbox');
+    const confirmButton = document.getElementById('confirmButton');
+  
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        confirmButton.disabled = !allChecked;
+      });
+    });
+  </script>
 </body>
 </html>

@@ -54,10 +54,10 @@ def parse(sheet,
     j = 0
 
     # for i in range(len(columns)):
-    #     print(expected_columns[j] + "  " + columns[j])
+    #     expected_columns[j] + "  " + columns[j])
     #     j += 1
     # for i in range(j, len(expected_columns)):
-    #     print(expected_columns[i])
+    #     expected_columns[i])
     
     
     expected_columns = [element for element in expected_columns if element not in misc_constants.SCRIPT_GENERATED_COLUMNS]
@@ -252,7 +252,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             
                 case ("not_relevant", ","):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:,\d{3})+)|(?:[1-9]\d*)|0)$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
                     
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
@@ -266,7 +266,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         
                 case (",", "not_relevant"):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d*)|0)(?:,\d*[1-9])?$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
                     
                     bad_rows = sheet[ele].apply(str).str.contains(".", regex=False)
@@ -278,7 +278,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         
                 case (".", "not_relevant"):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d*)|0)(?:\.\d*[1-9])?$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
                     
                     bad_rows = sheet[ele].apply(str).str.contains(",", regex=False)
@@ -288,7 +288,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                     
                 case ("not_relevant", "."):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)|0)$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
                     
                     # returns the rows that contains ","
@@ -301,7 +301,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
 
                 case ("not_relevant", "not_relevant"):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d*)|0)$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
                     
                     bad_rows = sheet[ele].apply(str).str.contains("\.|,", regex=True)
@@ -311,7 +311,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         
                 case (",", "."):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)|0)(?:,\d*[1-9])?$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperator options?'
                     
                     sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
@@ -319,7 +319,7 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
                         
                 case (".", ","):
                     allowed_pattern = re.compile(r'^-?(?:(?:[1-9]\d{0,2}(?:,\d{3})+)|(?:[1-9]\d*)|0)(?:\.\d*[1-9])?$')
-                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(x)).all()
+                    all_match = sheet[ele].apply(lambda x: allowed_pattern.fullmatch(str(x))).all()
                     assert all_match, f'Some numerical values in {ele} are invalid. Did you pick the correct thousand- and decimal seperators?'
                     
                     sheet[ele] = sheet[ele].astype(str).str.replace(thousands_seperator, "", regex=False)
