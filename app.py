@@ -536,10 +536,6 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
             if len(warning_master_id_rows_in_db) > 0:
                 warnings_data_all['Master ID'] = warning_master_id_rows_in_db.rename(columns=db_to_sheet_col_name_map, errors="raise")
             
-            
-            
-            "==============================")
-            latlon_warnings_data)
 
             if len(warnings_data_all) > 0:
                 session_warnings_data_dir = os.path.join(session_dir, warnings_data_dir)
@@ -684,7 +680,6 @@ def confirmed():
     with lock:
         path_to_excel_receipt = os.path.join(session.get('session_dir'), 'excel_receipts', 'excel_receipt.xlsx')
 
-        "Confirmed")
         try:
             if session.get("error") == True:
                 return redirect(url_for("index"))
@@ -1049,14 +1044,9 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
 
             # assert clean_sheet.dtypes.equals(uploaded_data.dtypes), f"Datatype mismatch between uploaded data and data in sheet, contact {constants.ADMIN_EMAILS}"
     
-    'Running integrity test')       
-    testing.assert_frame_equal(uploaded_data, clean_sheet)
-    'Integrity test passed')
-    
-    'Running extra integrity test')
     if not clean_sheet.equals(uploaded_data):
         raise AssertionError("Upload failed. Contents of database is not equal to contents of file.")
-    'Extra integrity test passed')
+
     
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -1090,7 +1080,6 @@ def general_error_handling(message, delete_session_dir=False, error_tables=None,
                            num_of_uploaded_rows=-1, 
                            files_to_del={'original': False, 'parsed': False, 'uploaded': False}):
         '''Manages deletions to revert to original state'''
-        "\n General error handling... \n")
         session["error"] = True
         upload_id = session.get('upload_id')
         file_name = session.get('file_name')
@@ -1567,7 +1556,6 @@ def download_individual_unfiltered_tables():
 
 
 if __name__ == '__main__':
-    "Start")
     db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()
     db_table_related_constants.DBTableRelated.check_for_duplicates()
     production_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['production']
@@ -1582,7 +1570,6 @@ if __name__ == '__main__':
         constants.db_connections.RUN_MODE = os.environ.get('RUN_MODE').lower()
         if not constants.db_connections.RUN_MODE in constants.db_connections.RUN_MODE_OPTIONS:
             raise Exception(f'Unknown value for RUN_MODE')
-    f"RUNMODE:{constants.db_connections.RUN_MODE}")
     
     # deleted_schema_management.copy_or_generate(constants.db_connections.SQL_ALCH_CONFIG["schema_name"], database_name=constants.db_connections.SQL_ALCH_CONFIG["database"], alch_engine=ENGINE, psy_conn=constants.db_connections.PSY_CONN)
     misc.empty_folder("query_files", exclude=[".gitignore"])

@@ -155,8 +155,6 @@ class DBTableRelated:
         
         diff_ = set(TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES) ^ (set(table_names))
 
-        TABLE_TYPES_FOR_ENUM_VALIDATION_LEAF_VALUES)
-        table_names)
         if not len(diff_) == 0:
             raise Exception(f'''
                             TABLE_TYPES_FOR_ENUM_VALIDATION needs to contain all tables from schema.
