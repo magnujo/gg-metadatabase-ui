@@ -1,2 +1,20 @@
 DO NOT DELETE THIS FILE. 
 Its used to find the project root dir.
+
+put this code in your file to find the project root:
+
+from pathlib import Path
+import sys
+import os
+
+def find_project_root():
+    path = Path(os.cwd()).resolve()
+    while path != path.root:
+        if (path / 'very_rootsy_file.txt').exists():
+            return path
+        path = path.parent
+    return None  # Project root not found
+
+project_root = find_project_root()
+
+sys.path.append(str(project_root))
