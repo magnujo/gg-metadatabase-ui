@@ -1,4 +1,5 @@
 from utils.send_email import send_email
+import table_merges
 import argparse
 import generate_template
 import numpy as np
@@ -1485,14 +1486,17 @@ def download_merged_standardized():
             os.system(command)
             return send_file(file_path, as_attachment=True, )
             
-        elif checkbox_smdb:  
+        elif checkbox_smdb:
+            print('jekekak')
             download_id = str(uuid.uuid4())
             download_dir_path = os.path.join('session_data', download_id)
             os.mkdir(download_dir_path)
-            file_path = os.path.join(download_dir_path, 'data.tsv.gz')
-            query = f"select * from {data()}.outer_coalesced_mega_table_meta"
-            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
-            os.system(command)
+            file_path = os.path.join(download_dir_path, 'data.tsv')
+            # query = f"select * from {data()}.outer_coalesced_mega_table_meta"
+            mega_meta = table_merges.outer_merge(schema_name=data(), engine=ENGINE)
+            # command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+            # os.system(command)
+            mega_meta.to_csv(file_path, sep='\t')
             return send_file(file_path, as_attachment=True)
     
         else:
