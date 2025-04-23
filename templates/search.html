@@ -72,11 +72,11 @@
 <body>
     <br>
     <br>
-    <h1>Download data from <i>SMDB</i> (Sample Metadata Database) (recommended)</h1>
+    <h1></h1>
   
     
     <div class="container">
-        <h3 id="download_all_individual_tables">Download All Individual Tables </h3>
+        <h3 id="download_all_individual_tables">Download All SMDB Tables </h3>
         <p>Press the "Download all tables..." button below to download all raw database tables, including both old unstandardized CGG tables and new standardized field sample data.</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
         <form method="post" action="/download_all_individual_tables">
@@ -97,8 +97,8 @@
     </div>
 
     <div class="container">
-        <h3 id="joined_smdb_data">Download Joined Standardized Data (full outer joined) </h3>
-        <p>Select which databases you want to include in the table and then press the "Download merged table..." button below to download a merged table, with "new" standardized field sample data (old CGG data not included).</p>
+        <h3 id="joined_smdb_data">Download Joined Standardized SMDB Data (outer joined) </h3>
+        <p>Select which databases you want to include in the download and then press the "Download joined data..." button below to download a zip file with the selected data included.</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues.</p>
 
         <form method="post" action="/download_merged_standardized">
@@ -113,18 +113,35 @@
             <div class="form-group">
                 <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
                 <label for="checkbox_qc">Include MultiQCDB (bioinformatical qc data.) This will increase download time with ~2 min.</label>
-                <p class="note" style="color: red;">WARNING: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
-                    If you need data from other sequencing runs, you can find it in the data folders on dandy: projects/caeg/data/production</p>
+                <!-- <p class="note" style="color: red;">WARNING: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
+                    If you need data from other sequencing runs, you can find it in the data folders on dandy: projects/caeg/data/production</p> -->
             </div>
             <br>
 
-            <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined table...</button>
+            <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined data...</button>
+            <p class="note">The button will be disabled when clicked. Update the page to re-enable it</p>
+        </form>
+    </div>
+
+
+    
+    
+    <div class="container">
+        <h3 id="cgg_data">Download CGG Sediment/Water Spreadsheet </h3>
+        <p>CGG Sediment/Water Spreadsheet is an old spreadsheet that contains non-standardized data and is therefore seperated from SMDB data. 
+            If you cant find your data in some of the other options above, this might be the place to look for it.</p>
+        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues.</p>
+
+        <form method="post" action="/download_cgg">
+
+            <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download CGG spreadsheet...</button>
             <p class="note">The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
     </div>
 
     <div class="container">
         <h3 id="master_depths_template">Download master depths template</h3>
+        Mostly only for Marie-Louise. Feel free to use it, if you find it useful. <br><br> 
 
         <form method="post" action="/PI_download_standardized">
             <div class="form-group">
@@ -160,127 +177,6 @@
     </div>
 
 
-
-    <br>
-    <br>
-    <h1>Download data from CGG spreadsheet</h1>
-    <p class="centered">!!! WARNING !!! <br> We are still working on uploading the CGG data to the SMDB.
-         In the meantime, you can write to Pernille Vibeke Selmer Olsen at pvsolsen@sund.ku.dk, to get the latest CGG spreadsheet, and for example merge it yourself with the <a href="#joined_smdb_data">Download Joined Standardized Data (full outer joined)
-         </a> or <a href=#download_all_individual_tables> Download all individual tables <a>. You can find cgg IDs in both the field_sample_id column and archive_sample_id column. There are some IDs that are in both columns. You might find some of the sections below usefull, however they are not tested and might give incorrect results.</p>
-    <br>
-    <br>
-    <br>
-    <br>
-
-            <div class="container">
-        <h3>Merged old non-standardized CGG spreadsheet data</h3>
-
-        <form method="post" action="/get_all_data">
-            
-            <div class="form-group">
-                <label for="encoding_type">Encoding:</label>
-                <select class="form-control" name="encoding_type" id="encoding_type" required>
-                    <option value="">Choose encoding...</option> 
-                    <option value="utf_8">UTF-8</option>  
-                    <option value="utf_16">UTF-16</option>  
-                </select>
-                <p class="note">Use UTF-8 if in doubt</p>
-            </div>
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Get all data...</button>
-            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
-        </form>
-    </div>
-
-    <div class="container">
-        <h3>Search old non-standardized CGG spreadsheet data</h3>
-
-        <form method="post" action="/search">
-            <div class="form-group">
-                <label for="search_type">Choose filter option:</label>
-                <select class="form-control" name="search_type" id="search_type" required>
-                    <option value="">Choose filter option...</option> 
-                    <option value="fID">Field Sample ID</option>  
-                    <option value="lID">Library ID</option>  
-                    <option value="country">Country</option>  
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="encoding_type">Encoding:</label>
-                <select class="form-control" name="encoding_type" id="encoding_type" required>
-                    <option value="">Choose encoding...</option> 
-                    <option value="utf_8">UTF-8</option>  
-                    <option value="utf_16">UTF-16</option>  
-                </select>
-                <p class="note">Use UTF-8 if in doubt</p>
-            </div>
-
-            <div class="form-group">
-                <label for="input_values">Insert ID(s) (separated by new lines):</label>
-                <textarea class="form-control" id="input_values" name="input_values" rows="5" placeholder="Example:&#10;ISL2020_09_95&#10;ISL22_23A&#10;field_sample_N" required></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary mb-3" onclick="this.disabled=true; this.form.submit();">Search</button>
-            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
-            
-            
-        </form>
-
-        {% if parsed_values %}
-        <div class="container">
-            <h4>Searching Meta Data for the Following ID(s):</h4>
-            <p>
-                {% for value in parsed_values %}
-                {{ value }},
-                {% endfor %}
-            </p>
-            <p>Download the results as CSV:</p>
-            <ul>
-                <li><a href="/download_essential">data.csv</a></li>
-                <li><a href="/download_all">all_columns.csv</a> (all columns from all tables)</li>
-                <li><a href="/download_individual_unfiltered_tables">individual_unfiltered_tables.zip</a> (all individual filtered tables)</li>
-            </ul>
-
-            <div class="table-container">
-                <table id="dataTable" class="display">
-                    <thead>
-                        <tr>
-                            {% for col in results.columns %}
-                            <th>{{ col }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for (index, row) in results.iterrows() %}
-                        <tr>
-                            {% for value in row %}
-                            <td>{{ value }}</td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#dataTable').DataTable({
-                responsive: true,
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true
-            });
-        });
-    </script>
 <br>
 <br>
 <br>
-</body>
-</html>

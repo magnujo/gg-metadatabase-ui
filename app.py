@@ -1,4 +1,5 @@
 from utils.send_email import send_email
+import table_merges
 import argparse
 import generate_template
 import numpy as np
@@ -1222,8 +1223,8 @@ def download_all_field_sample_ids():
         return send_file(file_path, as_attachment=True)
 
 
-@app.route('/search', methods=['GET', 'POST'])
-def search():
+@app.route('/download', methods=['GET', 'POST'])
+def download():
     error = ""
     if request.method == 'POST':
         with download_lock:
@@ -1309,10 +1310,10 @@ def search():
     # Render the template for GET requests
     return render_template('search.html')
 
-def create_zip(files, zip_path):
+def create_zip(files: list, zip_path):
     with zipfile.ZipFile(zip_path, 'w') as zipf:
         for file in files:
-            zipf.write(file)
+            zipf.write(file, os.path.basename(file))
 
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
@@ -1465,39 +1466,77 @@ def download_merged_standardized():
         qc_checked = 'checkbox_qc' in request.form
         checkbox_smdb = 'checkbox_smdb' in request.form
         
-        if qc_checked and checkbox_smdb:
-            download_id = str(uuid.uuid4())
-            download_dir_path = os.path.join('session_data', download_id)
-            os.mkdir(download_dir_path)
-            file_path = os.path.join(download_dir_path, 'data.tsv.gz')
-            query = f"select * from {data()}.outer_coalesced_mega_table_full"
-            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
-            os.system(command)
-            return send_file(file_path, as_attachment=True, )
+        download_id = str(uuid.uuid4())
+        download_dir_path = os.path.join('session_data', download_id)
+        os.mkdir(download_dir_path)
+        paths_to_download = []
+        zip_path = os.path.join(download_dir_path, 'data.zip')
         
-        elif qc_checked:
-            download_id = str(uuid.uuid4())
-            download_dir_path = os.path.join('session_data', download_id)
-            os.mkdir(download_dir_path)
-            file_path = os.path.join(download_dir_path, 'data.tsv.gz')
-            query = f"select * from {data()}.mega_table_qc_split"
-            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
-            os.system(command)
-            return send_file(file_path, as_attachment=True, )
+        if qc_checked:
+            file_path_qc = os.path.join(download_dir_path, 'binf_qc_data.tsv')
+            qc_data = table_merges.qc(engine=ENGINE_READ_ONLY)
+            qc_data.to_csv(file_path_qc, sep='\t', index=False)
+            paths_to_download.append(file_path_qc)
             
-        elif checkbox_smdb:  
-            download_id = str(uuid.uuid4())
-            download_dir_path = os.path.join('session_data', download_id)
-            os.mkdir(download_dir_path)
-            file_path = os.path.join(download_dir_path, 'data.tsv.gz')
-            query = f"select * from {data()}.outer_coalesced_mega_table_meta"
-            command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
-            os.system(command)
-            return send_file(file_path, as_attachment=True)
+        if checkbox_smdb:
+            file_path_smdb = os.path.join(download_dir_path, 'sample_meta_data.tsv')
+            mega_meta = table_merges.outer_merge(schema_name=data(), engine=ENGINE_READ_ONLY)
+            mega_meta.to_csv(file_path_smdb, sep='\t', index=False)
+            paths_to_download.append(file_path_smdb)
+        create_zip(files=paths_to_download, zip_path=zip_path)
+
+        return send_file(zip_path, as_attachment=True, ) 
+        
+        # if qc_checked and checkbox_smdb:
+        #     download_id = str(uuid.uuid4())
+        #     download_dir_path = os.path.join('session_data', download_id)
+        #     os.mkdir(download_dir_path)
+        #     file_path = os.path.join(download_dir_path, 'data.tsv.gz')
+        #     # query = f"select * from {data()}.outer_coalesced_mega_table_full"
+        #     # command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+        #     # os.system(command)
+        #     create_zip()
+        #     return send_file(file_path, as_attachment=True, )
+        
+        # elif qc_checked:
+        #     download_id = str(uuid.uuid4())
+        #     download_dir_path = os.path.join('session_data', download_id)
+        #     os.mkdir(download_dir_path)
+        #     file_path = os.path.join(download_dir_path, 'data.tsv')
+        #     query = f"select * from {data()}.mega_table_qc_split"
+        #     command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+        #     os.system(command)
+        #     return send_file(file_path, as_attachment=True, )
+            
+        # elif checkbox_smdb:
+        #     download_id = str(uuid.uuid4())
+        #     download_dir_path = os.path.join('session_data', download_id)
+        #     os.mkdir(download_dir_path)
+        #     file_path = os.path.join(download_dir_path, 'data.tsv')
+        #     query = f"select * from {data()}.outer_coalesced_mega_table_meta"
+        #     command = f'''psql -U read_user -d aedna_metadata_test -h dandypdb01fl -p 5432 -c "\COPY ({query}) TO STDOUT WITH (FORMAT CSV, DELIMITER E'\t', HEADER)" | gzip  > {file_path}'''
+        #     os.system(command)
+        #     return send_file(file_path, as_attachment=True)
     
-        else:
-            return 'You need to choose at least 1 database'
+        # else:
+        #     return 'You need to choose at least 1 database'
+
+
+@app.route('/download_cgg', methods=['POST'])
+def download_cgg():
     
+    with download_lock:
+        
+        table_name = 'cgg_sediment_water_raw'
+        download_id = str(uuid.uuid4())
+        download_dir_path = os.path.join('session_data', download_id)
+        os.mkdir(download_dir_path)
+        file_path_cgg = os.path.join(download_dir_path, 'cgg_spreadsheet.tsv')
+        df = pd.read_sql(f'select * from {data()}.{table_name}', con=ENGINE_READ_ONLY)
+        df.to_csv(file_path_cgg, sep='\t', index=False)        
+        
+        # Send the text file as a download to the user
+        return send_file(file_path_cgg, as_attachment=True)
     
     
 
