@@ -167,3 +167,30 @@ def inner(schema_name, engine):
         f'{depth_id_col_name}{lc_suf}',
         f'{fastq_file_id_col_name}{lc_suf}'
     ])
+    
+def qc(engine):
+    report_meta = "select * from test_1.report_meta where report_meta_key = 'config_output_dir'"
+    report_meta = pd.read_sql(report_meta, engine)
+    report_meta_piv = report_meta.pivot(columns='report_meta_key', index='report_id', values='report_meta_value')
+    report_meta_piv.columns.name = None
+    report_meta_piv = report_meta_piv.reset_index()
+    multiqc_data = '''
+                SELECT s.sample_name, sdt.data_key, NULLIF(sd.value, 'None') AS value, sd.report_id
+                FROM sample_data sd
+                JOIN sample_data_type sdt ON sdt.sample_data_type_id = sd.sample_data_type_id
+                JOIN sample s ON sd.sample_id = s.sample_id
+                WHERE sdt.data_section != 'general_stats' and sdt.data_section != 'bbmap_low_complexity'; 
+            '''
+    multiqc_data = pd.read_sql(multiqc_data, engine)    
+    multiqc_data['lane_read_trimtype_etc'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: '_'.join(x[2:]))
+    multiqc_data = multiqc_data.query("lane_read_trimtype_etc == 'collapsed'")
+    multiqc_data['library_id'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: x[1])
+    pivoted_df = multiqc_data.pivot(index=['library_id', 'report_id'], columns='data_key', values='value')
+    pivoted_df.columns.name = None
+    # Reset the index to make sample_name a regular column (optional)
+    pivoted_df = pivoted_df.reset_index()
+    mega_qc = pivoted_df
+    mega_qc = mega_qc.merge(report_meta_piv, on='report_id', how='inner', validate='1:1')
+    mega_qc = mega_qc.rename(columns={'config_output_dir': 'binf_qc_report_path', 
+                                      'report_id': 'binf_qc_report_id' }, errors='raise')
+    return mega_qc
