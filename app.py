@@ -1562,7 +1562,20 @@ def download_all_individual_tables():
                                          engine=ENGINE_READ_ONLY)
         tables = set(tables) - set(DBTableRelated.UTIL_TABLES_LEAFS)
         
-        for table_name in tables:
+        helper_tables = [data.country_ocean(),
+                         data.field_sample_environment_types(),
+                         data.field_sample_types(),
+                         data.field_sample_context_types(),
+                         data.field_sample_material_type(),
+                         data.field_sample_types_gm(),
+                         data.initials_translator(),
+                         data.cgg_sediment_water(),
+                         data.adna_wetlab_report(),
+                         data.cgg_animal_plant(),
+                         data.top_unknown_seq_barcodes()
+                         ]
+                
+        for table_name in set(tables) - set(helper_tables):
             df = pd.read_sql(f'select * from {schema_name}.{table_name}', con=ENGINE_READ_ONLY)
             # if encoding_type == "ascii":
             #     df = df.applymap(lambda x: ascii(x) if isinstance(x, str) else x)
