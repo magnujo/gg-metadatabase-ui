@@ -105,17 +105,16 @@
           
 
             
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <input type="checkbox" id="checkbox_smdb" name="checkbox_smdb" value="on">
                 <label for="checkbox_smdb">Include SMDB (Sample Metadata DataBase)</label>
-            </div>
+            </div> 
 
             <div class="form-group">
                 <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
                 <label for="checkbox_qc">Include MultiQCDB (bioinformatical qc data.) This will increase download time with ~2 min.</label>
-                <!-- <p class="note" style="color: red;">WARNING: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
+                 <p class="note" style="color: red;">WARNING: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
                     If you need data from other sequencing runs, you can find it in the data folders on dandy: projects/caeg/data/production</p> -->
-            </div>
             <br>
 
             <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined data...</button>

@@ -13,9 +13,8 @@ from pathlib import Path
 import constants.db_table_related_constants as db_table_related_constants
 from utils.misc import make_dir_on_network_mount
 from validation_tools import validate_enum_columns
-from scripts import deleted_schema_management
 import zipfile
-from scripts import fid_query, library_id_query, get_all_query
+from scripts import fid_query, get_all_query
 import time
 from threading import Lock
 lock = Lock()
@@ -23,13 +22,8 @@ download_lock = Lock()
 upload_lock = Lock()
 import seq_center_sample_sheet_parser
 from utils import misc
-from flask_wtf import FlaskForm
-from wtforms import StringField
-from wtforms.validators import Email, DataRequired
 import lane_barcode_parser
 from sqlalchemy.exc import SQLAlchemyError
-import psycopg2
-from psycopg2 import Error
 import traceback
 import inspect
 import shutil
@@ -44,7 +38,6 @@ from constants import paths
 from scripts.ETLFunctions import clean_up
 import pandas as pd
 import numpy as np
-from pandas import testing
 import logging
 from constants.misc_constants import UPLOADED_FILES, ALLOWED_EXTENSIONS, ALLOWED_DATE_FORMATS, ALLOWED_ENCODINGS
 from exception_utils import delete_files, delete_db_entries
@@ -53,7 +46,6 @@ from utils import parsers
 import decorators
 from datetime import datetime
 import logging
-from logging.handlers import RotatingFileHandler
 import uuid
 from geopy.distance import geodesic
 
@@ -1463,8 +1455,8 @@ def PI_download_standardized():
 def download_merged_standardized():
        
     with download_lock:
-        qc_checked = 'checkbox_qc' in request.form
-        checkbox_smdb = 'checkbox_smdb' in request.form
+        qc_checked = False
+        checkbox_smdb = True
         
         download_id = str(uuid.uuid4())
         download_dir_path = os.path.join('session_data', download_id)
@@ -1527,7 +1519,7 @@ def download_cgg():
     
     with download_lock:
         
-        table_name = 'cgg_sediment_water_raw'
+        table_name = data.cgg_sediment_water()
         download_id = str(uuid.uuid4())
         download_dir_path = os.path.join('session_data', download_id)
         os.mkdir(download_dir_path)
