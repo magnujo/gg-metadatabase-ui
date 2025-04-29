@@ -256,7 +256,7 @@ def rename_db_schema(connection):
         full_query = full_query + table_update_q
     
     
-    user_output = {get_table_name(int(key)): val for key, val in rename_file.items()}
+    user_output = {get_schema_name(int(key)): val for key, val in rename_file.items()}
     print(f"Do you want to complete the schema renaming? (y/n)")
     print(f"{user_output}")
     confirmation = input("")
@@ -472,26 +472,22 @@ def run():
         with open(file_path, 'r') as file:
             rename_file = json.load(file)
             if len(rename_file) > 0:    
-                active_rename_files.append((file_name, rename_file))                            
+                active_rename_files.append((file_name, rename_file))    
     
-    if len(active_rename_files) == 1:
-        # prompt user to confirm and user info 
-        # do rename
-        file_name = active_rename_files[0][0]
-        rename_file = active_rename_files[0][1]
-
-        
+    connection = psycopg2.connect(**db_config)   
     
-        connection = psycopg2.connect(**db_config)   
-        
-        rename_files[file_name](connection)
-                
-    
-    elif len(active_rename_files) == 0:
+    if len(active_rename_files) == 0:
         raise Exception("All renaming files are empty")    
     
-    else:
-        raise Exception("Only one rename file can be non empty at a time")
+    for ele in active_rename_files:
+        file_name = ele[0]
+        rename_file = ele[1]                
+        rename_files[file_name](connection)
+        
+      
+    
+    
+
         
     # Prompt user: Are you sure you want to rename?
 
