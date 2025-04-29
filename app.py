@@ -397,16 +397,19 @@ def upload_file():
                         lat = row['latitude']
                         lon = row['longitude']
                         
-                        distances = queries.get_geo_distances_from_db_table(latitiude_coord=lat, 
-                                                                            longitude_coord=lon, 
-                                                                            table=data.field_sample(), 
-                                                                            schema=data(), 
-                                                                            longitude_column_name='longitude', 
-                                                                            latitude_column_name='latitude',
-                                                                            distance_threshold=10000,
-                                                                            db_engine=ENGINE_READ_ONLY)
-                        distances = misc.drop_auto_generated_columns(distances)
-                        latlon_warnings_data = pd.concat([latlon_warnings_data, distances])
+                        if not (pd.isna(lat) or pd.isna(lon)):
+                        
+                            distances = queries.get_geo_distances_from_db_table(latitiude_coord=lat, 
+                                                                                longitude_coord=lon, 
+                                                                                table=data.field_sample(), 
+                                                                                schema=data(), 
+                                                                                longitude_column_name='longitude', 
+                                                                                latitude_column_name='latitude',
+                                                                                distance_threshold=10000,
+                                                                                db_engine=ENGINE_READ_ONLY)
+                            
+                            distances = misc.drop_auto_generated_columns(distances)
+                            latlon_warnings_data = pd.concat([latlon_warnings_data, distances])
                     
                     latlon_warnings_data = latlon_warnings_data.drop(columns='distance')
                     
