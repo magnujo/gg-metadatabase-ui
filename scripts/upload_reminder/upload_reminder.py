@@ -32,7 +32,7 @@ def run(input_libs, customer_emails, test):
 
     DATABASE_CONFIG_READ_ONLY = {
         'host': 'dandypdb01fl',
-        'dbname': 'aedna_metadata_test',
+        'dbname': 'smdb',
         'port': '5432',
         'user': 'read_user',
         'password': r'5J8DhII0RRsPW1',

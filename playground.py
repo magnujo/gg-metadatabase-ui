@@ -1,4 +1,6 @@
-l = ['asld', 'ads']
-l2 = ['asld']
+from constants.db_names.names import data
 
-print(set(l) - set(l2))
+field_sample = data.field_sample
+id = field_sample.field_sample_id()
+
+print(field_sample())

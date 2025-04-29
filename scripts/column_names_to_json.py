@@ -10,7 +10,7 @@ from getpass import getpass
 # Database connection parameters
 db_params = PSYCON_CONFIG
 
-schema_name = "test_1"
+schema_name = "data"
 
 db_params['user'] = input("Enter super username: ")
 db_params['password'] = getpass("Enter super user password: ")

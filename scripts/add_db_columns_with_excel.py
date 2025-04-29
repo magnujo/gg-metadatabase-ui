@@ -9,8 +9,8 @@ from sqlalchemy import create_engine
 import getpass
 
 excel_file = r'static\example_sheets_offline\SS0077_Sediment Soil Done Summary Table_240216.xls'
-database = 'aedna_metadata_test'
-schema = 'test_1'
+database = 'smdb'
+schema = 'data'
 table_name = 'edna_wetlab_report'
 
 def add_cols_to_db(excel_file, database, table_name, schema):

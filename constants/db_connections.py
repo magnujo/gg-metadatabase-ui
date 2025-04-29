@@ -2,7 +2,7 @@ import psycopg2
 import os
 from sqlalchemy import create_engine
 
-active_database_name = 'aedna_metadata_test'
+active_database_name = 'smdb'
 active_host = 'dandypdb01fl'
 active_port = '5432'
 pw = os.environ.get('PGPASSWORD')
@@ -45,7 +45,7 @@ if pw:
             'port': active_port,
             'user': 'upload_user',
             'password': pw,
-            'schema_name': 'test_1'
+            'schema_name': 'data'
         }
 
     elif RUN_MODE == 'development':
@@ -55,7 +55,7 @@ if pw:
             'port': active_port,
             'user': 'upload_user',
             'password': pw,
-            'schema_name': 'test_1'
+            'schema_name': 'data'
         }
 
     PSY_CONN = psycopg2.connect(

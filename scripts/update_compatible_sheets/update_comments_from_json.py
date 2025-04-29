@@ -25,13 +25,13 @@ password = getpass.getpass("Enter your password: ")
 
 # Specify the table name
 table_name = 'field_sample'
-schema_name = 'test_1'
+schema_name = 'data'
 file = r'static\example_sheets_online\json_dumps\Field sampling (internal).json'
 
 
 DATABASE_CONFIG_2 = {
         'host': 'dandypdb01fl',
-        'database': 'aedna_metadata_test',
+        'database': 'smdb',
         'port': '5432',
         'user': username,
         'password': password,

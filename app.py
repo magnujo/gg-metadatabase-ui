@@ -147,7 +147,7 @@ def upload_file():
             session['database_table_name'] = database_table_name
             table_splits = db_table_related_constants.DBTableRelated.TABLE_SPLITTER.get(database_table_name)
             
-            if database_table_name == 'field_sample':
+            if database_table_name == data.field_sample():
                 if len(table_splits) != 1:
                     raise Exception(f"Tried to split upload sheet into {len(table_splits)} tables, but folder generation is only compatible with 1. Report to admin below.")
             
@@ -407,8 +407,8 @@ def upload_file():
                         
                         distances = queries.get_geo_distances_from_db_table(latitiude_coord=lat, 
                                                                             longitude_coord=lon, 
-                                                                            table='field_sample', 
-                                                                            schema='test_1', 
+                                                                            table=data.field_sample(), 
+                                                                            schema=data(), 
                                                                             longitude_column_name='longitude', 
                                                                             latitude_column_name='latitude',
                                                                             distance_threshold=10000,
@@ -898,7 +898,7 @@ This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
         
         
         
-        # if database_table_name == 'field_sample':          
+        # if database_table_name == data.field_sample():          
         #     make_field_sample_dirs(clean_sheets, table_splits)
             
         
@@ -1474,7 +1474,7 @@ def download_merged_standardized():
         
         if qc_checked:
             file_path_qc = os.path.join(download_dir_path, 'binf_qc_data.tsv')
-            qc_data = table_merges.qc(engine=ENGINE_READ_ONLY)
+            qc_data = table_merges.qc(data(), engine=ENGINE_READ_ONLY)
             qc_data.to_csv(file_path_qc, sep='\t', index=False)
             paths_to_download.append(file_path_qc)
             

@@ -8,7 +8,7 @@ import os
 
 DATABASE_CONFIG = {
         'host': 'dandypdb01fl',
-        'database': 'aedna_metadata_test',
+        'database': 'smdb',
         'port': '5432',
         'user': 'glj523',
         'password':'Wtcantfw36c!',

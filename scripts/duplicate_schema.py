@@ -139,8 +139,8 @@ def run(conn, source_schema, new_schema, owner, include_constraints, copy_dataty
 # INCLUDE_CONSTRAINTS = True
 
 # # Replace these values with the schema names you want to create and copy tables to
-# NEW_SCHEMA = "test_1_deleted"
-# SOURCE_SCHEMA = "test_1"
+# NEW_SCHEMA = "data_deleted"
+# SOURCE_SCHEMA = "data"
 
 # conn = psycopg2.connect(
 #             dbname=DATABASE,

@@ -44,8 +44,8 @@ def generate(table_name, schema_name, conn):
     save_path = os.path.join(project_root, 'auto_generated_upload_sheet_templates', file_name + extension)
 
 
-    table_name = 'field_sample'
-    schema_name = 'test_1'
+    table_name = data.field_sample()
+    schema_name = data()
     max_rows = 1048576
 
     if table_name == data.field_sample():
@@ -315,7 +315,7 @@ https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been
         col_names.sample_date(),
     ]
 
-    comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], 'test_1', 'field_sample', psy_conn=PSY_CONN)
+    comments = misc.get_comments(DATABASE_CONFIG_READ_ONLY['dbname'], data(), data.field_sample(), psy_conn=PSY_CONN)
     
     for col_num, col_name in enumerate(df_translated.columns):
         # Get the original column name

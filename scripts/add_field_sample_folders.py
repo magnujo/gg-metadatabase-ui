@@ -9,7 +9,7 @@ from utils import misc
 from utils import queries
 
 
-df = queries.get_table_as_dataframe(engine=misc_constants.ENGINE, schema_name="test_1", table_name="field_sample", dtype=str)
+df = queries.get_table_as_dataframe(engine=misc_constants.ENGINE, schema_name="data", table_name="field_sample", dtype=str)
 samples_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Sample specific files"
 projects_root_dir = r"n:\SUN-GI-metadb-test\Field Sample Geo Files\Project specific files"
 dirs_to_create = misc.generate_field_sample_dir_paths(df, projects_root_dir=projects_root_dir, 

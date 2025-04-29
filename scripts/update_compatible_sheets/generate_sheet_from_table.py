@@ -17,10 +17,10 @@ Automatically generates a compatible excel sheet template for a given table.
 
 output_folder=r'static\auto_sheets'
 table_name='master_depth' 
-schema_name='test_1'
+schema_name='data'
 user = input("Enter your database username: ")
 password = getpass.getpass("Enter your password: ")
-database_name='aedna_metadata_test'
+database_name='smdb'
 sort_on_null = True
 transpose = False
 

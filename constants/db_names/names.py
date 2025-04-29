@@ -213,6 +213,7 @@ class data(Schema):
         fastq_file_id = lambda template=False: get_column_name(145, template=template)
         upload_uuid = lambda template=False: get_column_name(146, template=template)
         library_prep_method = lambda template=False: get_column_name(147, template=template)
+        comp_id = lambda template=False: get_column_name(394, template=template)
 
     class flowcell(Table):
         _db_id = 9
