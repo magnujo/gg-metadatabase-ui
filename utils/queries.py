@@ -87,8 +87,6 @@ def get_geo_distances_from_db_table(latitiude_coord,
     If distance_threshold is set, only records where distance (m) is lower than distance_threshold (m) will be returned. 
     '''
     
-    
-    
     query = f'''
     SELECT *, (point({longitude_column_name}, {latitude_column_name}) <@> point({longitude_coord}, {latitiude_coord})) * 1609.344 AS distance
     FROM
