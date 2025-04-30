@@ -65,16 +65,16 @@ def outer_merge(schema_name, engine):
                             how='outer', 
                             suffixes=(f'@{robot_sample_table_name()}', f'@{wetlab_table_name()}'))
 
-    result_outer = pd.merge(result_outer, 
-                            seqsheet, 
-                            on=f'{fastq_file_id_col_name}{lc_suf}', 
-                            how='outer', 
-                            suffixes=(f'@{wetlab_table_name()}', f'@{seqsheet_table_name()}'))  # Will cause cross join. TODO: Fix
+    # result_outer = pd.merge(result_outer, 
+    #                         seqsheet, 
+    #                         on=f'{fastq_file_id_col_name}{lc_suf}', 
+    #                         how='outer', 
+    #                         suffixes=(f'@{wetlab_table_name()}', f'@{seqsheet_table_name()}'))  # Will cause cross join. TODO: Fix
 
     result_outer = pd.merge(result_outer, 
                             flowcell, on=f'{fastq_file_id_col_name}{lc_suf}', 
                             how='outer', 
-                            suffixes=(f'@{seqsheet_table_name()}', f'@{flowcell_table_name()}'))  # Will cause cross join. TODO: Fix
+                            suffixes=(f'@{wetlab_table_name()}', f'@{flowcell_table_name()}'))  # Will cause cross join becasuse of multiple lanes and runs on different flowcells. TODO: Fix
 
     result_outer = pd.merge(result_outer, 
                             master_depth, 
@@ -87,6 +87,9 @@ def outer_merge(schema_name, engine):
                             on=f'{depth_id_col_name}{lc_suf}',
                             how='outer',
                             suffixes=(f'@{master_depth_table_name()}', f'@{age_model_table_name()}'))
+
+
+
 
     result_outer = result_outer.drop(columns=[
         f'{field_sample_id_col_name}{lc_suf}',
