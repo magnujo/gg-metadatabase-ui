@@ -59,7 +59,7 @@
 
         input[type="file"], 
         select, 
-        input[type="email"] {
+        input {
             width: 100%;
             padding: 8px;
             margin-top: 5px;
@@ -95,7 +95,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Upload to <i>SMDB</i> (Sample Metadata DataBase)</h1>
+        <h1>Upload to <i>SMDB</i> (Sample Metadata DataBase)</h1>    
 
         <div class="section">
             <h2>READ THIS BEFORE UPLOADING:</h2>
@@ -126,16 +126,29 @@
             <h2>Upload</h2>
             <p><strong>Note:</strong> The database only accepts tab seperated .txt files as of now. If you use excel: Use “Unicode Text (.txt)” (Windows) or “UTF-16 Unicode Text” (Mac) 
                 and pick UTF-16 in the encoding dropdown menu below. For Lane Barcodes, use .html format and UTF-8.</p>
-            <form action="/upload" method="post" enctype="multipart/form-data">
+
+                <form action="/upload" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="file">Choose a file to upload:</label>
                     <input type="file" name="file" accept=".txt, .html, .csv" required>
                 </div>
 
                 <div class="form-group">
+                    <label for="database_table_name">Select spreadsheet type:</label>
+                    <select name="database_table_name" id="database_table_name" required>
+                        <option value="">-- Please choose an option --</option>
+                        {% for key in SHEET_TYPES %}
+                            <option value="{{ key }}">{{ SHEET_TYPES[key] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <br>
+                <br>
+                
+                <div class="form-group">
                     <label for="encoding_type">Select the encoding of your file:</label>
                     <select name="encoding_type" id="encoding_type" required>
-                        <option value="">Choose an option...</option>
+                        <option value="">-- Please choose an option --</option>
                         {% for ele in ALLOWED_ENCODINGS %}
                             <option value="{{ ele }}">{{ ele }}</option>
                         {% endfor %}
@@ -143,19 +156,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="database_table_name">Select spreadsheet type:</label>
-                    <select name="database_table_name" id="database_table_name" required>
-                        <option value="">Choose an option...</option>
-                        {% for key in SHEET_TYPES %}
-                            <option value="{{ key }}">{{ SHEET_TYPES[key] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label for="date_format">Select date format:</label>
                     <select name="date_format" id="date_format" required>
-                        <option value="">Choose an option...</option>
+                        <option value="">-- Please choose an option --</option>
                         {% for ele in ALLOWED_DATE_FORMATS %}
                             <option value="{{ ele }}">{{ ele }}</option>
                         {% endfor %}
@@ -165,7 +168,7 @@
                 <div class="form-group">
                     <label for="decimal_point">Select decimal point character used:</label>
                     <select name="decimal_point" id="decimal_point" required>
-                        <option value="">Choose an option...</option>
+                        <option value="">-- Please choose an option --</option>
                         <option value=",">, (comma)</option>
                         <option value=".">. (period)</option>
                         <option value="not_relevant">My sheet does not contain decimals</option>
@@ -175,7 +178,7 @@
                 <div class="form-group">
                     <label for="thousands_seperator">Select thousands separator used:</label>
                     <select name="thousands_seperator" id="thousands_seperator" required>
-                        <option value="">Choose an option...</option>
+                        <option value="">-- Please choose an option --</option>
                         <option value=",">, (comma)</option>
                         <option value=".">. (period)</option>
                         <option value="not_relevant">My sheet does not contain thousands separators</option>
@@ -186,20 +189,27 @@
                     <label for="email">Your email address:</label>
                     <input type="email" id="email" name="email" required>
                 </div>
-
+                <div class="form-group" id="read_length">
+                </div>
+                <div class="form-group" id="sequencing_machine"></div>
+<br>
+<br>
                 <div class="form-group">
-                    <label for="send_receipt_to">Email address of upload receipt recipient: </label>
+                    <label for="send_receipt_to">Send receipt to: </label>
                     <p class="note">Enter the email address of the person who should receive an email with all the uploaded data attached, so that they can review and validate.</p>         
                     <input type="email" id="send_receipt_to" name="send_receipt_to" required>
                 </div>
 
-                
+
+
 
                 <div>
                     <button type="submit">Begin the 2-step upload process</button>
                 </div>
             </form>
         </div>
+
+        
 
         {% if message %}
             <div class="section">
@@ -208,4 +218,156 @@
         {% endif %}
     </div>
 </body>
+
+<script>
+    const mapping = {
+      lane_barcode_html: {
+        'decimal_point': '.',
+        'encoding_type': 'UTF-8',
+        'date_format': 'My data doesn\'t contain dates',
+        'thousands_seperator': ",",
+        'email': 'julie.bitz-thorsen@sund.ku.dk'
+      },
+      edna_archive_sample: {
+        'encoding_type': 'UTF-16',
+        'email': 'jtstenderup@sund.ku.dk',
+        'date_format': '',
+        'thousands_seperator': '',
+        'decimal_point': ''
+      },
+      edna_robot_sample: {
+        'encoding_type': 'UTF-16',
+        'email': 'jtstenderup@sund.ku.dk',
+        'date_format': '',
+        'thousands_seperator': '',
+        'decimal_point': ''
+      }
+    };
+
+    document.getElementById("database_table_name").addEventListener("change", function () {
+      const selectedCategory = this.value;
+      const mp = mapping[selectedCategory];
+  
+      if (mp) {
+        for (const key in mp) {
+          const inputField = document.getElementById(key);
+          if (inputField) {
+            inputField.value = mp[key];
+          }
+        }
+      } else {
+        // Reset known fields to empty
+        for (const key in mapping.lane_barcode_html) {
+          const inputField = document.getElementById(key);
+          if (inputField) {
+            inputField.value = '';
+          }
+        }
+      }
+    });
+
+
+
+
+  </script>
+
+<script>
+    document.getElementById("database_table_name").addEventListener("change", function () {
+      const container = document.getElementById("read_length");
+      container.innerHTML = ""; // Clear existing input
+  
+      if (this.value === "lane_barcode_html") {
+
+        const header = document.createElement("h3");
+        header.textContent = 'Lane Barcode specific input'
+
+        const read_length_label = document.createElement("label");
+        read_length_label.for = "read_length";
+        read_length_label.textContent = "Read Length";
+
+        const tube_tag = document.createElement("input");
+        tube_tag.required = true;
+        tube_tag.type = "text";
+        tube_tag.name = "tube_tag";
+        tube_tag.value = '';
+        const tube_tag_label = document.createElement("label");
+        tube_tag_label.for = "tube_tag";
+        tube_tag_label.textContent = "Tube Tag";
+
+        const machine_label = document.createElement("label");
+        machine_label.for = "sequencing_machine";
+        machine_label.textContent = "Sequencing Machine";
+
+        const read_length_input = document.createElement("input");
+        read_length_input.required = true;
+        read_length_input.type = "text";
+        read_length_input.name = "read_length";
+        read_length_input.id = "read_length";
+        read_length_input.value = '101';
+
+        const machine_select = document.createElement("select");
+        machine_select.name = "sequencing_machine";
+        machine_select.id = "sequencing_machine";
+        
+        machine_select.required = true;
+        const option1 = new Option("NovaSeq 6000", "novaseq_6000");
+        const option2 = new Option("NovaSeq X Plus", "novaseq_x_plus");
+        machine_select.appendChild(option1);
+        machine_select.appendChild(option2);
+
+
+
+        const sequencing_date = document.createElement("input");
+        const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD
+        sequencing_date.required = true;
+        sequencing_date.type = "date";
+        sequencing_date.id = "sequencing_date";
+        sequencing_date.name = "sequencing_date";
+        sequencing_date.min = "2020-01-01";
+        sequencing_date.max = today;
+        sequencing_date.value = today;
+        const sequencing_date_label = document.createElement("label");
+        sequencing_date_label.for = "sequencing_date";
+        sequencing_date_label.textContent = "Sequencing Date";
+
+        container.appendChild(document.createElement("br")); // Line break if needed
+        container.appendChild(header);
+
+        container.appendChild(machine_label);
+        container.appendChild(document.createElement("br"));
+        container.appendChild(machine_select);
+
+        const read_length_mapping = {
+            'novaseq_6000': '101',
+            'novaseq_x_plus': ''
+            }
+
+        machine_select.addEventListener("change", function () {
+            const selectedCategory = this.value;
+            const subcategory = read_length_input; // it's already declared above
+
+            if (read_length_mapping[selectedCategory] !== undefined) {
+                subcategory.value = read_length_mapping[selectedCategory];
+            } else {
+                subcategory.value = "";
+            }
+            });
+
+        container.appendChild(read_length_label);
+        container.appendChild(document.createElement("br")); // Line break if needed
+        container.appendChild(read_length_input);
+
+        container.appendChild(tube_tag_label);
+        container.appendChild(document.createElement("br"));
+        container.appendChild(tube_tag);
+
+        container.appendChild(sequencing_date_label);
+        container.appendChild(document.createElement("br")); // Line break if needed
+        container.appendChild(sequencing_date);
+
+      }
+    });
+  </script>
+
 </html>
+
