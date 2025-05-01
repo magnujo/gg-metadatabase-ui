@@ -392,6 +392,7 @@ def upload_file():
                     latlon_warnings_data = pd.DataFrame(columns=clean_sheet.columns)
                 
                     
+                    clean_sheet['wrong_data'] = ''
                     
                     for _, row in clean_sheet[~clean_sheet.duplicated(subset=['latitude', 'longitude'])].iterrows():
                         lat = row['latitude']
