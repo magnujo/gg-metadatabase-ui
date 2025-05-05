@@ -24,7 +24,7 @@ class DBTableRelated:
                                                                     data.initials_translator(),
                                                                     ],
                                                          "LIBRARY": [data.flowcell(), 
-                                                                     data.seq_sample_sheet(), 
+                                                                    #  data.seq_sample_sheet(), 
                                                                      data.top_unknown_seq_barcodes(), 
                                                                      data.adna_wetlab_report(), 
                                                                      data.edna_wetlab_report()]
@@ -43,7 +43,7 @@ class DBTableRelated:
                         'cgg_sediment_water': [data.cgg_sediment_water()],
                         'cgg_animal_plant': [data.cgg_animal_plant()],
                         'lane_barcode_html': [data.flowcell(), data.top_unknown_seq_barcodes()],
-                        'seq_sample_sheet': [data.seq_sample_sheet()],
+                        # 'seq_sample_sheet': [data.seq_sample_sheet()],
                         'master_depth': [data.master_depth()],
                         'age_depth_model': [data.age_depth_model()],
                         'initials_translator': [data.initials_translator()]
@@ -88,14 +88,14 @@ class DBTableRelated:
 
         data.flowcell(): { 
                 data.flowcell.fastq_file_id(): { 
-                    data.seq_sample_sheet(): [data.seq_sample_sheet.fastq_file_id()],
+                    data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
         },
         
-        data.seq_sample_sheet(): { 
-                data.seq_sample_sheet.fastq_file_id(): { 
-                    data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
-                    }
-        },
+        # data.seq_sample_sheet(): { 
+        #         data.seq_sample_sheet.fastq_file_id(): { 
+        #             data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
+        #             }
+        # },
         
         data.master_depth(): { 
                 data.master_depth.master_field_sample_id(): { 
