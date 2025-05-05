@@ -210,8 +210,6 @@ def upload_file():
                     }
                 }
                 
-                
-                
                 if sequencing_machine_id != 'A00706':
                     raise Exception(f'The uploaded sequencing machine ID {sequencing_machine_id} is unknown to the system. Please report to system administrator if you want to add the ID to the system')
                                 

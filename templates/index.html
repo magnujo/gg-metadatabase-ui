@@ -456,8 +456,8 @@
         for (let i = 1; i <= 4; i++) {
             const input = document.createElement("input");
             input.type = "text";
-            input.id = 'tube_tag_multiple';
-            input.name = 'tube_tag_multiple';
+            input.id = 'tube_tag_lane_' + i;
+            input.name = 'tube_tag_lane_' + i;
             
             input.placeholder = "Insert tag of pool that was sequenced on lane " + i;
             container.appendChild(input);
