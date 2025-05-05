@@ -67,7 +67,6 @@ files_to_del = {'Before Upload': {'original': False, 'parsed': False, 'uploaded'
 
 logger = log_util.setup()
 
-warning_master_id_rows_in_db = []
 
 # # Set log level
 app.logger.setLevel(logging.DEBUG)
@@ -97,7 +96,7 @@ def index():
 def upload_file():
     with upload_lock:
         # logger.info('Running: ' + str(index.__name__))
-       
+        warning_master_id_rows_in_db = []
         session.clear()
         session['email'] = None
         session['error'] = False
