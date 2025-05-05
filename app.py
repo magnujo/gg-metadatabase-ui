@@ -192,6 +192,14 @@ def upload_file():
             
             sheets_to_parse = []
             if database_table_name == "lane_barcode_html":
+                tube_tag_col_name = data.flowcell.library_pool_tag()
+                read_len_col_name = data.flowcell.read_length()
+                seq_machine_col_name = data.flowcell.sequencing_machine()
+                seq_date_col_name = data.flowcell.sequencing_date()
+                flowcell_pos_col_name = data.flowcell.flowcell_position()
+                seq_run_col_name = data.flowcell.sequencing_run()
+                
+                
                 # TODO: Make more general:
                 sheet = pd.read_html(file_path, thousands=thousands_seperator, decimal=decimal_point)
 
@@ -199,6 +207,7 @@ def upload_file():
                 
                 flowcell_id_file = list(set(flowcell_data[data.flowcell.flowcell_id(template=True)]))
                 sequencing_date, sequencing_machine_id, sequencing_run, suffix  = file_name.split('_')
+                sequencing_date = sequencing_date[:4] + '-' + sequencing_date[4:6] + '-' + sequencing_date[6:]
                 flowcell_info, _, _ = suffix.split(".")
                 flowcell_id_file_name = flowcell_info[1:]
                 flowcell_position = flowcell_info[0]
@@ -206,7 +215,7 @@ def upload_file():
                 machine_id_map = {
                     'A00706': {
                         'name': 'Nova Seq 6000',
-                        'read_length': '101'
+                        read_len_col_name: '101'
                     }
                 }
                 
@@ -215,14 +224,12 @@ def upload_file():
                                 
                 num_of_flowcell_ids = len(flowcell_id_file)
                 
-                tube_tag_col_name = data.flowcell.library_pool_tag()
-                read_len_col_name = data.flowcell.read_length()
-                seq_machine_col_name = data.flowcell.library_pool_tag()
-                seq_date_col_name = data.flowcell.library_pool_tag()
-                flowcell_pos_col_name = data.flowcell.library_pool_tag()
+                
                 
                 num_of_lib_pools = int(request.form.get('num_of_library_pools'))
-                                
+                
+                all_tube_tags = []           
+                       
                 if num_of_lib_pools == 1: 
                     tube_tag = str(request.form.get('single_tube'))
                     if not tube_tag:
@@ -230,50 +237,59 @@ def upload_file():
                     
                     if tube_tag_col_name in flowcell_data.columns or tube_tag_col_name in top_unknown_barcodes.columns:
                         raise Exception('Error related to parsing. Contact system admin.')
-                    
+                    all_tube_tags.append(tube_tag)
                     flowcell_data[tube_tag_col_name] = tube_tag
-                    top_unknown_barcodes[tube_tag_col_name] = tube_tag       
-                    
-                if 5 > num_of_lib_pools > 1:
+                    top_unknown_barcodes[tube_tag_col_name] = tube_tag  
+                
+                elif 5 > num_of_lib_pools > 1:
                     if tube_tag_col_name in flowcell_data.columns or tube_tag_col_name in top_unknown_barcodes.columns:
                         raise Exception('Error related to parsing. Contact system admin.')
+                    flowcell_data[tube_tag_col_name] = ''
+                    top_unknown_barcodes[tube_tag_col_name] = ''
+                                        
                     for i in range(4):
                         i += 1
-                        tube_tag = str(request.form.get('tube_tag_lane_' + i))
+                        tube_tag = str(request.form.get('tube_tag_lane_' + str(i)))
+                        all_tube_tags.append(tube_tag)
                         if not tube_tag:
                             raise Exception('Remember to fill out all tube tags')
-                        flowcell_data.query(f"flowcell_lane == {i}")[tube_tag_col_name] = tube_tag
-                        top_unknown_barcodes.query(f"flowcell_lane == {i}")[tube_tag_col_name] = tube_tag
+                        flowcell_data.loc[flowcell_data[data.flowcell.lane(True)] == str(i), tube_tag_col_name] = tube_tag
+                        top_unknown_barcodes.loc[top_unknown_barcodes[data.flowcell.lane(True)] == str(i), tube_tag_col_name] = tube_tag
                     
                 else:
                     raise Exception("Error related to parsing. Contaxt system admin.")
+                
+                num_of_parsed_lib_pools = len(set(all_tube_tags))
+                
+                if not num_of_parsed_lib_pools == num_of_lib_pools:
+                    raise Exception(f"You selected to upload {num_of_lib_pools} library pools but only inserted {num_of_parsed_lib_pools}")
                     
-                read_length = machine_id_map[sequencing_machine_id]['read_length']
+                read_length = machine_id_map[sequencing_machine_id][read_len_col_name]
                 if not read_length:
                     raise Exception('Remember to fill out read length')
-                flowcell_data['read_length'] = read_length
-                top_unknown_barcodes['read_length'] = read_length
+                flowcell_data[read_len_col_name] = read_length
+                top_unknown_barcodes[read_len_col_name] = read_length
                 
                 sequencing_machine_name = machine_id_map[sequencing_machine_id]['name']
                 if not sequencing_machine_name:
                     raise Exception('Remember to fill out sequencing machine')
-                flowcell_data['sequencing_machine'] = sequencing_machine_name
-                top_unknown_barcodes['sequencing_machine'] = sequencing_machine_name
+                flowcell_data[seq_machine_col_name] = sequencing_machine_name
+                top_unknown_barcodes[seq_machine_col_name] = sequencing_machine_name
                 
                 if not sequencing_date:
                     raise Exception('Remember to fill out sequencing date')
-                flowcell_data['sequencing_date'] = sequencing_date
-                top_unknown_barcodes['sequencing_date'] = sequencing_date
+                flowcell_data[seq_date_col_name] = sequencing_date
+                top_unknown_barcodes[seq_date_col_name] = sequencing_date
 
                 if not sequencing_run:
                     raise Exception('Remember to fill out sequencing_run')
-                flowcell_data['sequencing_run'] = sequencing_run
-                top_unknown_barcodes['sequencing_run'] = sequencing_run
+                flowcell_data[seq_run_col_name] = sequencing_run
+                top_unknown_barcodes[seq_run_col_name] = sequencing_run
                 
                 if not flowcell_position:
                     raise Exception('Remember to fill out flowcell_position')
-                flowcell_data['flowcell_position'] = flowcell_position
-                top_unknown_barcodes['flowcell_position'] = flowcell_position
+                flowcell_data[flowcell_pos_col_name] = flowcell_position
+                top_unknown_barcodes[flowcell_pos_col_name] = flowcell_position
                 
                 if num_of_flowcell_ids != 1:
                     raise DontTriggerFileDeletion(f'Expected 1 flowcell ID. Found {num_of_flowcell_ids}')

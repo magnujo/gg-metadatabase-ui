@@ -239,7 +239,7 @@
 
 
                 <div id="tube_tags">
-                    <input type="text" id='single_tube' name='single_tube' placeholder="Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above">
+                    <input type="text" id='single_tube' required name='single_tube' placeholder="Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above">
                 </div>
       
 
@@ -458,6 +458,7 @@
             input.type = "text";
             input.id = 'tube_tag_lane_' + i;
             input.name = 'tube_tag_lane_' + i;
+            input.required = true
             
             input.placeholder = "Insert tag of pool that was sequenced on lane " + i;
             container.appendChild(input);
@@ -468,6 +469,7 @@
         const input = document.createElement("input");
         input.type = "text";
         input.placeholder = 'Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above';
+        input.required = true
         container.appendChild(input);
         container.appendChild(document.createElement("br"));
       }
