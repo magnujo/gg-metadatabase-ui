@@ -215,12 +215,39 @@ def upload_file():
                                 
                 num_of_flowcell_ids = len(flowcell_id_file)
                 
-                tube_tag = str(request.form.get('tube_tag'))
-                if not tube_tag:
-                    raise Exception('Remember to fill out tube tag')
-                flowcell_data['seqc_tube_tag'] = tube_tag
-                top_unknown_barcodes['seqc_tube_tag'] = tube_tag
+                tube_tag_col_name = data.flowcell.library_pool_tag()
+                read_len_col_name = data.flowcell.read_length()
+                seq_machine_col_name = data.flowcell.library_pool_tag()
+                seq_date_col_name = data.flowcell.library_pool_tag()
+                flowcell_pos_col_name = data.flowcell.library_pool_tag()
                 
+                num_of_lib_pools = int(request.form.get('num_of_library_pools'))
+                                
+                if num_of_lib_pools == 1: 
+                    tube_tag = str(request.form.get('single_tube'))
+                    if not tube_tag:
+                        raise Exception('Remember to fill out tube tag')
+                    
+                    if tube_tag_col_name in flowcell_data.columns or tube_tag_col_name in top_unknown_barcodes.columns:
+                        raise Exception('Error related to parsing. Contact system admin.')
+                    
+                    flowcell_data[tube_tag_col_name] = tube_tag
+                    top_unknown_barcodes[tube_tag_col_name] = tube_tag       
+                    
+                if 5 > num_of_lib_pools > 1:
+                    if tube_tag_col_name in flowcell_data.columns or tube_tag_col_name in top_unknown_barcodes.columns:
+                        raise Exception('Error related to parsing. Contact system admin.')
+                    for i in range(4):
+                        i += 1
+                        tube_tag = str(request.form.get('tube_tag_lane_' + i))
+                        if not tube_tag:
+                            raise Exception('Remember to fill out all tube tags')
+                        flowcell_data.query(f"flowcell_lane == {i}")[tube_tag_col_name] = tube_tag
+                        top_unknown_barcodes.query(f"flowcell_lane == {i}")[tube_tag_col_name] = tube_tag
+                    
+                else:
+                    raise Exception("Error related to parsing. Contaxt system admin.")
+                    
                 read_length = machine_id_map[sequencing_machine_id]['read_length']
                 if not read_length:
                     raise Exception('Remember to fill out read length')

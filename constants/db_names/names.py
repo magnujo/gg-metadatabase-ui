@@ -198,7 +198,7 @@ class data(Schema):
         library_cleanup_date = lambda template=False: get_column_name(130, template=template)
         library_qc_date = lambda template=False: get_column_name(131, template=template)
         customer_attention_to_library_prep = lambda template=False: get_column_name(132, template=template)
-        tube_tag_submitted_to_seqc = lambda template=False: get_column_name(133, template=template)
+        library_pool_tag = lambda template=False: get_column_name(133, template=template)
         dna_pooled = lambda template=False: get_column_name(134, template=template)
         expected_sequencing_data = lambda template=False: get_column_name(135, template=template)
         submitting_date = lambda template=False: get_column_name(136, template=template)
@@ -239,6 +239,12 @@ class data(Schema):
         from_spreadsheet = lambda template=False: get_column_name(165, template=template)
         database_insert_datetime_utc = lambda template=False: get_column_name(166, template=template)
         upload_uuid = lambda template=False: get_column_name(167, template=template)
+        library_pool_tag = lambda template=False: get_column_name(395, template=template)
+        read_length = lambda template=False: get_column_name(397, template=template)
+        sequencing_machine = lambda template=False: get_column_name(399, template=template)
+        sequencing_date = lambda template=False: get_column_name(401, template=template)
+        sequencing_run = lambda template=False: get_column_name(403, template=template)
+        flowcell_position = lambda template=False: get_column_name(405, template=template)
 
     class cgg_sediment_water(Table):
         _db_id = 10
@@ -481,6 +487,12 @@ class data(Schema):
         database_insert_datetime_utc = lambda template=False: get_column_name(353, template=template)
         uid = lambda template=False: get_column_name(354, template=template)
         upload_uuid = lambda template=False: get_column_name(355, template=template)
+        read_length = lambda template=False: get_column_name(398, template=template)
+        sequencing_machine = lambda template=False: get_column_name(400, template=template)
+        sequencing_date = lambda template=False: get_column_name(402, template=template)
+        sequencing_run = lambda template=False: get_column_name(404, template=template)
+        flowcell_position = lambda template=False: get_column_name(406, template=template)
+
     
 
 class deleted_by_script(Schema):
