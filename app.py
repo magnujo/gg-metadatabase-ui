@@ -67,6 +67,8 @@ files_to_del = {'Before Upload': {'original': False, 'parsed': False, 'uploaded'
 
 logger = log_util.setup()
 
+warning_master_id_rows_in_db = []
+
 # # Set log level
 app.logger.setLevel(logging.DEBUG)
 
