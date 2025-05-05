@@ -45,7 +45,7 @@ if pw:
             'port': active_port,
             'user': 'upload_user',
             'password': pw,
-            'schema_name': 'data'
+            'schema_name': 'uploaded_data'
         }
 
     elif RUN_MODE == 'development':
@@ -55,7 +55,7 @@ if pw:
             'port': active_port,
             'user': 'upload_user',
             'password': pw,
-            'schema_name': 'data'
+            'schema_name': 'uploaded_data'
         }
 
     PSY_CONN = psycopg2.connect(

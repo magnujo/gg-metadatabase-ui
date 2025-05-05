@@ -106,7 +106,7 @@ def upload_file():
         session['session_dir_created'] = False
         latlon_warnings_data = None
         
-        
+        warning_master_id_rows_in_db = []
         file = request.files['file']
         file_name = file.filename
         session['session_id'] = uuid.uuid4()
@@ -197,16 +197,68 @@ def upload_file():
 
                 flowcell_data, top_unknown_barcodes = lane_barcode_parser.parse(df=sheet)
                 
-                flowcell_id = list(set(flowcell_data[data.flowcell.flowcell_id(template=True)]))
+                flowcell_id_file = list(set(flowcell_data[data.flowcell.flowcell_id(template=True)]))
+                sequencing_date, sequencing_machine_id, sequencing_run, suffix  = file_name.split('_')
+                flowcell_info, _, _ = suffix.split(".")
+                flowcell_id_file_name = flowcell_info[1:]
+                flowcell_position = flowcell_info[0]
                 
-                num_of_flowcell_ids = len(flowcell_id)
+                machine_id_map = {
+                    'A00706': {
+                        'name': 'Nova Seq 6000',
+                        'read_length': '101'
+                    }
+                }
+                
+                
+                
+                if sequencing_machine_id != 'A00706':
+                    raise Exception(f'The uploaded sequencing machine ID {sequencing_machine_id} is unknown to the system. Please report to system administrator if you want to add the ID to the system')
+                                
+                num_of_flowcell_ids = len(flowcell_id_file)
+                
+                tube_tag = str(request.form.get('tube_tag'))
+                if not tube_tag:
+                    raise Exception('Remember to fill out tube tag')
+                flowcell_data['seqc_tube_tag'] = tube_tag
+                top_unknown_barcodes['seqc_tube_tag'] = tube_tag
+                
+                read_length = machine_id_map[sequencing_machine_id]['read_length']
+                if not read_length:
+                    raise Exception('Remember to fill out read length')
+                flowcell_data['read_length'] = read_length
+                top_unknown_barcodes['read_length'] = read_length
+                
+                sequencing_machine_name = machine_id_map[sequencing_machine_id]['name']
+                if not sequencing_machine_name:
+                    raise Exception('Remember to fill out sequencing machine')
+                flowcell_data['sequencing_machine'] = sequencing_machine_name
+                top_unknown_barcodes['sequencing_machine'] = sequencing_machine_name
+                
+                if not sequencing_date:
+                    raise Exception('Remember to fill out sequencing date')
+                flowcell_data['sequencing_date'] = sequencing_date
+                top_unknown_barcodes['sequencing_date'] = sequencing_date
+
+                if not sequencing_run:
+                    raise Exception('Remember to fill out sequencing_run')
+                flowcell_data['sequencing_run'] = sequencing_run
+                top_unknown_barcodes['sequencing_run'] = sequencing_run
+                
+                if not flowcell_position:
+                    raise Exception('Remember to fill out flowcell_position')
+                flowcell_data['flowcell_position'] = flowcell_position
+                top_unknown_barcodes['flowcell_position'] = flowcell_position
                 
                 if num_of_flowcell_ids != 1:
                     raise DontTriggerFileDeletion(f'Expected 1 flowcell ID. Found {num_of_flowcell_ids}')
                 
-                flowcell_id = flowcell_id[0]
+                if flowcell_id_file_name == flowcell_id_file[0]:
+                    flowcell_id_file = flowcell_id_file[0]
+                else:
+                    raise Exception('Error related to parsing. Contact system admin.')
                 
-                file_name = f'{flowcell_id}_{file_name}'
+                file_name = f'{flowcell_id_file}_{file_name}'
                 session['file_name'] = file_name
                 
                 sheets_to_parse.append(flowcell_data)
@@ -266,7 +318,7 @@ def upload_file():
                 sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 db_to_sheet_col_name_map = db_to_sheet_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
                 #  Remove trailing and leading whitespace  
-                sheet = sheet.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+                sheet = sheet.map(lambda x: x.strip() if isinstance(x, str) else x)
                 
                 sheet.columns = sheet.columns.str.strip()
                 
@@ -335,10 +387,10 @@ def upload_file():
                 if split_database_table_name == data.flowcell():
                     flowcell_id_col_name = data.flowcell.flowcell_id()
                     fastq_id_col_name = data.flowcell.fastq_file_id()
-                    flowcell_ids = clean_sheet[flowcell_id_col_name]
+                    flowcell_id_file = clean_sheet[flowcell_id_col_name]
                     fastq_ids = clean_sheet[fastq_id_col_name]
                     
-                    clean_sheet['fastq_path'] = paths.fastq_path(flowcell_ids, fastq_ids)
+                    clean_sheet['fastq_path'] = paths.fastq_path(flowcell_id_file, fastq_ids)
                                          
                         
                 if split_database_table_name == data.age_depth_model():

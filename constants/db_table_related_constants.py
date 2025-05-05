@@ -88,14 +88,15 @@ class DBTableRelated:
 
         data.flowcell(): { 
                 data.flowcell.fastq_file_id(): { 
-                    data.seq_sample_sheet(): [data.seq_sample_sheet.fastq_file_id()],
+                    # data.seq_sample_sheet(): [data.seq_sample_sheet.fastq_file_id()]
+                }
         },
         
-        data.seq_sample_sheet(): { 
-                data.seq_sample_sheet.fastq_file_id(): { 
-                    data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
-                    }
-        },
+        # data.seq_sample_sheet(): { 
+        #         data.seq_sample_sheet.fastq_file_id(): { 
+        #             data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
+        #             }
+        # },
         
         data.master_depth(): { 
                 data.master_depth.master_field_sample_id(): { 
@@ -115,7 +116,7 @@ class DBTableRelated:
                     }
                 }
         }
-    }
+    
 
     DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
                             data.master_depth(): ['depth_id'],

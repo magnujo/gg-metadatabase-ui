@@ -91,6 +91,20 @@
             font-size: 0.9rem;
             color: #6c757d;
         }
+        #drop-zone {
+    transition: border-color 0.3s;
+}
+
+.button {
+  margin-top: 10px;
+  padding: 10px;
+  background: #06c;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  display: inline-block;
+}
+
     </style>
 </head>
 <body>
@@ -128,10 +142,21 @@
                 and pick UTF-16 in the encoding dropdown menu below. For Lane Barcodes, use .html format and UTF-8.</p>
 
                 <form action="/upload" method="post" enctype="multipart/form-data">
-                <div class="form-group">
+                
+                    <!-- <div class="form-group">
                     <label for="file">Choose a file to upload:</label>
                     <input type="file" name="file" accept=".txt, .html, .csv" required>
-                </div>
+                    </div> -->
+
+                    <div class="form-group">
+                        <label for="file">Choose a file to upload or drag it here:</label>
+                        <div id="drop-zone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer;">
+                            Drop file here or click to browse
+                        </div>
+                        <input type="file" id="file-input" name="file" accept=".txt, .html, .csv" required style="display: none;">
+                        <p id="file-name"></p>
+                    </div>
+                
 
                 <div class="form-group">
                     <label for="database_table_name">Select spreadsheet type:</label>
@@ -189,9 +214,7 @@
                     <label for="email">Your email address:</label>
                     <input type="email" id="email" name="email" required>
                 </div>
-                <div class="form-group" id="read_length">
-                </div>
-                <div class="form-group" id="sequencing_machine"></div>
+                
 <br>
 <br>
                 <div class="form-group">
@@ -201,7 +224,24 @@
                 </div>
 
 
+                <h3>Lane barcode specific input - only fill if your uploading Lane Barcode HTML</h3>
 
+                <div class="form-group">
+                    <label for="num_of_library_pools">Select number of library pools sequenced on the flowcell:</label>
+                    <select name="num_of_library_pools" id="num_of_library_pools" required>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+
+                    </select>
+                </div>
+
+
+                <div id="tube_tags">
+                    <input type="text" id='single_tube' name='single_tube' placeholder="Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above">
+                </div>
+      
 
                 <div>
                     <button type="submit">Begin the 2-step upload process</button>
@@ -217,6 +257,41 @@
             </div>
         {% endif %}
     </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileNameDisplay = document.getElementById('file-name');
+    
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+    
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#666';
+        });
+    
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#ccc';
+        });
+    
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#ccc';
+    
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                fileNameDisplay.textContent = `Selected file: ${e.dataTransfer.files[0].name}`;
+            }
+        });
+    
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = `Selected file: ${fileInput.files[0].name}`;
+            }
+        });
+    </script>
 </body>
 
 <script>
@@ -224,7 +299,7 @@
       lane_barcode_html: {
         'decimal_point': '.',
         'encoding_type': 'UTF-8',
-        'date_format': 'My data doesn\'t contain dates',
+        'date_format': 'YYYY-MM-DD',
         'thousands_seperator': ",",
         'email': 'julie.bitz-thorsen@sund.ku.dk'
       },
@@ -266,12 +341,9 @@
       }
     });
 
-
-
-
   </script>
 
-<script>
+<!-- <script>
     document.getElementById("database_table_name").addEventListener("change", function () {
       const container = document.getElementById("read_length");
       container.innerHTML = ""; // Clear existing input
@@ -289,10 +361,12 @@
         tube_tag.required = true;
         tube_tag.type = "text";
         tube_tag.name = "tube_tag";
+        tube_tag.id = "tube_tag";
         tube_tag.value = '';
+        tube_tag.placeholder = 'e.g. 342IX | 839JF'
         const tube_tag_label = document.createElement("label");
         tube_tag_label.for = "tube_tag";
-        tube_tag_label.textContent = "Tube Tag";
+        tube_tag_label.textContent = "Tube Tag - seperate multiple with | (vertical bar)";
 
         const machine_label = document.createElement("label");
         machine_label.for = "sequencing_machine";
@@ -310,8 +384,8 @@
         machine_select.id = "sequencing_machine";
         
         machine_select.required = true;
-        const option1 = new Option("NovaSeq 6000", "novaseq_6000");
-        const option2 = new Option("NovaSeq X Plus", "novaseq_x_plus");
+        const option1 = new Option("NovaSeq 6000", "NovaSeq 6000");
+        const option2 = new Option("NovaSeq X Plus", "NovaSeq X Plus");
         machine_select.appendChild(option1);
         machine_select.appendChild(option2);
 
@@ -338,8 +412,8 @@
         container.appendChild(machine_select);
 
         const read_length_mapping = {
-            'novaseq_6000': '101',
-            'novaseq_x_plus': ''
+            'NovaSeq 6000': '101',
+            'NobaSeq X Plus': ''
             }
 
         machine_select.addEventListener("change", function () {
@@ -367,7 +441,43 @@
 
       }
     });
+  </script> -->
+
+
+  <script>
+    const select = document.getElementById("num_of_library_pools");
+    const container = document.getElementById("tube_tags");
+
+    select.addEventListener("change", function () {
+      const count = parseInt(this.value);
+      container.innerHTML = ""; // Clear previous inputs
+        
+      if (count > 1){
+        for (let i = 1; i <= 4; i++) {
+            const input = document.createElement("input");
+            input.type = "text";
+            input.id = 'tube_tag_multiple';
+            input.name = 'tube_tag_multiple';
+            
+            input.placeholder = "Insert tag of pool that was sequenced on lane " + i;
+            container.appendChild(input);
+            container.appendChild(document.createElement("br"));
+        }
+      }
+      else {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = 'Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above';
+        container.appendChild(input);
+        container.appendChild(document.createElement("br"));
+      }
+        
+    });
   </script>
+
+
+  
+
 
 </html>
 
