@@ -1548,8 +1548,10 @@ def PI_download_standardized():
 def download_merged_standardized():
        
     with download_lock:
-        qc_checked = False
-        checkbox_smdb = True
+        
+        
+        qc_checked = request.form.get('checkbox_qc')
+        checkbox_smdb = request.form.get('checkbox_smdb')
         
         download_id = str(uuid.uuid4())
         download_dir_path = os.path.join('session_data', download_id)
@@ -1565,7 +1567,7 @@ def download_merged_standardized():
             
         if checkbox_smdb:
             file_path_smdb = os.path.join(download_dir_path, 'sample_meta_data.tsv')
-            mega_meta = table_merges.outer_merge(schema_name=data(), engine=ENGINE_READ_ONLY)
+            mega_meta = table_merges.merge_smdb(schema_name=data(), engine=ENGINE_READ_ONLY)
             mega_meta.to_csv(file_path_smdb, sep='\t', index=False)
             paths_to_download.append(file_path_smdb)
         create_zip(files=paths_to_download, zip_path=zip_path)
