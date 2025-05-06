@@ -88,8 +88,7 @@ class DBTableRelated:
 
         data.flowcell(): { 
                 data.flowcell.fastq_file_id(): { 
-                    # data.seq_sample_sheet(): [data.seq_sample_sheet.fastq_file_id()]
-                }
+                    data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
         },
         
         # data.seq_sample_sheet(): { 

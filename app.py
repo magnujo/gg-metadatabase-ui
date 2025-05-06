@@ -67,6 +67,7 @@ files_to_del = {'Before Upload': {'original': False, 'parsed': False, 'uploaded'
 
 logger = log_util.setup()
 
+
 # # Set log level
 app.logger.setLevel(logging.DEBUG)
 
@@ -95,7 +96,7 @@ def index():
 def upload_file():
     with upload_lock:
         # logger.info('Running: ' + str(index.__name__))
-       
+        warning_master_id_rows_in_db = []
         session.clear()
         session['email'] = None
         session['error'] = False
@@ -485,6 +486,7 @@ def upload_file():
                     latlon_warnings_data = pd.DataFrame(columns=clean_sheet.columns)
                 
                     
+                    clean_sheet['wrong_data'] = ''
                     
                     for _, row in clean_sheet[~clean_sheet.duplicated(subset=['latitude', 'longitude'])].iterrows():
                         lat = row['latitude']
