@@ -442,7 +442,7 @@ def run():
     
     db_config = {
         'host': "dandypdb01fl",
-        'dbname': "aedna_metadata_test",
+        'dbname': "smdb",
         'port': "5432",
         'user': user,
         'password': password

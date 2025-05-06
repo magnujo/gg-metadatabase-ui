@@ -115,7 +115,7 @@ class DBTableRelated:
                     }
                 }
         }
-    }
+    
 
     DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
                             data.master_depth(): ['depth_id'],

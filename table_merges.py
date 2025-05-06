@@ -18,19 +18,36 @@ depth_id_col_name = master_depth_table_name.depth_id()
 # fastqlane_id_flowcell_col_name = 'fastqlane_id'
 # flowcell_lane_col_name = 'flowcell_lane'
 wetlab_pk = wetlab_table_name.comp_id()
+wetlab_lib_pool_tag = wetlab_table_name.library_pool_tag()
+flowcell_lib_pool_tag = flowcell_table_name.library_pool_tag()
 
 lc_suf = 'lc'
 
-def outer_merge(schema_name, engine):
+def merge_smdb(schema_name, engine, how='outer'):
 
-    field_sample = pd.read_sql(f'select * from "{schema_name}"."{field_sample_table_name()}"', engine).dropna(subset=field_sample_id_col_name, axis='index')
-    archive_sample = pd.read_sql(f'select * from "{schema_name}"."{archive_sample_table_name()}"', engine).dropna(subset=archive_sample_id_col_name, axis='index')
-    robot_sample = pd.read_sql(f'select * from "{schema_name}"."{robot_sample_table_name()}"', engine).dropna(subset=robot_sample_id_col_name, axis='index')
-    wetlab = pd.read_sql(f'select * from "{schema_name}"."{wetlab_table_name()}"', engine).dropna(subset=wetlab_pk, axis='index')
-    seqsheet = pd.read_sql(f'select * from "{schema_name}"."{seqsheet_table_name()}"', engine).dropna(subset=fastq_file_id_col_name, axis='index')
-    flowcell = pd.read_sql(f'select * from "{schema_name}"."{flowcell_table_name()}"', engine).dropna(subset=fastq_file_id_col_name, axis='index')
-    master_depth = pd.read_sql(f'select * from "{schema_name}"."{master_depth_table_name()}"', engine).dropna(subset=archive_sample_id_col_name, axis='index')
-    age_model = pd.read_sql(f'select * from "{schema_name}"."{age_model_table_name()}"', engine).dropna(subset=depth_id_col_name, axis='index')
+    field_sample = (pd.read_sql(f'select * from "{schema_name}"."{field_sample_table_name()}"', engine)
+                    .dropna(subset=field_sample_id_col_name, axis='index'))
+
+    archive_sample = (pd.read_sql(f'select * from "{schema_name}"."{archive_sample_table_name()}"', engine)
+                    .dropna(subset=archive_sample_id_col_name, axis='index'))
+
+    robot_sample = (pd.read_sql(f'select * from "{schema_name}"."{robot_sample_table_name()}"', engine)
+                    .dropna(subset=robot_sample_id_col_name, axis='index'))
+
+    wetlab = (pd.read_sql(f'select * from "{schema_name}"."{wetlab_table_name()}"', engine)
+                    .dropna(subset=wetlab_pk, axis='index'))
+
+    # seqsheet = (pd.read_sql(f'select * from "{schema_name}"."{seqsheet_table_name()}"', engine)
+    #                 .dropna(subset=fastq_file_id_col_name, axis='index'))
+
+    flowcell = (pd.read_sql(f'select * from "{schema_name}"."{flowcell_table_name()}"', engine)
+                    .dropna(subset=fastq_file_id_col_name, axis='index'))
+
+    master_depth = (pd.read_sql(f'select * from "{schema_name}"."{master_depth_table_name()}"', engine)
+                    .dropna(subset=archive_sample_id_col_name, axis='index'))
+
+    age_model = (pd.read_sql(f'select * from "{schema_name}"."{age_model_table_name()}"', engine)
+                    .dropna(subset=depth_id_col_name, axis='index'))
 
     # flowcell[f'{fastqlane_id_flowcell_col_name}{lc_suf}'] = flowcell[fastq_file_id_col_name].str.lower() + '_' + flowcell[flowcell_lane_col_name].astype(str)
     field_sample[f'{field_sample_id_col_name}{lc_suf}'] = field_sample[field_sample_id_col_name].str.lower()
@@ -40,7 +57,8 @@ def outer_merge(schema_name, engine):
     robot_sample[f'{robot_sample_id_col_name}{lc_suf}'] = robot_sample[robot_sample_id_col_name].str.lower()
     wetlab[f'{robot_sample_id_col_name}{lc_suf}'] = wetlab[robot_sample_id_col_name].str.lower()
     wetlab[f'{fastq_file_id_col_name}{lc_suf}'] = wetlab[fastq_file_id_col_name].str.lower()
-    seqsheet[f'{fastq_file_id_col_name}{lc_suf}'] = seqsheet[fastq_file_id_col_name].str.lower()
+    wetlab[f'{fastq_file_id_col_name}{lc_suf}'] = wetlab[fastq_file_id_col_name].str.lower()
+    # seqsheet[f'{fastq_file_id_col_name}{lc_suf}'] = seqsheet[fastq_file_id_col_name].str.lower()
     flowcell[f'{fastq_file_id_col_name}{lc_suf}'] = flowcell[fastq_file_id_col_name].str.lower()
     master_depth[f'{archive_sample_id_col_name}{lc_suf}'] = master_depth[archive_sample_id_col_name].str.lower()
     master_depth[f'{depth_id_col_name}{lc_suf}'] = master_depth[depth_id_col_name].str.lower()
@@ -50,42 +68,42 @@ def outer_merge(schema_name, engine):
     result_outer = pd.merge(result_outer, 
                             archive_sample, 
                             on=f'{field_sample_id_col_name}{lc_suf}', 
-                            how='outer', 
+                            how=how, 
                             suffixes=(f'@{field_sample_table_name()}', f'@{archive_sample_table_name()}'))
 
     result_outer = pd.merge(result_outer, 
                             robot_sample, 
                             on=f'{archive_sample_id_col_name}{lc_suf}', 
-                            how='outer', 
+                            how=how, 
                             suffixes=(f'@{archive_sample_table_name()}', f'@{robot_sample_table_name()}'))
 
     result_outer = pd.merge(result_outer, 
                             wetlab, 
                             on=f'{robot_sample_id_col_name}{lc_suf}', 
-                            how='outer', 
+                            how=how, 
                             suffixes=(f'@{robot_sample_table_name()}', f'@{wetlab_table_name()}'))
 
     # result_outer = pd.merge(result_outer, 
     #                         seqsheet, 
     #                         on=f'{fastq_file_id_col_name}{lc_suf}', 
-    #                         how='outer', 
+    #                         how=how, 
     #                         suffixes=(f'@{wetlab_table_name()}', f'@{seqsheet_table_name()}'))  # Will cause cross join. TODO: Fix
 
     result_outer = pd.merge(result_outer, 
                             flowcell, on=f'{fastq_file_id_col_name}{lc_suf}', 
-                            how='outer', 
+                            how=how, 
                             suffixes=(f'@{wetlab_table_name()}', f'@{flowcell_table_name()}'))  # Will cause cross join becasuse of multiple lanes and runs on different flowcells. TODO: Fix
 
     result_outer = pd.merge(result_outer, 
                             master_depth, 
                             on=f'{archive_sample_id_col_name}{lc_suf}',
-                            how='outer',
+                            how=how,
                             suffixes=(f'@{flowcell_table_name()}', f'@{master_depth_table_name()}'))
 
     result_outer = pd.merge(result_outer,
                             age_model,
                             on=f'{depth_id_col_name}{lc_suf}',
-                            how='outer',
+                            how=how,
                             suffixes=(f'@{master_depth_table_name()}', f'@{age_model_table_name()}'))
 
 
@@ -158,23 +176,29 @@ def qc(schema_name, engine):
     report_meta_piv = report_meta.pivot(columns='report_meta_key', index='report_id', values='report_meta_value')
     report_meta_piv.columns.name = None
     report_meta_piv = report_meta_piv.reset_index()
-    multiqc_data = '''
+    multiqc_data = f'''
                 SELECT s.sample_name, sdt.data_key, NULLIF(sd.value, 'None') AS value, sd.report_id
-                FROM sample_data sd
-                JOIN sample_data_type sdt ON sdt.sample_data_type_id = sd.sample_data_type_id
-                JOIN sample s ON sd.sample_id = s.sample_id
+                FROM {schema_name}.sample_data sd
+                JOIN {schema_name}.sample_data_type sdt ON sdt.sample_data_type_id = sd.sample_data_type_id
+                JOIN {schema_name}.sample s ON sd.sample_id = s.sample_id
                 WHERE sdt.data_section != 'general_stats' and sdt.data_section != 'bbmap_low_complexity'; 
             '''
     multiqc_data = pd.read_sql(multiqc_data, engine)    
-    multiqc_data['lane_read_trimtype_etc'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: '_'.join(x[2:]))
-    multiqc_data = multiqc_data.query("lane_read_trimtype_etc == 'collapsed'")
+    multiqc_data['binf_details'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: '_'.join(x[2:]))
     multiqc_data['library_id'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: x[1])
-    pivoted_df = multiqc_data.pivot(index=['library_id', 'report_id'], columns='data_key', values='value')
+    pivoted_df = multiqc_data.pivot(index=['library_id', 'report_id', 'binf_details'], columns='data_key', values='value')
+    pivoted_df
     pivoted_df.columns.name = None
-    # Reset the index to make sample_name a regular column (optional)
     pivoted_df = pivoted_df.reset_index()
     mega_qc = pivoted_df
-    mega_qc = mega_qc.merge(report_meta_piv, on='report_id', how='inner', validate='1:1')
+    mega_qc = mega_qc.merge(report_meta_piv, on='report_id', how='inner', validate='m:1')
     mega_qc = mega_qc.rename(columns={'config_output_dir': 'binf_qc_report_path', 
-                                      'report_id': 'binf_qc_report_id' }, errors='raise')
+                                        'report_id': 'binf_qc_report_id' }, errors='raise')
+    # Move column 'C' to be after column 'A'
+    col = mega_qc.pop('binf_qc_report_path')
+    mega_qc.insert(mega_qc.columns.get_loc('binf_details') + 1, 'binf_qc_report_path', col)
+
+    col = mega_qc.pop('binf_qc_report_id')
+    mega_qc.insert(mega_qc.columns.get_loc('binf_details') + 1, 'binf_qc_report_id', col)
+    
     return mega_qc

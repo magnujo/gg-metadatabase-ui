@@ -105,16 +105,21 @@
           
 
             
-            <!-- <div class="form-group">
+            <div class="form-group">
                 <input type="checkbox" id="checkbox_smdb" name="checkbox_smdb" value="on">
                 <label for="checkbox_smdb">Include SMDB (Sample Metadata DataBase)</label>
+                <p class="note" style="color: red;">WARNING: The result will contain cross-joins between 
+                    the flowcell table and edna_wetlab_report table. This means that some data in 
+                    the seqc_tube_tag column(s) will be incorrect. This is due to missing seqc_tube_tag information in the flowcell table.
+                    We are working on fixing the issue.</p>
             </div> 
 
             <div class="form-group">
                 <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
-                <label for="checkbox_qc">Include MultiQCDB (bioinformatical qc data.) This will increase download time with ~2 min.</label>
-                 <p class="note" style="color: red;">WARNING: If a library was sequenced multiple times, only the QC from the latest sequencing will be in the data.
-                    If you need data from other sequencing runs, you can find it in the data folders on dandy: projects/caeg/data/production</p> -->
+                <label for="checkbox_qc">Include bioinformatical QC data. Will increase download time with ~2 min.</label>
+                 <p class="note" style="color: red;">NOTE: A library can be sequenced on multiple flowcells, resulting in different QC reports. 
+                    To distinguish between reports, use the binf_qc_report_id or binf_qc_report_path column.
+                 </p>
             <br>
 
             <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined data...</button>
