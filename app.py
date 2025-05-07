@@ -596,8 +596,7 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                                 
                                 diff = unique_vals_in_sheet.difference(unique_vals_in_db)
                                 
-                                # TODO: Remove this after all data has been uploaded by Jesper
-                                if split_database_table_name == data.edna_wetlab_report() or split_database_table_name == data.flowcell():
+                                if split_database_table_name == data.flowcell():
                                     diff = set()
        
                                 if len(diff) != 0:                                
