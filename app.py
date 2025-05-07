@@ -562,11 +562,14 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                 db_generated_uuid = misc.get_db_generated_uuid_col(split_database_table_name, schema_name=SQL_ALCH_CONFIG['schema_name'],
                                                                    engine=ENGINE_READ_ONLY)
                 db_table_data = db_table_data.drop(columns=db_generated_uuid)
+
+                db_generated_cols = db_table_related_constants.DBTableRelated.get_db_generated_cols(engine=ENGINE, 
+                                                                                                        schema=data(),
+                                                                                                        table=split_database_table_name)
                 
-                if database_table_name in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS:
-                    for db_generated_col in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
-                        if db_generated_col in list(db_table_data.columns):
-                            db_table_data.drop(db_generated_col, axis=1, inplace=True)
+                for db_generated_col in db_generated_cols:
+                    if db_generated_col in list(db_table_data.columns):
+                        db_table_data.drop(db_generated_col, axis=1, inplace=True)
                 
                 clean_sheet = misc.match_column_positions(clean_sheet, 
                                                           db_table_data)

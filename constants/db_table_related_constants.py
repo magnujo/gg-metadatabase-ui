@@ -1,3 +1,6 @@
+from sqlalchemy import text
+
+import pandas as pd
 from pprint import pprint
 from constants.db_connections import SQL_ALCH_CONFIG, ENGINE
 from constants.db_names.names import data
@@ -117,12 +120,43 @@ class DBTableRelated:
                 }
     }
     
+    # DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
+    #                         data.master_depth(): ['depth_id'],
+    #                         data.age_depth_model(): ['depth_id'],
+    #                         data.field_sample(): ['clean_id', 'field_sample_uuid'],
+    #                         data.edna_wetlab_report(): ['wet_lab_comp_id']}
+    
+    
+    def get_db_generated_cols(engine, schema, table):
+        
+        uuid_query = text("""
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE 
+        table_schema = :schema
+        and table_name = :table
+        AND column_default IS NOT NULL
+        AND column_default LIKE 'gen_random_uuid%%'
+""")
 
-    DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
-                            data.master_depth(): ['depth_id'],
-                            data.age_depth_model(): ['depth_id'],
-                            data.field_sample(): ['clean_id', 'field_sample_uuid'],
-                            data.edna_wetlab_report(): ['wet_lab_comp_id']}
+        uuid_cols = pd.read_sql(uuid_query, con=engine, params={"schema": schema, "table": table})
+
+        generated_query = f'''
+                                SELECT column_name
+                                FROM information_schema.columns
+                                WHERE 
+                                table_schema = '{schema}' and
+                                table_name = '{table}' and
+                                is_generated = 'ALWAYS';
+        
+        '''
+        generated_cols = pd.read_sql(generated_query, con=engine)
+        
+        result = generated_cols['column_name'].to_list() + uuid_cols['column_name'].to_list()
+        
+        return result
+    
+    
 
     def check_for_duplicates():
         print(f"\nRunning tests in {str(inspect.stack()[1].code_context[0]).strip()}...\n")
