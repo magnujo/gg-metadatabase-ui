@@ -74,7 +74,7 @@ class DBTableRelated:
                     }
                 },
         
-        data.edna_robot_sample(): { \
+        data.edna_robot_sample(): { 
                 data.edna_robot_sample.archivesampleid(): { 
                     data.edna_archive_sample(): [data.edna_archive_sample.archivesampleid()]
                     }
@@ -88,7 +88,8 @@ class DBTableRelated:
 
         data.flowcell(): { 
                 data.flowcell.fastq_file_id(): { 
-                    data.edna_wetlab_report(): [data.edna_wetlab_report().fastq_file_id()]
+                    data.edna_wetlab_report(): [data.edna_wetlab_report.fastq_file_id()]
+            }
         },
         
         # data.seq_sample_sheet(): { 
@@ -114,8 +115,8 @@ class DBTableRelated:
                     data.field_sample(): [data.field_sample.master_id_parent_sample_id()]
                     }
                 }
-        }
     }
+    
 
     DB_GENERATED_COLUMNS = {data.top_unknown_seq_barcodes(): ['uid'],
                             data.master_depth(): ['depth_id'],

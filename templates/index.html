@@ -91,10 +91,91 @@
             font-size: 0.9rem;
             color: #6c757d;
         }
-        #drop-zone {
-    transition: border-color 0.3s;
-}
 
+        .upload-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .file-upload {
+            display: block;
+            position: relative;
+            margin: 0 auto;
+            width: 200px;
+        }
+        
+        .file-upload .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4285f4;
+            color: white;
+            border-radius: 4px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .upload-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        #file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .preview-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .preview-container img {
+            max-width: 100%;
+            max-height: 300px;
+        }
+        
+        /* Drag and Drop Styles */
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-area.highlight {
+            border-color: #4285f4;
+            background-color: #e8f0fe;
+        }
+        
+        .drop-area p {
+            color: #666;
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .drop-area .icon {
+            font-size: 40px;
+            color: #999;
+            margin-bottom: 10px;
+        }
 .button {
   margin-top: 10px;
   padding: 10px;
@@ -143,20 +224,11 @@
 
                 <form action="/upload" method="post" enctype="multipart/form-data">
                 
-                    <!-- <div class="form-group">
+                    <div class="form-group">
                     <label for="file">Choose a file to upload:</label>
                     <input type="file" name="file" accept=".txt, .html, .csv" required>
-                    </div> -->
-
-                    <div class="form-group">
-                        <label for="file">Choose a file to upload or drag it here:</label>
-                        <div id="drop-zone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer;">
-                            Drop file here or click to browse
-                        </div>
-                        <input type="file" id="file-input" name="file" accept=".txt, .html, .csv" required style="display: none;">
-                        <p id="file-name"></p>
                     </div>
-                
+
 
                 <div class="form-group">
                     <label for="database_table_name">Select spreadsheet type:</label>
@@ -215,17 +287,16 @@
                     <input type="email" id="email" name="email" required>
                 </div>
                 
-<br>
-<br>
                 <div class="form-group">
                     <label for="send_receipt_to">Send receipt to: </label>
                     <p class="note">Enter the email address of the person who should receive an email with all the uploaded data attached, so that they can review and validate.</p>         
                     <input type="email" id="send_receipt_to" name="send_receipt_to" required>
                 </div>
-
-
-                <h3>Lane barcode specific input - only fill if your uploading Lane Barcode HTML</h3>
-
+                <br>
+                <br>
+                <br>
+                <h3>Lane barcode specific input - only fill if you're uploading Lane Barcode HTML</h3>
+                
                 <div class="form-group">
                     <label for="num_of_library_pools">Select number of library pools sequenced on the flowcell:</label>
                     <select name="num_of_library_pools" id="num_of_library_pools" required>
@@ -239,9 +310,10 @@
 
 
                 <div id="tube_tags">
-                    <input type="text" id='single_tube' required name='single_tube' placeholder="Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above">
+                    <input type="text" id='single_tube' name='single_tube' placeholder="Insert tag of pool that was sequenced on all 4 lanes, or pick a different option above">
                 </div>
-      
+      <br>
+
 
                 <div>
                     <button type="submit">Begin the 2-step upload process</button>
@@ -256,42 +328,24 @@
                 <p>{{ message }}</p>
             </div>
         {% endif %}
+
+
     </div>
 
     <script>
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const fileNameDisplay = document.getElementById('file-name');
-    
-        dropZone.addEventListener('click', () => {
-            fileInput.click();
+        const selectField = document.getElementById('database_table_name');
+        const inputField = document.getElementById('single_tube');
+      
+        selectField.addEventListener('change', function () {
+          if (this.value === 'lane_barcode_html') {
+            inputField.required = true;
+          } else {
+            inputField.required = false;
+          }
         });
+
+      </script>
     
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#666';
-        });
-    
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.style.borderColor = '#ccc';
-        });
-    
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#ccc';
-    
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                fileNameDisplay.textContent = `Selected file: ${e.dataTransfer.files[0].name}`;
-            }
-        });
-    
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                fileNameDisplay.textContent = `Selected file: ${fileInput.files[0].name}`;
-            }
-        });
-    </script>
 </body>
 
 <script>
@@ -306,16 +360,16 @@
       edna_archive_sample: {
         'encoding_type': 'UTF-16',
         'email': 'jtstenderup@sund.ku.dk',
-        'date_format': '',
+        'date_format': 'YYYY-MM-DD',
         'thousands_seperator': '',
         'decimal_point': ''
       },
       edna_robot_sample: {
         'encoding_type': 'UTF-16',
         'email': 'jtstenderup@sund.ku.dk',
-        'date_format': '',
-        'thousands_seperator': '',
-        'decimal_point': ''
+        'date_format': 'YYYY-MM-DD',
+        'thousands_seperator': 'not_relevant',
+        'decimal_point': 'not_relevant'
       }
     };
 
@@ -448,6 +502,7 @@
     const select = document.getElementById("num_of_library_pools");
     const container = document.getElementById("tube_tags");
 
+    
     select.addEventListener("change", function () {
       const count = parseInt(this.value);
       container.innerHTML = ""; // Clear previous inputs
