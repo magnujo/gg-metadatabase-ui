@@ -214,6 +214,7 @@ class data(Schema):
         upload_uuid = lambda template=False: get_column_name(146, template=template)
         library_prep_method = lambda template=False: get_column_name(147, template=template)
         comp_id = lambda template=False: get_column_name(394, template=template)
+        fastq_tube_id = lambda template=False: get_column_name(407, template=template)
 
     class flowcell(Table):
         _db_id = 9
@@ -245,6 +246,8 @@ class data(Schema):
         sequencing_date = lambda template=False: get_column_name(401, template=template)
         sequencing_run = lambda template=False: get_column_name(403, template=template)
         flowcell_position = lambda template=False: get_column_name(405, template=template)
+        fastq_tube_id = lambda template=False: get_column_name(408, template=template)
+
 
     class cgg_sediment_water(Table):
         _db_id = 10
