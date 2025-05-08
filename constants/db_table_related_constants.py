@@ -53,8 +53,7 @@ class DBTableRelated:
                     }
     
     UTIL_TABLES = {"MEGA": [
-                            "outer_coalesced_mega_table_meta",
-                            "outer_coalesced_mega_table_full",
+                            "outer_coalesced_mega_table_meta"
                     ],
                     "QC": [
                         "plot_category",
