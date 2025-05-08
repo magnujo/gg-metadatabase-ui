@@ -125,7 +125,7 @@ SCRIPT_GENERATED_COLUMNS = ['database_insert_by',
                           'depth_id',
                           'fastq_path',
                           'prod_res_path'
-                          'wrong_data']
+                    'wrong_data']
 
 
 DB_CHARACTER_ENCODING = 'UTF-8'

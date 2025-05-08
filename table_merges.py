@@ -106,9 +106,6 @@ def merge_smdb(schema_name, engine, how='outer'):
                             how=how,
                             suffixes=(f'@{master_depth_table_name()}', f'@{age_model_table_name()}'))
 
-
-
-
     result_outer = result_outer.drop(columns=[
         f'{field_sample_id_col_name}{lc_suf}',
         f'{archive_sample_id_col_name}{lc_suf}',

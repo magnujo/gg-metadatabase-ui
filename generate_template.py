@@ -29,6 +29,8 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 from openpyxl.worksheet.datavalidation import DataValidation
 
+
+
 def generate(table_name, schema_name, conn): 
     
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
@@ -57,6 +59,8 @@ def generate(table_name, schema_name, conn):
     '''
 
     df = pd.read_sql(query, conn)
+    
+    df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
 
     context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
     environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
@@ -77,66 +81,10 @@ def generate(table_name, schema_name, conn):
 
     for col in df.select_dtypes(include='bool').columns:
         df[col] = df[col].map({True: 'yes', False: 'no'})
-
-    new_rows = [
-        {col_names.field_label(): ""},
-        {col_names.field_sample_id(): "Colour legend:"},
-        {col_names.field_label(): " = Bad value. For example if a categorical value is not in the Allowed categorical values sheet or if a latitude value is not between -90 and 90"},
-        {col_names.field_label(): " = Mandatory column"},
-        {col_names.field_label(): " = Non-mandatory column"},
-        {col_names.field_label(): " = Mandatory column depending on environment, type or other features"},
-        {col_names.field_sample_id(): '''
-IMPORTANT: If you get a warning about macros being blocked please do the necessary steps described here to unblock 
-https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216
-         '''},
-        {col_names.field_sample_id(): ""},
-        {col_names.field_sample_id(): "Delete this and all rows above before uploading (except row 1 ofcourse!)"}
-    ]
-    
-    new_row_0 = {col_names.field_sample_id(): "EXAMPLE ROW:"}
-    
-    df_list = df.to_dict('records')
-
-    # Insert rows at specific positions
-   
-    df_list.insert(0, new_row_0)
-    
-    for i, row in enumerate(new_rows):
-        df_list.insert(i+2, row)
-
-    # Convert back to DataFrame
-    df = pd.DataFrame(df_list)
-
-    # Sort the index to maintain order
-    df = df.sort_index().reset_index(drop=True)
-
-    # Handle timezone-aware datetime columns
-    # for col in df.columns:
-    #     if pd.api.types.is_datetime64tz_dtype(df[col]):
-    #         df[col] = df[col].dt.tz_localize(None)
-
-    for col in df.columns:
-        if isinstance(df[col].dtype, pd.DatetimeTZDtype):
-            df[col] = df[col].dt.tz_localize(None)
-            
-    # Query to fetch column constraints
-    constraints_query = f"""
-    SELECT column_name, is_nullable
-    FROM information_schema.columns
-    WHERE table_name = '{table_name}' and table_schema = '{schema_name}'
-    """
-    constraints_df = pd.read_sql(constraints_query, conn)
-
-    # Drop auto-generated columns
-    df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
-
-    # Rename columns based on the renaming map
-    renamer = db_to_sheet_rename_map(schema_name=schema_name, table_name=table_name)
-    df_translated = df.rename(columns=renamer, errors='raise')
-
-    # New column order
+        
     new_order = [
         col_names.field_sample_id(template=True),
+        col_names.parent_id(template=True),
         col_names.field_label(template=True),
         col_names.master_id_parent_sample_id(template=True),
         col_names.running_project_title(template=True),
@@ -180,7 +128,124 @@ https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been
 
     ]
 
-    df_translated = df_translated[new_order]
+    renamer = db_to_sheet_rename_map(schema_name=schema_name, table_name=table_name)
+    df = df.rename(columns=renamer, errors='raise')
+    
+    df = df[new_order]
+    
+
+    new_rows = [
+        (1, ""),
+        (0, "Colour legend:"),
+        (1, " = Bad value. For example if a categorical value is not in the Allowed categorical values sheet or if a latitude value is not between -90 and 90"),
+        (1, " = Mandatory column"),
+        (1, " = Non-mandatory column"),
+        (1, " = Mandatory column depending on environment, type or other features"),
+        (0, '''
+    IMPORTANT: If you get a warning about macros being blocked please do the necessary steps described here to unblock 
+    https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216
+            '''),
+        (0, ""),
+        (0, "Delete this and all rows above before uploading (except row 1 ofcourse!)")
+]
+    
+    temp_row = df.loc[0]
+    df.loc[0] = ["EXAMPLE ROW:"] + ([None] * (len(df.columns)-1)) 
+    df.loc[1] = temp_row
+    # df.loc[0] = ["EXAMPLE ROW:"] + ([None] * (len(df.columns)-1)) 
+    for i, row in enumerate(new_rows):
+        k, v = row
+        new_row = [None] * len(df.columns)
+        new_row[k] = v
+        df.loc[(len(df))] = new_row
+        
+    # df_list = df.to_dict('records')
+
+    # # Insert rows at specific positions
+   
+    # df_list.insert(0, new_row_0)
+    
+    # for i, row in enumerate(new_rows):
+    #     df_list.insert(i+2, row)
+
+    # # Convert back to DataFrame
+    # df = pd.DataFrame(df_list)
+
+    # Sort the index to maintain order
+    df = df.sort_index().reset_index(drop=True)
+
+    # Handle timezone-aware datetime columns
+    # for col in df.columns:
+    #     if pd.api.types.is_datetime64tz_dtype(df[col]):
+    #         df[col] = df[col].dt.tz_localize(None)
+
+    for col in df.columns:
+        if isinstance(df[col].dtype, pd.DatetimeTZDtype):
+            df[col] = df[col].dt.tz_localize(None)
+            
+    # Query to fetch column constraints
+    constraints_query = f"""
+    SELECT column_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_name = '{table_name}' and table_schema = '{schema_name}'
+    """
+    constraints_df = pd.read_sql(constraints_query, conn)
+
+    # Drop auto-generated columns
+    df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
+
+    # Rename columns based on the renaming map
+    renamer = db_to_sheet_rename_map(schema_name=schema_name, table_name=table_name)
+    # df_translated = df.rename(columns=renamer, errors='raise')
+
+    # New column order
+    new_order = [
+        col_names.field_sample_id(template=True),
+        col_names.parent_id(template=True),
+        col_names.field_label(template=True),
+        col_names.master_id_parent_sample_id(template=True),
+        col_names.running_project_title(template=True),
+        col_names.permit_for_dna_analysis(template=True),
+        col_names.country_ocean(template=True),
+        col_names.site_name(template=True),
+        col_names.latitude(template=True),
+        col_names.longitude(template=True),
+        col_names.elevation(template=True),
+        col_names.water_depth(template=True),
+        col_names.sample_context(template=True),
+        col_names.sample_type(template=True),
+        col_names.sample_type_in_storage_at_gm(template=True),
+        col_names.sample_material(template=True),
+        col_names.sample_environment(template=True),
+        col_names.sample_environment_secondary(template=True),
+        col_names.age_estimate___from(template=True),
+        col_names.age_estimate___to(template=True),
+        col_names.sampling_depth(template=True),
+        col_names.sampling_interval___from(template=True),
+        col_names.sampling_interval___to(template=True),
+        col_names.sample_date(template=True),
+        col_names.pi(template=True),
+        col_names.sample_provider_name(template=True),
+        col_names.sample_provider_contact(template=True),
+        col_names.sample_storage_setting(template=True),
+        col_names.sample_storage_location(template=True),
+        col_names.sample_storage_address(template=True),
+        col_names.comments(template=True),
+        col_names.link_to_other_relevant_information(template=True),
+        col_names.link_to_images(template=True),
+        col_names.miscellaneous_environmental_measurement_or_observation(template=True),
+        col_names.miscellaneous_sample_measurement_or_observation(template=True),
+        col_names.alias(template=True),
+        col_names.cultural_affiliation(template=True),
+        col_names.museum_institution(template=True),
+        col_names.site_grid_elev(template=True),
+        col_names.site_grid_latitude(template=True),
+        col_names.site_grid_longitude(template=True),
+        col_names.other_relevant_information(template=True)
+
+    ]
+
+    df_translated = df[new_order]
 
     input_file_path = os.path.join(project_root, 'auto_generated_upload_sheet_templates', 'blankfile.xlsm')
         # Load the existing .xlsm file
@@ -307,7 +372,8 @@ https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been
         col_names.sampling_depth(),
         col_names.sampling_interval___from(),
         col_names.sampling_interval___to(),
-        col_names.sample_environment_secondary()
+        col_names.sample_environment_secondary(),
+        col_names.parent_id()
     ]
 
     #  Columns that are not mandatory in DB but actually should be filled
