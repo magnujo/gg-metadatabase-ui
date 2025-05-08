@@ -1113,11 +1113,11 @@ def integrity_test(database_table_name, file_name, clean_sheet, upload_id):
     # Converts everything to lowercase
     uploaded_data = uploaded_data.map(lambda x: x.lower() if isinstance(x, str) else x)
     clean_sheet = clean_sheet.map(lambda x: x.lower() if isinstance(x, str) else x)
-
-    if database_table_name in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS:
-        for db_generated_col in db_table_related_constants.DBTableRelated.DB_GENERATED_COLUMNS.get(database_table_name):
-            if db_generated_col in list(uploaded_data.columns):
-                uploaded_data.drop(db_generated_col, axis=1, inplace=True)
+    gen_cols = db_table_related_constants.DBTableRelated.get_db_generated_cols(engine=ENGINE_READ_ONLY, schema=data(), table=database_table_name)
+    
+    for db_generated_col in gen_cols:
+        if db_generated_col in list(uploaded_data.columns):
+            uploaded_data.drop(db_generated_col, axis=1, inplace=True)
     
     clean_sheet = misc.match_column_positions(clean_sheet, uploaded_data)
     
