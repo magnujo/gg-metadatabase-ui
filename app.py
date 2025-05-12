@@ -86,10 +86,10 @@ def index():
         if 'error_message_admin' not in session:
             session['error_message_admin'] = None
         
-        # example_sheets = os.listdir(misc_constants.PATH_TO_STANDARD_SHEETS)
+        example_sheets = os.listdir(misc_constants.PATH_TO_STANDARD_SHEETS)
     
         return render_template('index.html', 
-                            #    example_sheets=example_sheets, 
+                               example_sheets=example_sheets, 
                                SHEET_TYPES=SHEET_TYPES, ALLOWED_DATE_FORMATS=ALLOWED_DATE_FORMATS, ALLOWED_ENCODINGS=ALLOWED_ENCODINGS)         
 
 
