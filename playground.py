@@ -1,78 +1,21 @@
-CANHorse2401
-CANHorse2401
-CANHorse2401
-CANHorse2402
-CANHorse2402
-CANHorse2402
-CANHorse2403
-CANHorse2403
-CANHorse2403
-CANHorse2404
-CANHorse2404
-CANHorse2404
-CANHorse2414
-CANHorse2414
-CANHorse2414
-CANHorse2415
-CANHorse2415
-CANHorse2415
-CANHorse2416
-CANHorse2416
-CANHorse2416
-CANHorse2417
-CANHorse2417
-CANHorse2417
-CANHorse2430
-CANHorse2430
-CANHorse2431
-CANHorse2433
-CANHorse2433
-CANHorse2434
-CANHorse2435
-CANHorse2435
-CANHorse2436
-CANHorse2436
-CANHorse2436
-CANHorse2437
-CANHorse2437
-CANHorse2437
-CANHorse2438
-CANHorse2438
-CANHorse2438
-CANHorse2439
-CANHorse2439
-CANHorse2439
-CANHorse2440
-CANHorse2440
-CANHorse2440
-CANHorse2450
-CANHorse2450
-CANHorse2451
-CANHorse2451
-CANHorse2452
-CANHorse2452
-CANHorse2452
-CANHorse2452
-CANHorse2453
-CANHorse2453
-CANHorse2453
-CANHorse2454
-CANHorse2454
-CANHorse2454
-CANHorse2455
-CANHorse2455
-CANHorse2455
-CANHorse2456
-CANHorse2456
-CANHorse2457
-CANHorse2457
-CANHorse2458
-CANHorse2458
-CANHorse2459
-CANHorse2459
-CANHorse2460
-CANHorse2460
-CANHorse2461
-CANHorse2461
-CANHorse2462
-CANHorse2462
+import pandas as pd
+import numpy as np
+
+# Create a sample dataframe
+data = {
+    'A': [1, 2, np.nan, 4, 5],
+    'B': [10, np.nan, 30, np.nan, 50]
+}
+
+df = pd.DataFrame(data)
+
+# Print the original dataframe
+print("Original DataFrame:")
+print(df)
+
+# Fill NaN values in column B with corresponding values from column A
+df['B'] = df['B'].fillna(df['A'])
+
+# Print the updated dataframe
+print("\nUpdated DataFrame:")
+print(df)
