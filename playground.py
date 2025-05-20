@@ -1,21 +1,46 @@
-import pandas as pd
-import numpy as np
-
-# Create a sample dataframe
-data = {
-    'A': [1, 2, np.nan, 4, 5],
-    'B': [10, np.nan, 30, np.nan, 50]
-}
-
-df = pd.DataFrame(data)
-
-# Print the original dataframe
-print("Original DataFrame:")
-print(df)
-
-# Fill NaN values in column B with corresponding values from column A
-df['B'] = df['B'].fillna(df['A'])
-
-# Print the updated dataframe
-print("\nUpdated DataFrame:")
-print(df)
+update flowcell set sequencing_date = '2024-02-07', sequencing_run = '0819', flowcell_position = 'B' where flowcell_id = 'H23WMDSX7' and seqc_tube_tag = 'BYXET';
+update flowcell set sequencing_date = '2024-02-29', sequencing_run = '0835', flowcell_position = 'B' where flowcell_id = 'H32VNDSX7' and seqc_tube_tag = 'SS4ED';
+update flowcell set sequencing_date = '2024-02-27', sequencing_run = '0833', flowcell_position = 'A' where flowcell_id = 'H35MFDSX7' and seqc_tube_tag = 'BWDQD';
+update flowcell set sequencing_date = '2024-03-08', sequencing_run = '0839', flowcell_position = 'A' where flowcell_id = 'H35NHDSX7' and seqc_tube_tag = 'PVYB4';
+update flowcell set sequencing_date = '2024-05-23', sequencing_run = '0830', flowcell_position = 'B' where flowcell_id = 'H35TKDSX7' and seqc_tube_tag = 'ESQZY';
+update flowcell set sequencing_date = '2024-03-15', sequencing_run = '0844', flowcell_position = 'B' where flowcell_id = 'H37VGDSX7' and seqc_tube_tag = 'ZWT6V';
+update flowcell set sequencing_date = '2024-03-08', sequencing_run = '0838', flowcell_position = 'B' where flowcell_id = 'H37YLDSX7' and seqc_tube_tag = 'VVMXP';
+update flowcell set sequencing_date = '2024-03-11', sequencing_run = '0841', flowcell_position = 'A' where flowcell_id = 'H3C2VDSX7' and seqc_tube_tag = 'QW4F7';
+update flowcell set sequencing_date = '2024-03-18', sequencing_run = '0845', flowcell_position = 'B' where flowcell_id = 'H3C37DSX7' and seqc_tube_tag = 'X4BL7';
+update flowcell set sequencing_date = '2024-02-09', sequencing_run = '0820', flowcell_position = 'A' where flowcell_id = 'H3CFMDSX7' and seqc_tube_tag = 'LXTBP';
+update flowcell set sequencing_date = '2024-02-23', sequencing_run = '0831', flowcell_position = 'A' where flowcell_id = 'H3CFNDSX7' and seqc_tube_tag = 'ISMVU';
+update flowcell set sequencing_date = '2024-03-11', sequencing_run = '0840', flowcell_position = 'B' where flowcell_id = 'H3CFWDSX7' and seqc_tube_tag = 'OWLWN';
+update flowcell set sequencing_date = '2022-10-14', sequencing_run = '0652', flowcell_position = 'B' where flowcell_id = 'H3CJMDSX5' and seqc_tube_tag = 'KNUAE';
+update flowcell set sequencing_date = '2024-02-16', sequencing_run = '0827', flowcell_position = 'B' where flowcell_id = 'H3CMGDSX7' and seqc_tube_tag = 'K8CPY';
+update flowcell set sequencing_date = '2024-03-18', sequencing_run = '0846', flowcell_position = 'A' where flowcell_id = 'H3CMHDSX7' and seqc_tube_tag = 'YWZC4';
+update flowcell set sequencing_date = '2024-03-27', sequencing_run = '0853', flowcell_position = 'A' where flowcell_id = 'H5CWGDSX7' and seqc_tube_tag = 'FPBLM';
+update flowcell set sequencing_date = '2024-07-16', sequencing_run = '0866', flowcell_position = 'A' where flowcell_id = 'H5F37DSX7' and seqc_tube_tag = '2QBQK';
+update flowcell set sequencing_date = '2024-03-25', sequencing_run = '0852', flowcell_position = 'B' where flowcell_id = 'H5F3YDSX7' and seqc_tube_tag = 'FHXEF';
+update flowcell set sequencing_date = '2024-07-02', sequencing_run = '0862', flowcell_position = 'B' where flowcell_id = 'H5F5KDSX7' and seqc_tube_tag = 'WBDQ4';
+update flowcell set sequencing_date = '2024-07-16', sequencing_run = '0867', flowcell_position = 'B' where flowcell_id = 'H5FF5DSX7' and seqc_tube_tag = '4QYFB';
+update flowcell set sequencing_date = '2024-08-06', sequencing_run = '0875', flowcell_position = 'A' where flowcell_id = 'H5FFKDSX7' and seqc_tube_tag = '77P4L';
+update flowcell set sequencing_date = '2024-04-23', sequencing_run = '0855', flowcell_position = 'B' where flowcell_id = 'H5FGWDSX7' and seqc_tube_tag = 'LY2E2';
+update flowcell set sequencing_date = '2024-03-25', sequencing_run = '0851', flowcell_position = 'A' where flowcell_id = 'H5FH3DSX7' and seqc_tube_tag = 'AHP56';
+update flowcell set sequencing_date = '2024-03-22', sequencing_run = '0850', flowcell_position = 'B' where flowcell_id = 'H5FHNDSX7' and seqc_tube_tag = 'VHKYZ';
+update flowcell set sequencing_date = '2022-04-13', sequencing_run = '0513', flowcell_position = 'A' where flowcell_id = 'HFHMWDSX3' and seqc_tube_tag = 'O3O4J';
+update flowcell set sequencing_date = '2022-07-13', sequencing_run = '0574', flowcell_position = 'B' where flowcell_id = 'HJHNGDSX3' and seqc_tube_tag = 'CSIWQ';
+update flowcell set sequencing_date = '2023-04-14', sequencing_run = '0722', flowcell_position = 'B' where flowcell_id = 'HMGMJDSX5' and seqc_tube_tag = '2ID2J';
+update flowcell set sequencing_date = '2023-04-17', sequencing_run = '0724', flowcell_position = 'A' where flowcell_id = 'HMHGCDSX5' and seqc_tube_tag = '6S3H8';
+update flowcell set sequencing_date = '2023-04-14', sequencing_run = '0723', flowcell_position = 'A' where flowcell_id = 'HMHGFDSX5' and seqc_tube_tag = 'AIH6N';
+update flowcell set sequencing_date = '2023-11-09', sequencing_run = '0784', flowcell_position = 'B' where flowcell_id = 'HNLNLDSX5' and seqc_tube_tag = 'PCMZH';
+update flowcell set sequencing_date = '2023-10-27', sequencing_run = '0781', flowcell_position = 'B' where flowcell_id = 'HNLTWDSX5' and seqc_tube_tag = 'ECP4K';
+update flowcell set sequencing_date = '2023-09-29', sequencing_run = '0775', flowcell_position = 'A' where flowcell_id = 'HNLVKDSX5' and seqc_tube_tag = 'ZQYDF';
+update flowcell set sequencing_date = '2023-09-29', sequencing_run = '0776', flowcell_position = 'B' where flowcell_id = 'HNLVTDSX5' and seqc_tube_tag = 'BQVAC';
+update flowcell set sequencing_date = '2023-09-27', sequencing_run = '0773', flowcell_position = 'A' where flowcell_id = 'HNLW5DSX5' and seqc_tube_tag = 'AOZCK';
+update flowcell set sequencing_date = '2023-08-28', sequencing_run = '0768', flowcell_position = 'A' where flowcell_id = 'HNLYFDSX5' and seqc_tube_tag = '342IX';
+update flowcell set sequencing_date = '2023-11-13', sequencing_run = '0787', flowcell_position = 'A' where flowcell_id = 'HNMC2DSX5' and seqc_tube_tag = 'OMKY4';
+update flowcell set sequencing_date = '2023-12-01', sequencing_run = '0796', flowcell_position = 'A' where flowcell_id = 'HTMGLDSX5' and seqc_tube_tag = 'PABP7';
+update flowcell set sequencing_date = '2024-01-17', sequencing_run = '0808', flowcell_position = 'A' where flowcell_id = 'HTMGNDSX5' and seqc_tube_tag = 'BNW8A';
+update flowcell set sequencing_date = '2024-01-29', sequencing_run = '0812', flowcell_position = 'A' where flowcell_id = 'HTMWGDSX5' and seqc_tube_tag = 'QXT5U';
+update flowcell set sequencing_date = '2024-02-02', sequencing_run = '0816', flowcell_position = 'A' where flowcell_id = 'HTNTGDSX5' and seqc_tube_tag = 'MYUGL';
+update flowcell set sequencing_date = '2024-02-07', sequencing_run = '0818', flowcell_position = 'A' where flowcell_id = 'HTNVWDSX5' and seqc_tube_tag = 'YYGUC';
+update flowcell set sequencing_date = '2024-01-29', sequencing_run = '0813', flowcell_position = 'B' where flowcell_id = 'HTNW2DSX5' and seqc_tube_tag = 'LX2D3';
+update flowcell set sequencing_date = '2024-01-31', sequencing_run = '0814', flowcell_position = 'A' where flowcell_id = 'HTT2WDSX5' and seqc_tube_tag = 'OYHVD';
+update flowcell set sequencing_date = '2024-02-02', sequencing_run = '0817', flowcell_position = 'B' where flowcell_id = 'HTT3LDSX5' and seqc_tube_tag = 'MYUGL';
+update flowcell set sequencing_date = '2023-12-08', sequencing_run = '0798', flowcell_position = 'A' where flowcell_id = 'HTT52DSX5' and seqc_tube_tag = 'PH4HU';
+update flowcell set sequencing_date = '2023-12-19', sequencing_run = '0803', flowcell_position = 'B' where flowcell_id = 'HVG35DRX3' and seqc_tube_tag = 'BHEP6';

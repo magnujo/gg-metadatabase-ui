@@ -154,7 +154,19 @@ class DBTableRelated:
         '''
         generated_cols = pd.read_sql(generated_query, con=engine)
         
-        result = generated_cols['column_name'].to_list() + uuid_cols['column_name'].to_list()
+        generated_query = f'''
+select cn.column_name_db from name_maps.column_names cn
+join name_maps.table_names tn using (table_id)
+join name_maps.schema_names sn using (schema_id)
+where auto_generated = true
+and tn.table_name = '{table}'
+and sn.schema_name = '{schema}'
+        '''
+        
+        speciel_generated_cols = pd.read_sql(generated_query, con=engine)
+        
+        
+        result = generated_cols['column_name'].to_list() + uuid_cols['column_name'].to_list() + speciel_generated_cols['column_name_db'].to_list()
         
         return result
     
