@@ -160,3 +160,37 @@ def merge_smdb(schema_name, engine, how='outer'):
     ])
     
     return result.dropna(how='all')
+
+
+def qc(schema_name, engine):
+    report_meta = f"select * from {schema_name}.report_meta where report_meta_key = 'config_output_dir'"
+    report_meta = pd.read_sql(report_meta, engine)
+    report_meta_piv = report_meta.pivot(columns='report_meta_key', index='report_id', values='report_meta_value')
+    report_meta_piv.columns.name = None
+    report_meta_piv = report_meta_piv.reset_index()
+    multiqc_data = f'''
+                SELECT s.sample_name, sdt.data_key, NULLIF(sd.value, 'None') AS value, sd.report_id
+                FROM {schema_name}.sample_data sd
+                JOIN {schema_name}.sample_data_type sdt ON sdt.sample_data_type_id = sd.sample_data_type_id
+                JOIN {schema_name}.sample s ON sd.sample_id = s.sample_id
+                WHERE sdt.data_section != 'general_stats' and sdt.data_section != 'bbmap_low_complexity'; 
+            '''
+    multiqc_data = pd.read_sql(multiqc_data, engine)    
+    multiqc_data['binf_details'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: '_'.join(x[2:]))
+    multiqc_data['library_id'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: x[1])
+    pivoted_df = multiqc_data.pivot(index=['library_id', 'report_id', 'binf_details'], columns='data_key', values='value')
+    pivoted_df
+    pivoted_df.columns.name = None
+    pivoted_df = pivoted_df.reset_index()
+    mega_qc = pivoted_df
+    mega_qc = mega_qc.merge(report_meta_piv, on='report_id', how='inner', validate='m:1')
+    mega_qc = mega_qc.rename(columns={'config_output_dir': 'binf_qc_report_path', 
+                                        'report_id': 'binf_qc_report_id' }, errors='raise')
+    # Move column 'C' to be after column 'A'
+    col = mega_qc.pop('binf_qc_report_path')
+    mega_qc.insert(mega_qc.columns.get_loc('binf_details') + 1, 'binf_qc_report_path', col)
+
+    col = mega_qc.pop('binf_qc_report_id')
+    mega_qc.insert(mega_qc.columns.get_loc('binf_details') + 1, 'binf_qc_report_id', col)
+    
+    return mega_qc.dropna(how='all')
