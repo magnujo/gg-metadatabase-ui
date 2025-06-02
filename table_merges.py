@@ -18,8 +18,7 @@ depth_id_col_name = master_depth_table_name.depth_id()
 # fastqlane_id_flowcell_col_name = 'fastqlane_id'
 # flowcell_lane_col_name = 'flowcell_lane'
 wetlab_pk = wetlab_table_name.comp_id()
-wetlab_lib_pool_tag = wetlab_table_name.library_pool_tag()
-flowcell_lib_pool_tag = flowcell_table_name.library_pool_tag()
+lib_pool_tag_col_name = wetlab_table_name.library_pool_tag()
 
 lc_suf = 'lc'
 
@@ -49,6 +48,20 @@ def merge_smdb(schema_name, engine, how='outer'):
     age_model = (pd.read_sql(f'select * from "{schema_name}"."{age_model_table_name()}"', engine)
                     .dropna(subset=depth_id_col_name, axis='index'))
 
+    # Drop nan values in foreign keys, to avoid null null cross joins, because the outher merges creates null values.
+    archive_sample = archive_sample.dropna(subset=field_sample_id_col_name, axis='index')
+    robot_sample = robot_sample.dropna(subset=archive_sample_id_col_name, axis='index')
+    wetlab = wetlab.dropna(subset=robot_sample_id_col_name, axis='index')
+    flowcell = flowcell.dropna(subset=fastq_file_id_col_name, axis='index')
+    master_depth = master_depth.dropna(subset=archive_sample_id_col_name, axis='index')
+    age_model = age_model.dropna(subset=depth_id_col_name, axis='index')
+    flowcell = flowcell.dropna(subset=lib_pool_tag_col_name, axis='index')
+
+    # Drop archive as it is redundant here, and will only make it confusing
+    wetlab = wetlab.drop(columns=[data.edna_wetlab_report.archive_sample_id()])  
+
+    # Make lower versions of all the join keys
+
     # flowcell[f'{fastqlane_id_flowcell_col_name}{lc_suf}'] = flowcell[fastq_file_id_col_name].str.lower() + '_' + flowcell[flowcell_lane_col_name].astype(str)
     field_sample[f'{field_sample_id_col_name}{lc_suf}'] = field_sample[field_sample_id_col_name].str.lower()
     archive_sample[f'{field_sample_id_col_name}{lc_suf}'] = archive_sample[field_sample_id_col_name].str.lower()
@@ -57,100 +70,108 @@ def merge_smdb(schema_name, engine, how='outer'):
     robot_sample[f'{robot_sample_id_col_name}{lc_suf}'] = robot_sample[robot_sample_id_col_name].str.lower()
     wetlab[f'{robot_sample_id_col_name}{lc_suf}'] = wetlab[robot_sample_id_col_name].str.lower()
     wetlab[f'{fastq_file_id_col_name}{lc_suf}'] = wetlab[fastq_file_id_col_name].str.lower()
-    wetlab[f'{fastq_file_id_col_name}{lc_suf}'] = wetlab[fastq_file_id_col_name].str.lower()
+    wetlab[f'{lib_pool_tag_col_name}{lc_suf}'] = wetlab[lib_pool_tag_col_name].str.lower()
     # seqsheet[f'{fastq_file_id_col_name}{lc_suf}'] = seqsheet[fastq_file_id_col_name].str.lower()
     flowcell[f'{fastq_file_id_col_name}{lc_suf}'] = flowcell[fastq_file_id_col_name].str.lower()
+    flowcell[f'{lib_pool_tag_col_name}{lc_suf}'] = flowcell[lib_pool_tag_col_name].str.lower()
     master_depth[f'{archive_sample_id_col_name}{lc_suf}'] = master_depth[archive_sample_id_col_name].str.lower()
     master_depth[f'{depth_id_col_name}{lc_suf}'] = master_depth[depth_id_col_name].str.lower()
     age_model[f'{depth_id_col_name}{lc_suf}'] = age_model[depth_id_col_name].str.lower()
-
     result = field_sample.copy()
+    merge_key = field_sample_id_col_name
+
     result = pd.merge(result, 
                             archive_sample, 
-                            on=f'{field_sample_id_col_name}{lc_suf}', 
+                            on=f'{merge_key}{lc_suf}', 
                             how=how, 
                             suffixes=(f'@{field_sample_table_name()}', f'@{archive_sample_table_name()}'))
-    
+
     test_df = result.copy()
     test_col1 = field_sample_id_col_name + f'@{field_sample_table_name()}'
     test_col2 = field_sample_id_col_name + f'@{archive_sample_table_name()}'
     test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
-
     assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
+    assert len(result) <= (len(field_sample) + len(archive_sample))
+    merge_key = archive_sample_id_col_name
 
+    len_before_merge = len(result)
     result = pd.merge(result, 
                             robot_sample, 
-                            on=f'{archive_sample_id_col_name}{lc_suf}', 
+                            on=f'{merge_key}{lc_suf}', 
                             how=how, 
                             suffixes=(f'@{archive_sample_table_name()}', f'@{robot_sample_table_name()}'))
-    
+
     test_df = result.copy()
-    test_col1 = archive_sample_id_col_name + f'@{archive_sample_table_name()}'
-    test_col2 = archive_sample_id_col_name + f'@{robot_sample_table_name()}'
+    test_col1 = merge_key + f'@{archive_sample_table_name()}'
+    test_col2 = merge_key + f'@{robot_sample_table_name()}'
     test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
 
     assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
-    
     result[test_col1] = result[test_col1].fillna(test_col2)
+    assert len(result) <= (len_before_merge + len(robot_sample))
+    merge_key = robot_sample_id_col_name
 
-    wetlab = wetlab.drop(columns=[data.edna_wetlab_report.archive_sample_id()])  # Drop archive as it is redundant here, and will only make it confusing
+    len_before_merge = len(result)
     result = pd.merge(result, 
                             wetlab, 
-                            on=f'{robot_sample_id_col_name}{lc_suf}', 
+                            on=f'{merge_key}{lc_suf}', 
                             how=how, 
                             suffixes=(f'@{robot_sample_table_name()}', f'@{wetlab_table_name()}'))
-    
+
     test_df = result.copy()
-    test_col1 = robot_sample_id_col_name + f'@{robot_sample_table_name()}'
-    test_col2 = robot_sample_id_col_name + f'@{wetlab_table_name()}'
+    test_col1 = merge_key + f'@{robot_sample_table_name()}'
+    test_col2 = merge_key + f'@{wetlab_table_name()}'
     test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
 
     assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
-
-    # result_outer = pd.merge(result_outer, 
-    #                         seqsheet, 
-    #                         on=f'{fastq_file_id_col_name}{lc_suf}', 
-    #                         how=how, 
-    #                         suffixes=(f'@{wetlab_table_name()}', f'@{seqsheet_table_name()}'))  # Will cause cross join. TODO: Fix
+    assert len(result) <= (len_before_merge + len(wetlab))
+    merge_keys = [fastq_file_id_col_name, lib_pool_tag_col_name]
+    len_before_merge = len(result)
 
     result = pd.merge(result, 
-                            flowcell, on=f'{fastq_file_id_col_name}{lc_suf}', 
+                            flowcell, on=[f'{merge_key}{lc_suf}' for merge_key in merge_keys], 
                             how=how, 
                             suffixes=(f'@{wetlab_table_name()}', f'@{flowcell_table_name()}'))  # Will cause cross join becasuse of multiple lanes and runs on different flowcells. TODO: Fix
-    
-    test_df = result.copy()
-    test_col1 = fastq_file_id_col_name + f'@{wetlab_table_name()}'
-    test_col2 = fastq_file_id_col_name + f'@{flowcell_table_name()}'
-    test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
 
-    assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
+    test_df = result.copy()
+
+    for merge_key in merge_keys:
+        test_col1 = merge_key + f'@{wetlab_table_name()}'
+        test_col2 = merge_key + f'@{flowcell_table_name()}'
+        test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
+
+        assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
         
+    assert len(result) <= (len_before_merge + len(flowcell))
+    merge_key = archive_sample_id_col_name
+    len_before_merge = len(result)
     result = pd.merge(result, 
                             master_depth, 
-                            on=f'{archive_sample_id_col_name}{lc_suf}',
+                            on=f'{merge_key}{lc_suf}',
                             how=how,
                             suffixes=(None, f'@{master_depth_table_name()}'))
-    
+
     test_df = result.copy()
-    test_col1 = archive_sample_id_col_name
-    test_col2 = archive_sample_id_col_name + f'@{archive_sample_table_name()}'
+    test_col1 = merge_key
+    test_col2 = merge_key + f'@{archive_sample_table_name()}'
     test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
-
     assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
-
+    assert len(result) <= (len_before_merge + len(flowcell))
+    merge_key = depth_id_col_name
+    len_before_merge = len(result)
     result = pd.merge(result,
                             age_model,
-                            on=f'{depth_id_col_name}{lc_suf}',
+                            on=f'{merge_key}{lc_suf}',
                             how=how,
                             suffixes=(None, f'@{age_model_table_name()}'))
-    
+
     test_df = result.copy()
-    test_col1 = depth_id_col_name
-    test_col2 = depth_id_col_name + f'@{age_model_table_name()}'
+    test_col1 = merge_key
+    test_col2 = merge_key + f'@{age_model_table_name()}'
     test_df = test_df.dropna(subset=[test_col1, test_col2], how='any')
 
     assert (test_df[test_col1].str.lower() == test_df[test_col2].str.lower()).all(), 'Error, contact admin'
-
+    assert len(result) <= (len_before_merge + len(flowcell))
     result = result.drop(columns=[
         f'{field_sample_id_col_name}{lc_suf}',
         f'{archive_sample_id_col_name}{lc_suf}',
