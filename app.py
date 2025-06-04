@@ -113,6 +113,7 @@ def upload_file():
         file = request.files['file']
         file_name = file.filename
         session['session_id'] = uuid.uuid4()
+        print('Session ID: ', session['session_id'])
         session['session_dir'] = os.path.join(misc_constants.SESSION_DATA, str(session.get("session_id")))
         
         try:
@@ -696,7 +697,6 @@ data from your upload sheet is actually new data about new samples.<br><br>
         all_warnings.append(caption + warning_data)
         
 
-        
     return render_template('duplicate_warning.html',
                            duplicates=all_warnings)
     
@@ -788,11 +788,12 @@ def confirmed():
             upload_id = str(session.get("session_id"))
             session['upload_id'] = upload_id
             upload_time = pd.Timestamp.now(tz='UTC')
+            
 
             tables_with_uid = queries.check_if_upload_id_exists_in_schema(database=SQL_ALCH_CONFIG['database'], schema=SQL_ALCH_CONFIG['schema_name'], upload_id=session.get('upload_id'), 
                                                                           engine=ENGINE_READ_ONLY)
             if len(tables_with_uid) != 0:
-                raise Exception(f"Found upload_id already in {tables_with_uid}")            
+                raise Exception(f"Found upload_id {upload_id} already in {tables_with_uid}")            
             
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload']) 
