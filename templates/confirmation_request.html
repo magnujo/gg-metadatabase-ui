@@ -137,18 +137,27 @@
                     </div>
                 {% endfor %}
             </div>
+            <label>
+                    <input type="checkbox" class="myCheckbox">
+                            I confirm that I have reviewed the above.
+                </label>
         </div>
+        
     </div>
+       
     <br>
     <br>
+    <br>
+    <br>
+ 
 
     <!-- Fixed Action Buttons -->
     <div class="action-buttons">
-        <form action="/" method="post" enctype="multipart/form-data" class="d-inline">
+        <form action="/" method="get" enctype="multipart/form-data" class="d-inline">
             <button type="submit" class="btn btn-cancel">Cancel Upload</button>
         </form>
         <form id="confirmForm" action="/confirmed" method="post" enctype="multipart/form-data" class="d-inline">
-            <button id="confirmButton" type="submit" class="btn btn-confirm">Confirm Upload</button>
+            <button id="confirmButton" disabled type="submit" class="btn btn-confirm">Continue</button><p></p>
         </form>
     </div>
 
@@ -187,5 +196,17 @@
             });
         });
     </script>
+<script>
+    const checkboxes = document.querySelectorAll('.myCheckbox');
+    const confirmButton = document.getElementById('confirmButton');
+  
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        confirmButton.disabled = !allChecked;
+      });
+    });
+  </script>
+
 </body>
 </html>
