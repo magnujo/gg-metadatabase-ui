@@ -1,3 +1,6 @@
+import geopandas as gpd
+import leafmap
+import folium
 from utils.send_email import send_email
 import table_merges
 import argparse
@@ -749,16 +752,43 @@ def confirmation_request():
             )
             summary = caption('summary') + summary
             summaries.append(summary)
+            
+            #  Add map to summary if its a field sample upload
+            if ele == data.field_sample():
+                
+                lat_col_name = data.field_sample.latitude(template=True)
+                lon_col_name = data.field_sample.longitude(template=True)                
+                
+                lats = clean_sheet[lat_col_name]
+                lons = clean_sheet[lon_col_name]
+                
+            
+                # create map
+                coordinates = list(zip(lats, lons))
+
+                # Create map
+                html_map = folium.Map()
+
+                # Add dots
+                for coord in coordinates:
+                    folium.CircleMarker(
+                        location=coord,
+                        radius=5,
+                        color='red',
+                        fill=True
+                    ).add_to(html_map)
+
+                # Automatically fit map to show all dots
+                html_map.fit_bounds(coordinates, max_zoom=3)
+                
+                html_map = html_map._repr_html_()
+                summaries.append(html_map)
+                
+            
             clean_sheet = clean_sheet.to_html(na_rep=" ", justify="center", classes="table table-striped")
             html_table_with_caption = caption('table') + clean_sheet
-            # allowed_values, invalid_values = handle_enum_columns(clean_sheet, table_name=ele)
             
             clean_sheets.append(html_table_with_caption)
-            
-        # if invalid_values:            
-        #     return render_template('enum_validation_fail.html', validation_results=(invalid_values, allowed_values), file_name=file_name, database_table_name=database_table_name)
-        # return render_template('confirmation_request copy.html', table=summaries[0])
-
     
     except Exception as e:
         return general_error_handling(message=e, delete_session_dir=True, files_to_del=files_to_del['Before Upload'])
