@@ -123,8 +123,6 @@ SCRIPT_GENERATED_COLUMNS = ['database_insert_by',
                           'database_insert_date_utc', 
                           'upload_uuid',
                           'depth_id',
-                          'fastq_path',
-                          'prod_res_path'
                     'wrong_data']
 
 

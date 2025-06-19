@@ -12,6 +12,7 @@ dependencies:
   - psycopg2
   - sqlalchemy
   - pandas
+  - geodatasets
   - flask
   - ipykernel
   - openpyxl
@@ -23,12 +24,10 @@ dependencies:
   - matplotlib
   - pip
   - ipympl
-  - jupyterlab
   - paramiko
   - seaborn
   - notebook
   - plotly=5
-  - rise
   - pywin32
   - geopy
   - cartopy
@@ -36,6 +35,5 @@ dependencies:
   - leafmap
   - pip:
     - pretty_html_table
-    - jupyterlab
     - pillow
     - reverse-geocode

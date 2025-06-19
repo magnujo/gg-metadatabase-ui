@@ -403,7 +403,6 @@ def upload_file():
                 if split_database_table_name == data.edna_wetlab_report():
                     
                     lib_id_col_name = data.edna_wetlab_report.library_id()
-                    clean_sheet['prod_res_path'] = paths.prod_res_path(clean_sheet[lib_id_col_name])
                     
                     # The below commented out code will prevent upload of eDNA wet_lab_reports if the fastq files do not exist in the flowcell table.
                     
@@ -438,7 +437,6 @@ def upload_file():
                     flowcell_id_file = clean_sheet[flowcell_id_col_name]
                     fastq_ids = clean_sheet[fastq_id_col_name]
                     
-                    clean_sheet['fastq_path'] = paths.fastq_path(flowcell_id_file, fastq_ids)
                                          
                         
                 if split_database_table_name == data.age_depth_model():
