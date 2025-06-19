@@ -52,9 +52,7 @@ class DBTableRelated:
                         'initials_translator': [data.initials_translator()]
                     }
     
-    UTIL_TABLES = {"MEGA": [
-                            "outer_coalesced_mega_table_meta"
-                    ],
+    UTIL_TABLES = {
                     "QC": [
                         "plot_category",
                         "sample",

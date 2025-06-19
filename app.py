@@ -1481,11 +1481,8 @@ def download_all():
     # Send the text file as a download to the user
     return send_file(path, as_attachment=True)
 
-def get_merged_standardized():
-
-    query = f"select * from {data()}.outer_coalesced_mega_table_meta"
-    
-    df = pd.read_sql(query, con=ENGINE_READ_ONLY)
+def get_merged_standardized():    
+    df = table_merges.merge_smdb(schema_name=data(), engine=ENGINE_READ_ONLY, how='outer')
     
     return df    
 
