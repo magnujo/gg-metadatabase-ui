@@ -477,6 +477,9 @@ class data(Schema):
         permit_for_dna_analysis = lambda template=False: get_column_name(346, template=template)
         sample_environment_secondary = lambda template=False: get_column_name(387, template=template)
         parent_id = lambda template=False: get_column_name(410, template=template)
+        geographical_location_names = lambda template=False: get_column_name(414, template=template)
+        owned_by_aegis = lambda template=False: get_column_name(415, template=template)
+        
         
     class top_unknown_seq_barcodes(Table):
         _db_id = 18
