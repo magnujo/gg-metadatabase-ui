@@ -30,7 +30,10 @@ from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 from openpyxl.worksheet.datavalidation import DataValidation
 
 
-
+"""
+Function gets called when clicking on:
+    http://dandyweb01fl.unicph.domain:5100/download/Field%20Sampling%20Meta%20data%20reporting%20template.xlsx
+"""
 def generate(table_name, schema_name, conn): 
     
     mandatory_colour = PatternFill(start_color='8ED973', end_color='8ED973', fill_type='solid')
@@ -81,7 +84,8 @@ def generate(table_name, schema_name, conn):
 
     for col in df.select_dtypes(include='bool').columns:
         df[col] = df[col].map({True: 'yes', False: 'no'})
-        
+    
+    # Order that columns will appear in sheet 
     new_order = [
         col_names.field_sample_id(template=True),
         col_names.parent_id(template=True),
@@ -201,53 +205,6 @@ def generate(table_name, schema_name, conn):
     # df_translated = df.rename(columns=renamer, errors='raise')
 
     # New column order
-    new_order = [
-        col_names.field_sample_id(template=True),
-        col_names.parent_id(template=True),
-        col_names.field_label(template=True),
-        col_names.master_id_parent_sample_id(template=True),
-        col_names.running_project_title(template=True),
-        col_names.permit_for_dna_analysis(template=True),
-        col_names.country_ocean(template=True),
-        col_names.site_name(template=True),
-        col_names.geographical_location_names(template=True),
-        col_names.latitude(template=True),
-        col_names.longitude(template=True),
-        col_names.elevation(template=True),
-        col_names.water_depth(template=True),
-        col_names.sample_context(template=True),
-        col_names.sample_type(template=True),
-        col_names.sample_type_in_storage_at_gm(template=True),
-        col_names.sample_material(template=True),
-        col_names.sample_environment(template=True),
-        col_names.sample_environment_secondary(template=True),
-        col_names.age_estimate___from(template=True),
-        col_names.age_estimate___to(template=True),
-        col_names.sampling_depth(template=True),
-        col_names.sampling_interval___from(template=True),
-        col_names.sampling_interval___to(template=True),
-        col_names.sample_date(template=True),
-        col_names.pi(template=True),
-        col_names.sample_provider_name(template=True),
-        col_names.sample_provider_contact(template=True),
-        col_names.owned_by_aegis(template=True),
-        col_names.sample_storage_setting(template=True),
-        col_names.sample_storage_location(template=True),
-        col_names.sample_storage_address(template=True),
-        col_names.comments(template=True),
-        col_names.link_to_other_relevant_information(template=True),
-        col_names.link_to_images(template=True),
-        col_names.miscellaneous_environmental_measurement_or_observation(template=True),
-        col_names.miscellaneous_sample_measurement_or_observation(template=True),
-        col_names.alias(template=True),
-        col_names.cultural_affiliation(template=True),
-        col_names.museum_institution(template=True),
-        col_names.site_grid_elev(template=True),
-        col_names.site_grid_latitude(template=True),
-        col_names.site_grid_longitude(template=True),
-        col_names.other_relevant_information(template=True)
-
-    ]
 
     df_translated = df[new_order]
 
