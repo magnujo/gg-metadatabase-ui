@@ -1,224 +1,92 @@
-
-I have a pandas dataframe with a longitude and latitude column. The formatting of the coordinates in the columns are unstandardized. I will provide you all the unique formats of the columns, and I want you to create a function that converts the columns to WGS 84 decimal degrees format. Some formats might not be possible to convert. The function should account for this by returning 'Invalid format' if that is the case. Here are the formats (d is an arbitrary digit):
-UNIQUE LATITUDE FORMATS:
-+dd.dddd
-+dd.ddddd
-+dd.dddddd
-+dddddddd
--dd.ddddd
--dd.dddddd
--dd.ddddddd
-N dd.dddd
-N dd.ddddd
-N dd°dd.ddd'
-Ndd.dddd
-Ndd.ddddd
-Ndd.dddddd
-Ndddddd
-Ndd° dd' dd.d"
-Wddd dd' dd.dd"
-Wddd dd' dd.ddd"
-d.ddN
-d.dddd
-d.ddddd
-d.dddddd
-d.dddddd N
-dd dd dd.dd N
-dd dd' dd" N
-dd dd.ddd N
-dd' dd.dd"
-dd.d
-dd.dd
-dd.ddN
-dd.ddd
-dd.ddd N
-dd.dddd
-dd.ddddd
-dd.dddddd
-dd.dddddd N
-dd.ddddddd
-dd.dddddddd
-dd.ddddddddd
-dd.dddddddddddd
-dd.ddddddddddddd
-dd.dddddddddddddd
-dd.ddddddddddddddd
-dd.ddddddddddddd°
-dd.ddddddd°
-dd.dddddd°
-dd.dddddd°N
-dd.ddddd°
-dd.ddddd°N
-dd.dddd° N
-dd.dddd°N
-dd.dd°N
-ddd.ddd
-ddd.ddddd
-ddd.dddddd
-ddddd
-dddddd
-dddddddd
-dd° d' dd.dddd" N
-dd° d'dd"N
-dd° dd' dd" N
-dd° dd' dd.d" N
-dd° dd' dd.dd"
-dd° dd' dd.dd" N
-dd° dd'dd.dddd" N
-dd° dd.ddd
-dd° dd.ddd'S
-dd° dd.dddd N
-dd°d'dd"
-dd°d'dd.dd" N
-dd°dd'N
-dd°dd'd" N
-dd°dd'd.dd"N
-dd°dd'dd"
-dd°dd'dd" N
-dd°dd'dd"N
-dd°dd'dd.d"N
-dd°dd'dd.d"S
-dd°dd'dd.dd"N
-dd°dd'dd.ddd"
-dd°dd'ddd"N
-dd°dd.ddd
-d°dd'dd.d"S
-d°dd.ddd'N
-
-
-UNIQUE LONGITUDE FORMATS
-'+d.dddd
-+d.dddd
-+d.dddddd
-+dd.dddd
-+dd.ddddd
-+dd.dddddd
-+ddd.dd
-+ddd.ddd
-+ddd.dddd
-+ddd.ddddd
-+ddd.dddddd
--d.dd
--d.dddd
--d.ddddd
--d.dddddd
--d.ddddddddddddddd
--d.ddddddd°
--d.dddddd°
--d.ddddd°
--dd.ddd
--dd.dddd
--dd.ddddd
--dd.dddddd
--dd.ddddddd
--dd.dddddddd
--dd.ddddddddddddd
--dd.dddddddddddddd
--dd.ddddddddddddddd
--dd.dddddd°
--dd.dddddd°E
--dd.dddddd°W
--dd.ddddd°W
--dd.dd°W
--ddd.dddd
--ddd.ddddd
--ddd.dddddd
--ddd.ddddddd
--ddd.dddddddd
--ddd.dddddd°
--dddddd
--dddddddd
-E d.dddddd
-E dd.ddddd
-E dd°dd.ddd'
-Ed.ddddd
-Ed.dddddd
-Edd.ddddd
-Edd.dddddd
-Eddddddd
-Nddd dd' dd.dd"
-Nddd dd' dd.ddd"
-Ndd° dd' dd.dddd" W
-Wdd.dddd
-Wdd.ddddd
-Wdd° dd' dd.d"
-d.dd
-d.ddd
-d.dddd
-d.ddddd
-d.dddddd
-d.ddddddddd
-d.dddddddddddddd
-d.ddddddddddddddd
-d.ddddddd°
-d.dddddd°
-d.dddd°W
-dd dd dd.d W
-dd dd' dd" E
-dd dd.ddd E
-dd' dd.dd"
-dd' dd.ddd"
-dd.dd
-dd.ddW
-dd.ddd
-dd.ddd W
-dd.dddd
-dd.ddddd
-dd.dddddd
-dd.dddddd E
-dd.dddddddd
-dd.dddddddddddd
-dd.ddddddddddddd
-dd.dddddddddddd°
-dd.dddddd°
-dd.ddddd°
-dd.ddddd°E
-dd.ddddd°W
-dd.dddd° E
-dd.dddd°E
-dd.dddd°W
-dd.ddd°E
-ddd dd dd.dd W
-ddd.ddW
-ddd.ddd
-ddd.ddd W
-ddd.dddd
-ddd.ddddd
-ddd.dddddd
-ddd.ddddddd
-ddd.dddd°E
-dddddd
-ddddddd
-dddddddd
-ddd° dd' dd.dd"
-ddd°dd'W
-ddd°dd'dd.d"E
-ddd°dd.ddd
-ddd°dd.ddd'W
-dd° dd' d.dddd" W
-dd° dd' dd" E
-dd° dd' dd.d" W
-dd° dd' dd.dd"E
-dd° dd' dd.dd"E.
-dd° dd'd.dddd" W
-dd° dd'dd" W
-dd° dddddd E
-dd°dd'W
-dd°dd'd" W
-dd°dd'd"W
-dd°dd'dd"
-dd°dd'dd" W
-dd°dd'dd"E
-dd°dd'dd.d"E
-dd°dd'dd.d"W
-dd°dd'dd.dd"
-dd°dd'dd.dd" E
-dd°dd'dd.dd" W
-dd°dd'dd.dd"E
-dd°dd'dd.dd"W
-dd°dd'dd.ddd"
-dd°dd'ddd"W
-dd°dd.ddd'W
-d° dd' dd.ddd" W
-d°dd'dd.dd" E
-d°dd'dd.dd"E
+SELECT * from ('POS-514-34-11-48',
+'POS-514-34-11-56',
+'POS-514-34-11-57',
+'POS-514-34-11-58',
+'POS-514-34-11-59',
+'POS-514-34-11-60',
+'POS-514-34-11-61',
+'POS-514-34-11-62',
+'POS-514-34-11-63',
+'POS-514-34-11-64',
+'POS-514-34-11-65',
+'POS-514-34-11-66',
+'POS-514-34-11-67',
+'POS-514-34-11-68',
+'POS-514-34-11-69',
+'POS-514-34-11-70',
+'POS-514-34-11-71',
+'POS-514-34-11-72',
+'POS-514-34-11-73',
+'POS-514-34-11-74',
+'POS-514-34-11-76',
+'POS-514-34-11-197',
+'POS-514-34-11-199',
+'POS-514-34-11-201',
+'POS-514-17-14-187',
+'POS-514-17-14-189',
+'POS-514-34-11-203',
+'POS-514-34-11-205',
+'POS-514-34-11-207',
+'POS-514-34-11-209',
+'POS-514-34-11-211',
+'POS-514-34-11-213',
+'POS-514-34-11-215',
+'POS-514-17-14-115',
+'POS-514-17-14-116',
+'POS-514-17-14-117',
+'POS-514-17-14-118',
+'POS-514-17-14-119',
+'POS-514-17-14-120',
+'POS-514-17-14-121',
+'POS-514-17-14-122',
+'POS-514-17-14-123',
+'POS-514-17-14-124',
+'POS-514-17-14-136',
+'POS-514-17-14-137',
+'POS-514-17-14-138',
+'POS-514-17-14-139',
+'POS-514-17-14-140',
+'POS-514-17-14-141',
+'POS-514-17-14-142',
+'POS-514-17-14-143',
+'POS-514-17-14-144',
+'POS-514-17-14-145',
+'POS-514-17-14-146',
+'POS-514-17-14-147',
+'POS-514-17-14-148',
+'POS-514-17-14-149',
+'POS-514-17-14-150',
+'POS-514-17-14-151',
+'POS-514-17-14-152',
+'POS-514-17-14-153',
+'POS-514-17-14-154',
+'POS-514-17-14-155',
+'POS-514-17-14-157',
+'POS-514-17-14-159',
+'POS-514-17-14-161',
+'POS-514-17-14-163',
+'POS-514-17-14-165',
+'POS-514-17-14-167',
+'POS-514-17-14-169',
+'POS-514-17-14-171',
+'POS-514-17-14-173',
+'POS-514-17-14-175',
+'POS-514-17-14-177',
+'POS-514-17-14-179',
+'POS-514-17-14-181',
+'POS-514-17-14-183',
+'POS-514-17-14-185',
+'POS-514-17-14-191',
+'POS-514-34-11-37',
+'POS-514-17-14-195',
+'POS-514-17-14-193',
+'POS-514-34-11-38',
+'POS-514-34-11-39',
+'POS-514-34-11-40',
+'POS-514-34-11-41',
+'POS-514-34-11-42',
+'POS-514-34-11-43',
+'POS-514-34-11-44',
+'POS-514-34-11-45',
+'POS-514-34-11-46',
+'POS-514-34-11-47')
