@@ -148,11 +148,11 @@ def generate(table_name, schema_name, conn):
         (1, " = Non-mandatory column"),
         (1, " = Mandatory column depending on environment, type or other features"),
         (0, '''
-    IMPORTANT: If you get a warning about macros being blocked please do the necessary steps described here to unblock 
+    IMPORTANT: If you get a warning about macros being blocked please do the necessary steps described here to unblock, otherwise you might end up with wrong or badly formatted data 
     https://support.microsoft.com/en-us/topic/a-potentially-dangerous-macro-has-been-blocked-0952faa0-37e7-4316-b61d-5b5ed6024216
             '''),
         (0, ""),
-        (0, "Delete this and all rows above before uploading (except row 1 ofcourse!)")
+        (0, "Delete this and all rows above before uploading/sending - except the header (row 1) ofcourse!")
 ]
     
     temp_row = df.loc[0]
@@ -245,12 +245,12 @@ def generate(table_name, schema_name, conn):
     # Add instructions to the guide sheet
     instructions = [
         "To limit data insertion errors, please read the instructions below before you begin to insert data:",
-        f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. samples that were collected directly from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). If your sample was not collected directly from a sample environment, but was sub sampled from an existing sample, you need to report it as a sub sample using '{data.edna_archive_sample(template=True)}' (find it the same place you found this template). Contact jtstenderup@sund.ku.dk for help with this.",
+        f"1. Ask yourself if you are using the correct template. The purpose of this template is to provide meta data about field samples i.e. unprocessed samples that were collected from a field sample environment (see list of sample environments in the '{enum_sheet_name}' sheet). It is also possible to report meta data about sub field samples using this template, as long as they are not archive- or robot sub samples (in LV tubes). These are special samples that have their own templates. Contact jtstenderup@sund.ku.dk if you need the templates for those.",
         "2. When inserting data in a column, hover over the column name to see its definition. Read the column definition thoroughly before inserting the data, to make sure you are inserting it in the correct column",
         f"3. There are some columns where you will see a drop-down list when you click on a cell. This means that you can only insert values from that list. You can also see the lists in the '{enum_sheet_name}' sheet. If you wish to include a value to one of these lists, contact {ADMIN_EMAIL} (it wont help if you just add it to the template yourself)", 
         "4. Before uploading/sending the file, ensure all entries are accurate and complete. It's better to leave a cell empty than to insert a wrong value!",
         "5. Delete any empty rows and columns",
-        "6. Delete the yellow row and all the rows above it, except the row with the column names.",
+        "6. Delete the yellow row and all the rows above it, except the row with the header.",
         f"Feel free to contact {ADMIN_EMAIL} if you have any questions or feedback to this template"
     ]
 
