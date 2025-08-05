@@ -1,7 +1,7 @@
 To Run on Windows:
 
 Work
-$env:MAINTAINANCE = "no"; $env:RUN_MODE = "development"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""; c:/Users/glj523/AppData/Local/miniconda3/envs/db_web_app/python.exe "c:/Users/glj523/Documents/github repoes/upload_web_app/app.py"
+$env:MAINTAINANCE = "no"; $env:RUN_MODE = "development"; $env:EMAIL_PASSWORD = ""; $env:PGPASSWORD = ""; c:/Users/glj523/AppData/Local/miniconda3/envs/db_web_app/python.exe "C:\Users\glj523\OneDrive - University of Copenhagen\Git Repoes\gg-metadatabase-ui\app.py"
 
 Home:
  

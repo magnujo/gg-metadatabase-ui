@@ -1,0 +1,11 @@
+To run the script you first need to install conda. If you don’t already have Conda installed, follow the instructions here: https://www.anaconda.com/docs/getting-started/miniconda/install
+When conda is installed do this:
+1. In your terminal: navigate to the folder where you found this README file
+2. Run this command (NOTE: only do this if its the first time you run the script): conda env create -f environment.yml -y 
+3. Run this command: conda activate coordinate_cleaner_env
+4. Run this command: python coordinate_cleaner.py -h
+NOTE: If the above command results in any warnings related to PROJ or PYPROJ you need to set the PROJ_LIB environment as "path/to/miniconda3/envs/coordinate_cleaner_env/Library/share/proj" before you run the command. On windows you do it by running this command in the terminal: $env:PROJ_LIB = "path/to/miniconda3/envs/coordinate_cleaner_env/Library/share/proj";
+7. Read the help message to see how to use the script
+8. Run the script with the appropriate arguments, for example:
+   python coordinate_cleaner.py -i "C:\Users\glj523\OneDrive - University of Copenhagen\Git Repoes\gg-metadatabase-ui\notebooks\cgg3 cleanup\Manual Cleanup Guide\Data.xlsx" -s "Data After Manual Cleaning" -la "Lat_cleaned_converted" -lo "Lon_cleaned_converted" -c "Country"
+9. Check the results folder for the resulting Excel file with the new helper columns and an interactive map showing the results visually.
