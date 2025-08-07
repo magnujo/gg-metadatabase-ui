@@ -465,7 +465,6 @@ class data(Schema):
         alias = lambda template=False: get_column_name(334, template=template)
         cultural_affiliation = lambda template=False: get_column_name(335, template=template)
         museum_institution = lambda template=False: get_column_name(336, template=template)
-        other_relevant_information = lambda template=False: get_column_name(337, template=template)
         pi = lambda template=False: get_column_name(338, template=template)
         sample_provider_contact = lambda template=False: get_column_name(339, template=template)
         site_grid_elev = lambda template=False: get_column_name(340, template=template)

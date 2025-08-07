@@ -56,7 +56,7 @@ def generate(table_name, schema_name, conn):
     if table_name == data.field_sample():
         col_names = data.field_sample
 
-    # Query a good example row
+    # Example row
     query = f'''
     SELECT * FROM "{schema_name}"."{table_name}" where "{col_names.field_sample_id()}" = 'min22a_3';
     '''
@@ -129,9 +129,7 @@ def generate(table_name, schema_name, conn):
         col_names.museum_institution(template=True),
         col_names.site_grid_elev(template=True),
         col_names.site_grid_latitude(template=True),
-        col_names.site_grid_longitude(template=True),
-        col_names.other_relevant_information(template=True)
-
+        col_names.site_grid_longitude(template=True)
     ]
 
     renamer = db_to_sheet_rename_map(schema_name=schema_name, table_name=table_name)
@@ -155,9 +153,60 @@ def generate(table_name, schema_name, conn):
         (0, "Delete this and all rows above before uploading/sending - except the header (row 1) ofcourse!")
 ]
     
-    temp_row = df.loc[0]
     df.loc[0] = ["EXAMPLE ROW:"] + ([None] * (len(df.columns)-1)) 
-    df.loc[1] = temp_row
+    # df.loc[1] = temp_row
+    
+    example_row = 1
+    example_data = [
+        'DK_2511_4_S1',
+        'DK_2511_4',
+        'DK1',
+        'DK_2511_M1',
+        'Lakes of Copenhagen',
+        'yes',
+        'Denmark',
+        'Sortedams Sø/Lake Sortedams',
+        'Sortedams Sø/Lake Sortedams; Østerbro/Oesterbro; Copenhagen/København; Zealand/Sealand/Sjælland; Denmark/Danmark; Scandinavia; Europe',
+        '55,695425',
+        '12,575740',
+        '4',
+        '1',
+        'lake',
+        'core',
+        'archive tube(s)',
+        'sediment',
+        'lacustrine',
+        'terrestrial',
+        '1',
+        '0,5',
+        '',
+        '0',
+        '100',
+        '2022-07-05',
+        'Kurt Kjær',
+        'Nicolaj Krog Larsen',
+        'nicl@sund.ku.dk',
+        'true',
+        'Geological Museum',
+        'Cold room',
+        'Øster Voldgade 5-7, 1350 Copenhagen, Denmark',
+        'Only the lowermost 52 cm in the core are actual sample',
+        'https://alumni-my.sharepoint.com/:f:/g/personal/example_ku_dk/EXAMPLE',
+        'https://alumni-my.sharepoint.com/:f:/g/personal/example_ku_dk/EXAMPLE',
+        'pH: 9; Salinity: 0,3 ppt',
+        'Porosity: 10 %',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ''
+    ]
+    
+    
+    for colname, example in zip(new_order, example_data):
+        df.loc[example_row, colname] = example
+
     # df.loc[0] = ["EXAMPLE ROW:"] + ([None] * (len(df.columns)-1)) 
     for i, row in enumerate(new_rows):
         k, v = row
@@ -285,20 +334,11 @@ def generate(table_name, schema_name, conn):
 
     for i, col in enumerate(df_translated.columns):
         column_letter_data = get_column_letter(i + 1)
-        if col == data.field_sample.latitude(template=True):
-            rule = FormulaRule(formula=[f"=OR({column_letter_data}{start_row}< -90, {column_letter_data}{start_row} > 90)"], stopIfTrue=True, fill=warning_fill)
-            worksheet.conditional_formatting.add(f"{column_letter_data}{start_row}:{column_letter_data}{num_of_rows}", rule)  # Adjust the range accordingly
-        
-        if col == data.field_sample.longitude(template=True):
-            rule = FormulaRule(formula=[f"=OR({column_letter_data}{start_row}< -180, {column_letter_data}{start_row} > 180)"], stopIfTrue=True, fill=warning_fill)
-            worksheet.conditional_formatting.add(f"{column_letter_data}{start_row}:{column_letter_data}{num_of_rows}", rule)  # Adjust the range accordingly
-
         
         if col in enum_sheet.columns:
             dropdown_values = list(enum_sheet[col].dropna())
             formula = f'"{",".join(dropdown_values)}"'
 
-            
             column_index = enum_sheet.columns.get_loc(col)
             enums_length = len(dropdown_values)
             col_letter_enum = get_column_letter(column_index + 1)
