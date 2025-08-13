@@ -14,9 +14,6 @@ project_root = find_project_root()
 sys.path.append(str(project_root))
 
 import argparse
-from table_merges import merge_smdb
-from constants.db_names.names import data
-from constants.db_connections import ENGINE_READ_ONLY
 from sqlalchemy import create_engine
 
 # Example connection string, replace with your actual credentials and host
@@ -29,6 +26,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Exports a table from SMDB for use in the Butterfly script")
     parser.add_argument("--output", help="Output TSV file (default: stdout)", default=sys.stdout)
     args = parser.parse_args()
+    
+    from table_merges import merge_smdb
+    from constants.db_names.names import data
+    from constants.db_connections import ENGINE_READ_ONLY
     
     df = merge_smdb(
         schema_name=data(),
