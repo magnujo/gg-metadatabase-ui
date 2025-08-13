@@ -34,7 +34,7 @@ class NamedEntity(str):
 		return repr(self.__db_name)
 
 	def get_id(self):
-		return self.__db_id
+		return self.__db_id 
 
 	@classmethod
 	def get_class_variables(cls):
