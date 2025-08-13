@@ -3,7 +3,7 @@ You need to provide a password to access the database. This is done by setting t
 variable `PGPASSWORD` before running the script.
 
 Example usage:   
-PGPASSWORD='5J8DhII0RRsPW1' python /var/meta_db_apps/gg-metadatabase-ui/scripts/data_getters/butterfly/butterfly.py --output path/to/your/output_dir/output.tsv
+PGPASSWORD='5J8DhII0RRsPW1' python /var/meta_db_apps/gg-metadatabase-ui/scripts/data_getters/butterfly/meta_data_getter.py --output path/to/your/output_dir/output.tsv
 
 Use --help to see all available options
 

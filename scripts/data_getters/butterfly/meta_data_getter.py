@@ -24,7 +24,7 @@ engine = create_engine(DATABASE_URL)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Exports a table from SMDB for use in the Butterfly script")
-    parser.add_argument("--output", help="Output TSV file (default: stdout)", default=sys.stdout)
+    parser.add_argument("-o", "--output", help="Output TSV file (default: stdout)", default=sys.stdout)
     args = parser.parse_args()
     
     from table_merges import merge_smdb
