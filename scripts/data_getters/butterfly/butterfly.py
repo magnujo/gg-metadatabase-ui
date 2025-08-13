@@ -26,7 +26,7 @@ DATABASE_URL = "postgresql+psycopg2://username:password@localhost:5432/mydatabas
 engine = create_engine(DATABASE_URL)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Export a PostgreSQL table to a TSV file.")
+    parser = argparse.ArgumentParser(description="Exports a table from SMDB for use in the Butterfly script")
     parser.add_argument("--output", help="Output TSV file (default: stdout)", default=sys.stdout)
     args = parser.parse_args()
     
