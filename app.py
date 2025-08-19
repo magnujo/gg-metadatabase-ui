@@ -1489,36 +1489,7 @@ def get_merged_standardized():
 @app.route('/PI_download_standardized', methods=['POST'])
 def PI_download_standardized():
     with download_lock:
-        
-        df = get_merged_standardized()
-        
-        # columns = [
-        #     "field_sample_parent_id", 
-        #     "field_sample_id",
-        #     "archive_sample_id",
-        #     "Master Depth (cm)",
-            
-        # ]
-        
-        columns = [
-            data.master_depth.master_field_sample_id(),
-            data.master_depth.master_field_sample_id_correction(),
-            data.master_depth.field_sample_id(),
-            data.master_depth.archive_sample_id(),
-            data.master_depth.master_depth(),
-            data.edna_archive_sample.depthsampledcaltape(),
-            data.edna_archive_sample.positioninrack(),
-            data.edna_archive_sample.rackname(),
-            data.edna_archive_sample.rackid(),
-            data.master_depth.archive_sample_master_depth_comment()
-       
-        ]
-        
-        df = df[columns]
-        
-        
         encoding_type = request.form.get('encoding_type')
-        
         input_values = request.form.get('input_values')
         input_dropdown = request.form.get('search_type')
             
@@ -1531,8 +1502,7 @@ def PI_download_standardized():
                     
         values_list_original = list(map(lambda x: x.strip(), values_list_original))
         values_list = list(map(lambda x: x.lower(), values_list_original))
-        
-        zip_paths = []
+        values_list = set(values_list)
                 
         global search_id 
         search_id = search_id + 1
@@ -1550,19 +1520,25 @@ def PI_download_standardized():
             case "no_choice":
                 raise Exception("You need to choose a search type in the dropdown menu")
             case "fID":
-                filter = df[data.master_depth.field_sample_id()].str.lower().isin(values_list)
-            
+                if not values_list:
+                    raise Exception("No values provided for search.")
+                col_name = data.field_sample.field_sample_id()
+                placeholders = ','.join(['%s'] * len(values_list))
+                query = f'select * from {data()}.master_depth_template where lower({col_name}) in ({placeholders})'
+                df = pd.read_sql(query, con=ENGINE_READ_ONLY, params=tuple(values_list))
             case "mID":
-                filter = df[data.master_depth.master_field_sample_id()].str.lower().isin(values_list)
-                
+                if not values_list:
+                    raise Exception("No values provided for search.")
+                col_name = data.field_sample.master_id_parent_sample_id()
+                placeholders = ','.join(['%s'] * len(values_list))
+                query = f'select * from {data()}.master_depth_template where lower({col_name}) in ({placeholders})'
+                df = pd.read_sql(query, con=ENGINE_READ_ONLY, params=tuple(values_list))
             case _:
                 raise Exception("You need to choose a search type in the dropdown menu")
         
         
-        df = df[filter]
-        df = df.drop_duplicates(subset=[data.master_depth.archive_sample_id()])    
-        rename_map = db_to_sheet_rename_map(schema_name=data(), table_name=data.master_depth())
-        df = df.rename(columns=rename_map)
+        # rename_map = db_to_sheet_rename_map(schema_name=data(), table_name=data.master_depth())
+        # df = df.rename(columns=rename_map)
         df.to_csv(path_or_buf=path_full, sep="\t", index=False, encoding=encoding_type)
         
         # create_zip(zip_paths, path_zip_query)
