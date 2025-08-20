@@ -1552,10 +1552,10 @@ def PI_download_standardized():
 
 @app.route('/download_merged_standardized', methods=['POST'])
 def download_merged_standardized():
-       
+    print('Waiting for lock...')
     with download_lock:
-        
-        
+        print('Lock acquired.')
+
         qc_checked = request.form.get('checkbox_qc')
         checkbox_smdb = request.form.get('checkbox_smdb')
         
@@ -1567,7 +1567,9 @@ def download_merged_standardized():
         
         if qc_checked:
             file_path_qc = os.path.join(download_dir_path, 'binf_qc_data.tsv')
+            print("QC checked. Merging QC table...")
             qc_data = table_merges.qc(data(), engine=ENGINE_READ_ONLY)
+            print("Merge done.")
             qc_data.to_csv(file_path_qc, sep='\t', index=False)
             paths_to_download.append(file_path_qc)
             

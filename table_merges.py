@@ -196,15 +196,21 @@ def qc(schema_name, engine):
                 JOIN {schema_name}.sample s ON sd.sample_id = s.sample_id
                 WHERE sdt.data_section != 'general_stats' and sdt.data_section != 'bbmap_low_complexity'; 
             '''
-    multiqc_data = pd.read_sql(multiqc_data, engine)    
+    print('Executing multiqc_data query...')
+    multiqc_data = pd.read_sql(multiqc_data, engine)
+    print('Done executing.') 
     multiqc_data['binf_details'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: '_'.join(x[2:]))
     multiqc_data['library_id'] = multiqc_data['sample_name'].str.split('_').apply(lambda x: x[1])
+    print('Pivoting...')
     pivoted_df = multiqc_data.pivot(index=['library_id', 'report_id', 'binf_details'], columns='data_key', values='value')
+    print('Done pivoting.')
     pivoted_df
     pivoted_df.columns.name = None
     pivoted_df = pivoted_df.reset_index()
     mega_qc = pivoted_df
+    print('Merging...')
     mega_qc = mega_qc.merge(report_meta_piv, on='report_id', how='inner', validate='m:1')
+    print('Done merging.')
     mega_qc = mega_qc.rename(columns={'config_output_dir': 'binf_qc_report_path', 
                                         'report_id': 'binf_qc_report_id' }, errors='raise')
     # Move column 'C' to be after column 'A'
