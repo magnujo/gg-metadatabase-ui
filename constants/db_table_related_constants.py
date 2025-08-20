@@ -105,9 +105,6 @@ class DBTableRelated:
                 data.master_depth.master_field_sample_id(): { 
                     data.field_sample(): [data.field_sample.master_id_parent_sample_id()]
                     },
-                data.master_depth.field_sample_id(): { 
-                    data.field_sample(): [data.field_sample.field_sample_id()]
-                    },
                 data.master_depth.archive_sample_id(): { 
                     data.edna_archive_sample(): [data.edna_archive_sample.archivesampleid()]
                     }

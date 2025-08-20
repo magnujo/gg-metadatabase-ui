@@ -418,7 +418,7 @@ def upload_file():
                                                                                 #   id_col_table=id_col_name_table,
                                                                                 #   engine=ENGINE,
                                                                                 #   schema=schema_name)
-                    # 
+                    # https://www.google.com/maps
                     # if len(sheet_ids_not_found_in_flowcell_table) != 0:
                     #     raise Exception(f''' The data cannot be uploaded because the following {id_col_name_sheet}'s 
                     #                     has not been uploaded to the {data.flowcell()} table, which is needed to generate the file paths: {sheet_ids_not_found_in_flowcell_table} \n
@@ -445,10 +445,12 @@ def upload_file():
                 if split_database_table_name == data.master_depth():
                     master_ids = clean_sheet[data.master_depth.master_field_sample_id()].unique()
                     
-                    clean_sheet = clean_sheet.drop(columns=["ArchiveSamplePositionInRack","ArchiveSampleRackName","ArchiveSampleRackID"], errors="ignore")
-                    clean_sheet = clean_sheet.drop(columns=[data.edna_archive_sample.positioninrack(template=True), 
-                                                            data.edna_archive_sample.rackname(template=True),
-                                                            data.edna_archive_sample.rackid(template=True)], errors="ignore")
+                    clean_sheet = clean_sheet.drop(columns=[data.edna_archive_sample.positioninrack(), 
+                                                            data.edna_archive_sample.rackname(),
+                                                            data.edna_archive_sample.rackid(),
+                                                            data.field_sample.field_sample_id(),
+                                                            data.edna_archive_sample.depthsampledcaltape(),
+                                                            data.edna_archive_sample.sample_number()], errors="ignore")
                     
 
                 if split_database_table_name == data.age_depth_model() or split_database_table_name == data.master_depth():

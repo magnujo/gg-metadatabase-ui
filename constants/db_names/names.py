@@ -64,7 +64,6 @@ class data(Schema):
         database_insert_datetime_utc = lambda template=False: get_column_name(33, template=template)
         upload_uuid = lambda template=False: get_column_name(34, template=template)
         master_field_sample_id = lambda template=False: get_column_name(376, template=template)
-        field_sample_id = lambda template=False: get_column_name(377, template=template)
         master_field_sample_id_correction = lambda template=False: get_column_name(380, template=template)
         archive_sample_master_depth_comment = lambda template=False: get_column_name(381, template=template)
         depth_id = lambda template=False: get_column_name(384, template=template)
@@ -386,6 +385,7 @@ class data(Schema):
         upload_uuid = lambda template=False: get_column_name(272, template=template)
         exists_in_storage = lambda template=False: get_column_name(383, template=template)
         is_master_depth = lambda template=False: get_column_name(382, template=template)
+        sample_number = lambda template=False: get_column_name(417, template=template)
 
     class initials_translator(Table):
         _db_id = 15
