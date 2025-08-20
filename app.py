@@ -1,3 +1,4 @@
+from datetime import date
 import geopandas as gpd
 import leafmap
 import folium
@@ -1558,7 +1559,7 @@ def download_merged_standardized():
 
         qc_checked = request.form.get('checkbox_qc')
         checkbox_smdb = request.form.get('checkbox_smdb')
-        
+        today = date.today().strftime("%Y%m%d")
         download_id = str(uuid.uuid4())
         download_dir_path = os.path.join('session_data', download_id)
         os.mkdir(download_dir_path)
@@ -1566,7 +1567,8 @@ def download_merged_standardized():
         zip_path = os.path.join(download_dir_path, 'data.zip')
         
         if qc_checked:
-            file_path_qc = os.path.join(download_dir_path, 'binf_qc_data.tsv')
+            
+            file_path_qc = os.path.join(download_dir_path, f'binf_qc_data_{today}.tsv')
             print("QC checked. Merging QC table...")
             qc_data = table_merges.qc(data(), engine=ENGINE_READ_ONLY)
             print("Merge done.")
@@ -1574,7 +1576,7 @@ def download_merged_standardized():
             paths_to_download.append(file_path_qc)
             
         if checkbox_smdb:
-            file_path_smdb = os.path.join(download_dir_path, 'sample_meta_data.tsv')
+            file_path_smdb = os.path.join(download_dir_path, f'sample_meta_data_{today}.tsv')
             mega_meta = table_merges.merge_smdb(schema_name=data(), engine=ENGINE_READ_ONLY)
             mega_meta.to_csv(file_path_smdb, sep='\t', index=False)
             paths_to_download.append(file_path_smdb)
