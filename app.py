@@ -605,7 +605,13 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                                 
                                 if split_database_table_name == data.flowcell():
                                     diff = set()
-       
+                                    
+                                if split_database_table_name == data.edna_wetlab_report():
+                                    prefixes = ("ExrPTC", "ExrNTC", "LibPTC", "LibNTC")
+
+                                    # Remove elements starting with any of the prefixes
+                                    diff.difference_update({x for x in diff if x.startswith(prefixes)})
+                                    
                                 if len(diff) != 0:                                
                                     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
                                                     {diff} \n \
