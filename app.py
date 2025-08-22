@@ -610,8 +610,7 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                                     prefixes = ("ExrPTC", "ExrNTC", "LibPTC", "LibNTC")
 
                                     # Remove elements starting with any of the prefixes
-                                    diff.difference_update({x for x in diff if x.startswith(prefixes)})
-                                    
+                                    diff = {item for item in diff if not any(prefix.lower() in item.lower() for prefix in prefixes)}
                                 if len(diff) != 0:                                
                                     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
                                                     {diff} \n \
