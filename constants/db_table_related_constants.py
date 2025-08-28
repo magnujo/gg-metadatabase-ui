@@ -84,9 +84,9 @@ class DBTableRelated:
                 data.edna_wetlab_report.robot_sample_id(): { 
                     data.edna_robot_sample(): [data.edna_robot_sample.robot_sample_id()]
                     },
-                data.edna_wetlab_report.fastq_tube_id(): { 
-                    data.flowcell(): [data.flowcell.fastq_tube_id()]
-                    }
+                # data.edna_wetlab_report.fastq_tube_id(): { 
+                #     data.flowcell(): [data.flowcell.fastq_tube_id()]
+                #     }
         },
 
         # data.flowcell(): { 
