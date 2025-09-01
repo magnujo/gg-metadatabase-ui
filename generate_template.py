@@ -158,15 +158,15 @@ def generate(table_name, schema_name, conn):
     
     example_row = 1
     example_data = [
-        'DK_2511_4_S1',
-        'DK_2511_4',
-        'DK1',
-        'DK_2511_M1',
+        'DKHOL2024005',
+        'DKHOL2024001',
+        'DKHOL2024005',
+        'DKHOL2024_M1',
         'Lakes of Copenhagen',
         'yes',
         'Denmark',
-        'Sortedams Sø/Lake Sortedams',
-        'Sortedams Sø/Lake Sortedams; Østerbro/Oesterbro; Copenhagen/København; Zealand/Sealand/Sjælland; Denmark/Danmark; Scandinavia; Europe',
+        'Sortedams Sø/Sortedam Lake',
+        'Sortedams Sø/Sortedam Lake; Østerbro; Copenhagen; Zealand/Sealand; Denmark; Scandinavia; Europe',
         '55,695425',
         '12,575740',
         '4',
