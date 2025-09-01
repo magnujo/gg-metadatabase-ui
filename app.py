@@ -1676,7 +1676,7 @@ def download_individual_unfiltered_tables():
 
 
 if __name__ == '__main__':
-    db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()
+    # db_table_related_constants.DBTableRelated.check_for_table_name_inconsistencies()
     db_table_related_constants.DBTableRelated.check_for_duplicates()
     production_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['production']
     development_args = misc_constants.ALLOWED_COMMAND_LINE_ARGS['development']
