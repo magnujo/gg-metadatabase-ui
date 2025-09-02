@@ -66,6 +66,10 @@
         table tr:hover {
             background-color: #e2e6ea;
         }
+        .inactive {
+  opacity: 0.5;       /* makes it semi-transparent */
+  pointer-events: none; /* prevents clicking */
+}
     </style>
 
 </head>
@@ -114,13 +118,13 @@
                     We are working on fixing the issue.</p>
             </div> 
 
-            <div class="form-group">
-                <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
-                <label for="checkbox_qc">Include bioinformatical QC data. Will increase download time with ~2 min.</label>
+            <div class="form-group inactive">
+                <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on" disabled>
+                <label for="checkbox_qc"> Include bioinformatical QC data (TEMPORARILY DISABLED DUE TO PERFORMANCE ISSUES)</label>
                  <p class="note" style="color: red;">NOTE: A library can be sequenced on multiple flowcells, resulting in different QC reports. 
                     To distinguish between reports, use the binf_qc_report_id or binf_qc_report_path column.
                  </p>
-            <br>
+            <br></div>
 
             <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined data...</button>
             <p class="note">The button will be disabled when clicked. Update the page to re-enable it</p>
