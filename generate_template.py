@@ -28,6 +28,7 @@ project_root = find_project_root()
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Alignment, Border, Side, Font
 from openpyxl.worksheet.datavalidation import DataValidation
+from datetime import datetime
 
 
 """
@@ -44,7 +45,7 @@ def generate(table_name, schema_name, conn):
     border = Border(top=Side('thin'), bottom=Side('thin'), left=Side('thin'), right=Side('thin'))
     warning_fill = PatternFill(start_color='ff0000', end_color='ff0000', fill_type='solid')
 
-    file_name = 'Field Sampling Meta data reporting template'
+    file_name = 'Field sampling meta data reporting template ver1' + '_' + datetime.now().strftime('%Y%m%d_%H%M%S')
     extension = '.xlsm'
     save_path = os.path.join(project_root, 'auto_generated_upload_sheet_templates', file_name + extension)
 
