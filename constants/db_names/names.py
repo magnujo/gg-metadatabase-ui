@@ -148,6 +148,8 @@ class data(Schema):
 
         #  Columns:
         name = lambda template=False: get_column_name(93, template=template)
+        country_code = lambda template=False: get_column_name(418, template=template)
+        country_code3 = lambda template=False: get_column_name(419, template=template)
 
     class field_sample_environment_types(Table):
         _db_id = 7

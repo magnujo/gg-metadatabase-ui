@@ -66,11 +66,11 @@ def generate(table_name, schema_name, conn):
     
     df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
 
-    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
-    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
-    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
-    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
-    country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}"', con=ENGINE_READ_ONLY)[data.country_ocean.name()]
+    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}" order by "{data.field_sample_context_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
+    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}" order by "{data.field_sample_environment_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
+    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}" order by "{data.field_sample_material_type.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
+    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}" order by "{data.field_sample_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
+    country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}" order by "{data.country_ocean.name()}"', con=ENGINE_READ_ONLY)[[data.country_ocean.name(), data.country_ocean.country_code()]]
     field_sample_types_gm = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types_gm()}"', con=ENGINE_READ_ONLY)[data.field_sample_types_gm.name()]
 
     enum_sheet = pd.DataFrame({
@@ -80,7 +80,9 @@ def generate(table_name, schema_name, conn):
         data.field_sample.sample_material(template=True): material_types,
         data.field_sample.sample_type(template=True): sample_types,
         data.field_sample.sample_type_in_storage_at_gm(template=True): field_sample_types_gm,
-        data.field_sample.country_ocean(template=True): country_ocean
+        data.field_sample.country_ocean(template=True): country_ocean[data.country_ocean.name()],
+        data.country_ocean.country_code(template=True): country_ocean[data.country_ocean.country_code()],
+        
     })
 
     for col in df.select_dtypes(include='bool').columns:
