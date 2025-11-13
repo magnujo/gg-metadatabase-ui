@@ -70,6 +70,21 @@
   opacity: 0.5;       /* makes it semi-transparent */
   pointer-events: none; /* prevents clicking */
 }
+code {
+  background-color: #f4f4f4;
+  color: #333;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-family: Consolas, Monaco, "Courier New", monospace;
+}
+
+pre {
+  background-color: #f4f4f4;
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
     </style>
 
 </head>
@@ -98,6 +113,13 @@
             <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
             <!-- <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download all individual tables...</button> -->
         </form>
+        <br>
+        To download the same using curl, use the following command in your terminal:
+        <pre><code>curl -L -o data.zip -X POST -d 'encoding_type=utf_8' http://dandyweb01fl.unicph.domain:5100/download_all_individual_tables
+</code></pre>
+Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depending on which data you want to include.
+
+    </div>
     </div>
 
     <div class="container">
@@ -118,17 +140,22 @@
                     We are working on fixing the issue.</p>
             </div> 
 
-            <div class="form-group inactive">
-                <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on" disabled>
+            <div class="form-group">
+                <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
                 <label for="checkbox_qc"> Include bioinformatical QC data (TEMPORARILY DISABLED DUE TO PERFORMANCE ISSUES)</label>
                  <p class="note" style="color: red;">NOTE: A library can be sequenced on multiple flowcells, resulting in different QC reports. 
                     To distinguish between reports, use the binf_qc_report_id or binf_qc_report_path column.
                  </p>
-            <br></div>
-
+            </div>
             <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download joined data...</button>
             <p class="note">The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
+        <br>
+        To download the same using curl, use the following command in your terminal:
+        <pre><code>curl -L -o data.zip -X POST -d 'checkbox_smdb=on' -d 'checkbox_qc=on' http://dandyweb01fl.unicph.domain:5100/download_merged_standardized
+</code></pre>
+Set <code>checkbox_smdb=on</code> and/or <code>checkbox_qc=on</code> depending on which data you want to include.
+
     </div>
 
 
@@ -145,6 +172,12 @@
             <button id="merged_std" type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download CGG spreadsheet...</button>
             <p class="note">The button will be disabled when clicked. Update the page to re-enable it</p>
         </form>
+         <br>
+        To download the same using curl, use the following command in your terminal:
+        <pre><code>curl -L -o cgg_sheet_data.csv -X POST http://dandyweb01fl.unicph.domain:5100/download_cgg
+</code></pre>
+Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depending on which data you want to include.
+
     </div>
 
     <div class="container">

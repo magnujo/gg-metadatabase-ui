@@ -8,7 +8,7 @@ import sys
 import os
 
 def find_project_root():
-    path = Path(os.cwd()).resolve()
+    path = Path(os.getcwd()).resolve()
     while path != path.root:
         if (path / 'very_rootsy_file.txt').exists():
             return path

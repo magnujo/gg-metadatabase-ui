@@ -1,7 +1,1 @@
-from datetime import datetime
-
-file_name = 'Field sampling meta data reporting template ver1' + '_' + datetime.now().strftime('%Y%m%d_%H%M%S')
-
-
-
-print(file_name)
+('LV3006100903', 'LV3006100293', 'LV3006100294', 'LV3006100271', 'LV3006100277', 'LV3006100276', 'LV3006100286', 'LV3006100287')
