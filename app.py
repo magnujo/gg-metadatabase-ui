@@ -1656,6 +1656,41 @@ def download_all_individual_tables():
 
         # Send the text file as a download to the user
         return send_file(path_zip, as_attachment=True)
+    
+@app.route('/download_all_binfqc_tables', methods=['POST'])
+def download_all_binfqc_tables():
+    
+    with download_lock:
+        encoding_type = request.form['encoding_type']    
+        zip_paths = []
+        
+        global search_id 
+        search_id = search_id + 1
+        session["search_id"] = str(search_id) 
+        
+        directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
+        
+        path_zip = os.path.join(directory_path, 'all_tables.zip')
+        
+        schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
+        
+        tables = queries.get_foreign_table_names(local_schema=schema_name, foreign_server='caeg_qc_server', 
+                                         engine=ENGINE_READ_ONLY)
+
+        for table_name in tables:
+            print(f'downloading {table_name}')
+            df = pd.read_sql(f'select * from {schema_name}.{table_name}', con=ENGINE_READ_ONLY)
+            print(df.shape)
+            table_path = os.path.join(raw_path, f"{table_name}.tsv")
+            df.to_csv(table_path, encoding=encoding_type, sep="\t")
+            zip_paths.append(table_path)
+            
+            
+        create_zip(zip_paths, path_zip)
+
+
+        # Send the text file as a download to the user
+        return send_file(path_zip, as_attachment=True)
 
 
 @app.route('/download_essential')

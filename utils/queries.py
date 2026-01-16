@@ -42,7 +42,23 @@ def check_if_upload_id_exists_in_schema(database, schema, upload_id, engine):
             cases.append(table)
     return cases
     
- 
+
+def get_foreign_table_names(local_schema, engine, foreign_server):
+    q = f'''
+    SELECT
+    n.nspname AS local_schema,
+    c.relname AS local_table,
+    s.srvname AS foreign_server,
+    ftoptions
+FROM pg_foreign_table ft
+JOIN pg_class c ON c.oid = ft.ftrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+JOIN pg_foreign_server s ON s.oid = ft.ftserver
+WHERE s.srvname = '{foreign_server}' and n.nspname='{local_schema}';
+    '''
+    df = pd.read_sql(sql=q, con=engine)
+    return list(df['local_table'])
+
 def get_table_names(schema_name, database_name, engine):
     q = f'''    
     SELECT table_name

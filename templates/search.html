@@ -123,6 +123,34 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
     </div>
 
     <div class="container">
+        <h3 id="download_all_individual_tables">Download all BINF QC Tables </h3>
+        <p>Press the "Download all BINF QC tables..." button below to download all raw database tables.</p>
+        <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues if you cannot do case-insensitive filtering.</p>
+        <form method="post" action="/download_all_binfqc_tables">
+            <div class="form-group">
+                <label for="encoding_type">Encoding:</label>
+                <select class="form-control" name="encoding_type" id="encoding_type" required>
+                    <option value="">Choose an option...</option> 
+                    <option value="utf_8">UTF-8</option>
+                    <option value="utf_16">UTF-16</option>  
+                </select>
+                <p class="note">Use UTF-8 if in doubt</p>
+                
+            </div>
+            <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Download all BINF QC tables...</button>
+            <p class="note">NOTE: The button will be disabled when clicked. Update the page to re-enable it</p>
+            <!-- <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit(); setTimeout(() => {this.disabled=false;}, 7000);">Download all individual tables...</button> -->
+        </form>
+        <br>
+        To download the same using curl, use the following command in your terminal:
+        <pre><code>curl -L -o binf_qc_tables.zip -X POST -d 'encoding_type=utf_8' http://dandyweb01fl.unicph.domain:5100/download_all_binfqc_tables
+</code></pre>
+Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depending on which data you want to include.
+
+    </div>
+    </div>
+
+    <div class="container">
         <h3 id="joined_smdb_data">Download Joined Standardized SMDB Data (outer joined) </h3>
         <p>Select which databases you want to include in the download and then press the "Download joined data..." button below to download a zip file with the selected data included.</p>
         <p class="note">Note: You might need to convert data to a common case to avoid case sensitivity issues.</p>
