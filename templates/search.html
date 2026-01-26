@@ -160,7 +160,7 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
 
             
             <div class="form-group">
-                <input type="checkbox" id="checkbox_smdb" name="checkbox_smdb" value="on">
+                <input type="checkbox" id="checkbox_smdb" name="checkbox_smdb" value="on" checked>
                 <label for="checkbox_smdb">Include SMDB (Sample Metadata DataBase)</label>
                 <p class="note" style="color: red;">WARNING: The result will contain cross-joins between 
                     the flowcell table and edna_wetlab_report table. This means that some data in 
@@ -168,7 +168,7 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
                     We are working on fixing the issue.</p>
             </div> 
 
-            <div class="form-group">
+            <div class="inactive form-group">
                 <input type="checkbox" id="checkbox_qc" name="checkbox_qc" value="on">
                 <label for="checkbox_qc"> Include bioinformatical QC data (TEMPORARILY DISABLED DUE TO PERFORMANCE ISSUES)</label>
                  <p class="note" style="color: red;">NOTE: A library can be sequenced on multiple flowcells, resulting in different QC reports. 
@@ -180,10 +180,8 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
         </form>
         <br>
         To download the same using curl, use the following command in your terminal:
-        <pre><code>curl -L -o data.zip -X POST -d 'checkbox_smdb=on' -d 'checkbox_qc=on' http://dandyweb01fl.unicph.domain:5100/download_merged_standardized
+        <pre><code>curl -L -o data.zip -X POST -d 'checkbox_smdb=on' http://dandyweb01fl.unicph.domain:5100/download_merged_standardized
 </code></pre>
-Set <code>checkbox_smdb=on</code> and/or <code>checkbox_qc=on</code> depending on which data you want to include.
-
     </div>
 
 

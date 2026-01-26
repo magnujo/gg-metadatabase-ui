@@ -1579,8 +1579,7 @@ def download_merged_standardized():
             print("Merge done.")
             qc_data.to_csv(file_path_qc, sep='\t', index=False)
             paths_to_download.append(file_path_qc)
-            
-        if checkbox_smdb:
+        else:
             file_path_smdb = os.path.join(download_dir_path, f'sample_meta_data_{today}.tsv')
             mega_meta = table_merges.merge_smdb(schema_name=data(), engine=ENGINE_READ_ONLY)
             mega_meta.to_csv(file_path_smdb, sep='\t', index=False)
