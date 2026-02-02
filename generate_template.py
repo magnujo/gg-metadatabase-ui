@@ -8,7 +8,7 @@ import pandas as pd
 import psycopg2
 from constants.misc_constants import SCRIPT_GENERATED_COLUMNS, ADMIN_EMAIL
 from constants.db_names.name_maps import db_to_sheet_rename_map, sheet_to_db_rename_map
-from constants.db_names.names import data
+from constants.db_names.names import data, allowed_values
 from constants.db_connections import ENGINE_READ_ONLY, DATABASE_CONFIG_READ_ONLY, PSY_CONN
 from utils import misc
 from openpyxl.utils import get_column_letter
@@ -72,7 +72,9 @@ def generate(table_name, schema_name, conn):
     sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}" order by "{data.field_sample_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
     country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}" order by "{data.country_ocean.name()}"', con=ENGINE_READ_ONLY)[[data.country_ocean.name(), data.country_ocean.country_code()]]
     field_sample_types_gm = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types_gm()}"', con=ENGINE_READ_ONLY)[data.field_sample_types_gm.name()]
-
+    storage_facilities = pd.read_sql(f'select * from "{allowed_values()}"."{allowed_values.field_sample_storage_facility()}" order by "{allowed_values.field_sample_storage_facility.id()}"', con=ENGINE_READ_ONLY)[allowed_values.field_sample_storage_facility.name()]
+    storage_locations = pd.read_sql(f'select * from "{allowed_values()}"."{allowed_values.field_sample_storage_locations()}" order by "{allowed_values.field_sample_storage_locations.id()}"', con=ENGINE_READ_ONLY)[allowed_values.field_sample_storage_locations.name()]
+    
     enum_sheet = pd.DataFrame({
         data.field_sample.sample_context(template=True): context_types,
         data.field_sample.sample_environment(template=True): environment_types,
@@ -82,10 +84,12 @@ def generate(table_name, schema_name, conn):
         data.field_sample.sample_type_in_storage_at_gm(template=True): field_sample_types_gm,
         data.field_sample.country_ocean(template=True): country_ocean[data.country_ocean.name()],
         data.country_ocean.country_code(template=True): country_ocean[data.country_ocean.country_code()],
+        allowed_values.field_sample_storage_facility.name(template=True): storage_facilities,
+        allowed_values.field_sample_storage_locations.name(template=True): storage_locations
         
     })
 
-    for col in df.select_dtypes(include='bool').columns:
+    for col in df.select_dtypes(include='bool').columns:    
         df[col] = df[col].map({True: 'yes', False: 'no'})
     
     # Order that columns will appear in sheet 
@@ -190,8 +194,8 @@ def generate(table_name, schema_name, conn):
         'Nicolaj Krog Larsen',
         'nicl@sund.ku.dk',
         'true',
-        'Geological Museum',
-        'Cold room',
+        'GeoGenetics Field Sample Storage Facility (GM Basement)',
+        'Core cold room',
         'Øster Voldgade 5-7, 1350 Copenhagen, Denmark',
         'Only the lowermost 52 cm in the core are actual sample',
         'https://alumni-my.sharepoint.com/:f:/g/personal/example_ku_dk/EXAMPLE',

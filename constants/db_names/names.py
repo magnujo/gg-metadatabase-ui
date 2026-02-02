@@ -8,10 +8,24 @@ class Table(str):
 	def __new__(cls, template=False):
 		return super().__new__(cls, get_table_name(cls._db_id, template))
         
-
 class Schema(str):
 	def __new__(cls):
 		return super().__new__(cls, get_schema_name(cls._db_id))
+
+class allowed_values(Schema):
+    _db_id = 11
+    
+    class field_sample_storage_facility(Table):
+        _db_id = 48
+        
+        name = lambda template=False: get_column_name(444, template=template)
+        id = lambda template=False: get_column_name(446, template=template)
+        
+    class field_sample_storage_locations(Table):
+        _db_id = 49
+        
+        name = lambda template=False: get_column_name(445, template=template)
+        id = lambda template=False: get_column_name(447, template=template)
 
 class data(Schema):
     _db_id = 1
