@@ -55,6 +55,7 @@ class name_maps(NamedEntity):
 		column_name_db = "column_name_db"
 		column_name_sheet = "column_name_sheet"
 		table_id = "table_id"
+		auto_generated = "auto_generated"
 
 
 	class table_names(NamedEntity):

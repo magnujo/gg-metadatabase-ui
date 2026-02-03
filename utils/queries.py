@@ -160,6 +160,11 @@ def get_table_dtypes(table_name, schema_name, engine):
     '''
     return get_table_information(table_name, schema_name, engine)[['table_name', 'column_name', 'data_type', 'udt_name']]
 
+def get_db_schema(name_maps_schema_name, engine):
+    q = f'''
+    select * from "{name_maps_schema_name}".all_names;
+    '''
+    return pd.read_sql(q, engine)
 
 def get_possible_datatypes(category, engine):
     match(category):
