@@ -1010,16 +1010,16 @@ The appended data was succesfully uploaded to SMDB.
 This is an automated e-mail. If you have any question write to {ADMIN_EMAIL}.
                 '''
 
-                send_email([send_receipt_to],
+                send_email(send_receipt_to,
                            receipt_message,
                            'Action required: Your data was uploaded to the SMDB',
-                           [path_to_excel_receipt])
+                           path_to_excel_receipt)
                 
                 if not uploader_email == send_receipt_to:
-                    send_email([uploader_email],
+                    send_email(uploader_email,
                             uploader_message,
                             'SMDB Upload Receipt',
-                            [path_to_excel_receipt])
+                            path_to_excel_receipt)
                        
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])

@@ -1,3 +1,4 @@
+import subprocess
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -52,5 +53,29 @@ def send_email_old(receivers, message, subject, paths_to_attachments=[], sender=
         print(f"Failed to send email: {e}")
 
 
-def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj523@dandyweb01fl.unicph.domain"):
-    os.system("echo '{}' | mail -s '{}' -a {} {}".format(message, subject, ' -a '.join(paths_to_attachments), ' '.join(receivers)))
+def send_email(receiver, message, subject, path_to_attachment,
+               sender="glj523@dandyweb01fl.unicph.domain"):
+
+    cmd = [
+        "mail",
+        "-s", subject,
+        "-a", path_to_attachment,
+        "-r", sender,
+        receiver,
+    ]
+
+    res = subprocess.run(
+        cmd,
+        input=(message if message.endswith("\n") else message + "\n"),
+        text=True,
+        capture_output=True,
+        check=False,  # so we can raise with stderr context below
+    )
+
+    if res.returncode != 0:
+        raise RuntimeError(
+            f"mail failed (exit {res.returncode})\n"
+            f"stdout:\n{res.stdout}\n"
+            f"stderr:\n{res.stderr}"
+        )
+    
