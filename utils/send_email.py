@@ -5,7 +5,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import os
 
-def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj523@dandyweb01fl.unicph.domain"):
+def send_email_old(receivers, message, subject, paths_to_attachments=[], sender="glj523@dandyweb01fl.unicph.domain"):
     # Set up the MIME message
     msg = MIMEMultipart()
     msg['From'] = sender
@@ -50,3 +50,7 @@ def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj
             print(f"Email successfully sent to {receivers}")
     except Exception as e:
         print(f"Failed to send email: {e}")
+
+
+def send_email(receivers, message, subject, paths_to_attachments=[], sender="glj523@dandyweb01fl.unicph.domain"):
+    os.system("echo '{}' | mail -s '{}' -a {} {}".format(message, subject, ' -a '.join(paths_to_attachments), ' '.join(receivers)))
