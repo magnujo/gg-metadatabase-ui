@@ -611,11 +611,11 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
 
                                     # Remove elements starting with any of the prefixes
                                     diff = {item for item in diff if not any(prefix.lower() in item.lower() for prefix in prefixes)}
-                                if len(diff) != 0:                                
-                                    raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
-                                                    {diff} \n \
-                                                        Tell the responsible uploader to upload the missing data first, \
-                                                            or make sure that there are no typos in the IDs. Below is a list of tables and responsible uploaders: \n {misc_constants.RESPONSIBLE_UPLOADERS}")
+                                # if len(diff) != 0:                                
+                                #     raise Exception(f"Following required IDs in column {sheet_key} where not found in table {db_table} in the database: \n \
+                                #                     {diff} \n \
+                                #                         Tell the responsible uploader to upload the missing data first, \
+                                #                             or make sure that there are no typos in the IDs. Below is a list of tables and responsible uploaders: \n {misc_constants.RESPONSIBLE_UPLOADERS}")
                 
                 clean_sheets.append((clean_sheet, split_database_table_name))                
 
