@@ -1,1 +1,0 @@
-(LOWER('CTR-green'), LOWER('S1-1-green'), LOWER('S1-2-green'), LOWER('S1-3-green'), LOWER('S1H-green'), LOWER('S1T0-green'), LOWER('S2-1-green'), LOWER('S2-2-green'), LOWER('S2-3-green'), LOWER('S2H-green'), LOWER('S2T0-green'))

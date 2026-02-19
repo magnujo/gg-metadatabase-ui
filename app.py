@@ -1563,25 +1563,24 @@ def download_merged_standardized():
         print('Lock acquired.')
 
         qc_checked = request.form.get('checkbox_qc')
-        checkbox_smdb = request.form.get('checkbox_smdb')
-        today = date.today().strftime("%Y%m%d")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")        
         download_id = str(uuid.uuid4())
         download_dir_path = os.path.join('session_data', download_id)
         os.mkdir(download_dir_path)
         paths_to_download = []
-        zip_path = os.path.join(download_dir_path, 'data.zip')
+        zip_path = os.path.join(download_dir_path, 'SMDB.zip')
         
         if qc_checked:
             
-            file_path_qc = os.path.join(download_dir_path, f'binf_qc_data_{today}.tsv')
+            file_path_qc = os.path.join(download_dir_path, f'binf_qc_data_{timestamp}.tsv')
             print("QC checked. Merging QC table...")
             qc_data = table_merges.qc(data(), engine=ENGINE_READ_ONLY)
             print("Merge done.")
             qc_data.to_csv(file_path_qc, sep='\t', index=False)
             paths_to_download.append(file_path_qc)
         else:
-            file_path_smdb = os.path.join(download_dir_path, f'sample_meta_data_{today}.tsv')
-            mega_meta = table_merges.merge_smdb(schema_name=data(), engine=ENGINE_READ_ONLY)
+            file_path_smdb = os.path.join(download_dir_path, f'SMDB_{timestamp}.tsv')
+            mega_meta = pd.read_sql(f'select * from {data()}.mini_mega_outer', con=ENGINE_READ_ONLY)
             mega_meta.to_csv(file_path_smdb, sep='\t', index=False)
             paths_to_download.append(file_path_smdb)
         create_zip(files=paths_to_download, zip_path=zip_path)
