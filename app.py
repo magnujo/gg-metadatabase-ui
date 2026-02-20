@@ -1,3 +1,5 @@
+
+import csv
 from datetime import date
 import geopandas as gpd
 import leafmap
@@ -1581,7 +1583,7 @@ def download_merged_standardized():
         else:
             file_path_smdb = os.path.join(download_dir_path, f'SMDB_{timestamp}.tsv')
             mega_meta = pd.read_sql(f'select * from {data()}.mini_mega_outer', con=ENGINE_READ_ONLY)
-            mega_meta.to_csv(file_path_smdb, sep='\t', index=False)
+            mega_meta.to_csv(file_path_smdb, sep='\t', index=False, encoding='utf-8', quoting=csv.QUOTE_ALL)
             paths_to_download.append(file_path_smdb)
         create_zip(files=paths_to_download, zip_path=zip_path)
 
