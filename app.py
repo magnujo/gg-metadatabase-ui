@@ -1581,19 +1581,31 @@ def download_merged_standardized():
             qc_data.to_csv(file_path_qc, sep='\t', index=False)
             paths_to_download.append(file_path_qc)
         else:
-            file_path_smdb = os.path.join(download_dir_path, f'SMDB_{timestamp}.csv')
+            file_path_smdb = os.path.join(download_dir_path, f'SMDB_{timestamp}.tsv')
             sql = f"""
             COPY (select * from {data()}.mini_mega_outer)
             TO STDOUT
-            WITH (FORMAT csv, HEADER true)
+            WITH (FORMAT text, HEADER true, ENCODING 'UTF8', NULL '')
             """
             with PSY_CONN_READ_ONLY, PSY_CONN_READ_ONLY.cursor() as cur:
                 with open(file_path_smdb, "w", newline="", encoding="utf-8") as f:
                     cur.copy_expert(sql, f)
 
-            # mega_meta = pd.read_sql(f'select * from {data()}.mini_mega_outer', con=ENGINE_READ_ONLY)
-            # mega_meta.to_csv(file_path_smdb, sep='\t', index=False, encoding='utf-8', quoting=csv.QUOTE_ALL)
             paths_to_download.append(file_path_smdb)
+
+            file_path_smdb = os.path.join(download_dir_path, f'SMDB_{timestamp}.csv')
+            sql = f"""
+            COPY (select * from {data()}.mini_mega_outer)
+            TO STDOUT
+            WITH (FORMAT csv, HEADER true, ENCODING 'UTF8', NULL '')
+            """
+            with PSY_CONN_READ_ONLY, PSY_CONN_READ_ONLY.cursor() as cur:
+                with open(file_path_smdb, "w", newline="", encoding="utf-8") as f:
+                    cur.copy_expert(sql, f)
+
+            paths_to_download.append(file_path_smdb)
+
+
         create_zip(files=paths_to_download, zip_path=zip_path)
 
         return send_file(zip_path, as_attachment=True, ) 
