@@ -1570,7 +1570,7 @@ def download_merged_standardized():
         download_dir_path = os.path.join('session_data', download_id)
         os.mkdir(download_dir_path)
         paths_to_download = []
-        zip_path = os.path.join(download_dir_path, 'SMDB.zip')
+        zip_path = os.path.join(download_dir_path, f'SMDB_{timestamp}.zip')
         
         if qc_checked:
             
@@ -1615,15 +1615,15 @@ def download_merged_standardized():
 def download_cgg():
     
     with download_lock:
-        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         table_name = data.cgg_sediment_water()
         download_id = str(uuid.uuid4())
         download_dir_path = os.path.join('session_data', download_id)
         os.mkdir(download_dir_path)
-        file_path_cgg = os.path.join(download_dir_path, 'cgg_spreadsheet.tsv')
+        file_path_cgg = os.path.join(download_dir_path, f'cgg3_spreadsheet_{timestamp}.tsv')
         df = pd.read_sql(f'select * from {data()}.{table_name}', con=ENGINE_READ_ONLY)
         df.to_csv(file_path_cgg, sep='\t', index=False)        
-        
+
         # Send the text file as a download to the user
         return send_file(file_path_cgg, as_attachment=True)
     
@@ -1638,11 +1638,12 @@ def download_all_individual_tables():
         
         global search_id 
         search_id = search_id + 1
-        session["search_id"] = str(search_id) 
+        session["search_id"] = str(search_id)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
         
-        path_zip = os.path.join(directory_path, 'all_tables.zip')
+        path_zip = os.path.join(directory_path, f'all_tables_{timestamp}.zip')
         
         schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
         database_name = constants.db_connections.SQL_ALCH_CONFIG["database"]
@@ -1684,14 +1685,14 @@ def download_all_binfqc_tables():
     with download_lock:
         encoding_type = request.form['encoding_type']    
         zip_paths = []
-        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         global search_id 
         search_id = search_id + 1
         session["search_id"] = str(search_id) 
         
         directory_path, raw_path = make_dirs_for_query_files(session.get("search_id"))
         
-        path_zip = os.path.join(directory_path, 'all_tables.zip')
+        path_zip = os.path.join(directory_path, f'all_binfqc_tables_{timestamp}.zip')
         
         schema_name = constants.db_connections.SQL_ALCH_CONFIG["schema_name"]
         
