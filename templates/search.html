@@ -115,10 +115,8 @@ pre {
         </form>
         <br>
         To download the same using curl, use the following command in your terminal:
-        <pre><code>curl -L -o data.zip -X POST -d 'encoding_type=utf_8' http://dandyweb01fl.unicph.domain:5100/download_all_individual_tables
+        <pre><code>curl -L -o "all_SMDB_tables_curl_$(date +"%Y%m%d_%H%M%S").zip" -X POST -d 'encoding_type=utf_8' http://dandyweb01fl.unicph.domain:5100/download_all_individual_tables
 </code></pre>
-Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depending on which data you want to include.
-
     </div>
     </div>
 
@@ -143,9 +141,8 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
         </form>
         <br>
         To download the same using curl, use the following command in your terminal:
-        <pre><code>curl -L -o binf_qc_tables.zip -X POST -d 'encoding_type=utf_8' http://dandyweb01fl.unicph.domain:5100/download_all_binfqc_tables
+        <pre><code>curl -L -o "all_binf_qc_tables_curl_$(date +"%Y%m%d_%H%M%S").zip" -X POST -d 'encoding_type=utf_8' http://dandyweb01fl.unicph.domain:5100/download_all_binfqc_tables
 </code></pre>
-Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depending on which data you want to include.
 
     </div>
     </div>
@@ -177,7 +174,7 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
         </form>
         <br>
         To download the same using curl, use the following command in your terminal:
-        <pre><code>curl -L -o data.zip -X POST -d 'checkbox_smdb=on' http://dandyweb01fl.unicph.domain:5100/download_merged_standardized
+        <pre><code>curl -L -o "SMDB_merged_curl_$(date +"%Y%m%d_%H%M%S").zip" -X POST -d 'checkbox_smdb=on' http://dandyweb01fl.unicph.domain:5100/download_merged_standardized
 </code></pre>
     </div>
 
@@ -197,9 +194,8 @@ Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depend
         </form>
          <br>
         To download the same using curl, use the following command in your terminal:
-        <pre><code>curl -L -o cgg_sheet_data.csv -X POST http://dandyweb01fl.unicph.domain:5100/download_cgg
+        <pre><code>curl -L -o "cgg3_sheet_data_curl_$(date +"%Y%m%d_%H%M%S").csv" -X POST http://dandyweb01fl.unicph.domain:5100/download_cgg
 </code></pre>
-Set <code>encoding_type=utf_8</code> or <code>encoding_type=utf_16</code> depending on which data you want to include.
 
     </div>
 
