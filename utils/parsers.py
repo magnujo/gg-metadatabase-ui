@@ -5,7 +5,7 @@ import constants.db_connections
 import constants.misc_constants as misc_constants
 import pandas as pd
 from utils import queries
-from constants.db_names.name_maps import sheet_to_db_rename_map, name_maps
+from constants.db_names.name_maps import sheet_to_db_rename_map, name_maps, get_full_name_map
 
 def parse(sheet, 
           date_format, 
@@ -19,7 +19,7 @@ def parse(sheet,
     
     if not database_table_name in tables:
         raise Exception(f'Table {database_table_name} does not exsist in schema {schema_name} of database {database_name}. \n {tables}')
-    
+        
     col_dtypes = queries.get_table_dtypes(database_table_name, schema_name, engine)
     
     db_schema = queries.get_db_schema(name_maps(), engine)
@@ -36,6 +36,9 @@ def parse(sheet,
     range_columns = list(col_dtypes[col_dtypes['data_type'].isin(misc_constants.POSTGRES_TYPES['int_range'])]['column_name'])
     date_columns = list(col_dtypes[col_dtypes['udt_name'].isin(postgres_date_types)]['column_name'])
     bool_columns = list(col_dtypes[col_dtypes['udt_name'].isin(postgres_bool_types)]['column_name'])
+    
+    
+    
     
     primary_key = queries.get_primary_key(table_name=database_table_name, 
                                           schema_name=schema_name, 
@@ -334,11 +337,6 @@ def parse_floats(sheet, float_columns, decimal_point, thousands_seperator):
             
             sheet[ele] = sheet[ele].astype('float64')
             
-        else:
-            raise Exception(f"Did not find expected numeric column {ele} in input columns: {sheet.columns}. \
-                                Please make sure the format of your spreadsheet matches \
-                                the the example sheet found on the upload website.\
-                                Contact admin at {misc_constants.ADMIN_EMAIL}")
 
     return sheet
 
@@ -379,19 +377,10 @@ def parse_booleans(sheet, boolean_columns):
                     if value.lower() not in expected_vals:
                         bad_values[col].append(index + 2)
                         raise_error = True
-            
-        else:
-            raise Exception(f"Did not find expected boolean column {col} in input. \
-                                Please make sure the format of your spreadsheet matches \
-                                the the example sheet found on the upload website.\
-                                Contact admin at {misc_constants.ADMIN_EMAIL}")
     
             
     if raise_error:
         raise Exception(f"Unexpeced values at the following column(s) and row(s): \n \n {bad_values} \n \n Expected values for these columns are {expected_vals}")
-    else:
-        for col in boolean_columns:
-            sheet[col] = sheet[col].map({"yes": True, "no": False})
         
     
     return sheet

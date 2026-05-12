@@ -56,6 +56,8 @@ class name_maps(NamedEntity):
 		column_name_sheet = "column_name_sheet"
 		table_id = "table_id"
 		auto_generated = "auto_generated"
+		new_template_column_name = "new_template_column_name"
+		in_template = "in_template"
 
 
 	class table_names(NamedEntity):
@@ -121,7 +123,7 @@ def get_table_name(table_id: int, template=False):
         return str(result[0][0])
 
 
-def get_column_name(column_id: int, template=False):
+def get_column_name(column_id: int, template=False, testing=False):
     
 	'''
 	If template is set to True, the column name returned will be the column name in the Excel template.
@@ -132,6 +134,8 @@ def get_column_name(column_id: int, template=False):
 	select_col = table.column_name_db
 	if template:
 		select_col = table.column_name_sheet
+	if template and testing:
+		select_col = table.new_template_column_name
 	filter_col = table.column_id
 
 	query = f'''SELECT "{select_col}" FROM "{schema}"."{table}" WHERE "{filter_col}" = %s '''
@@ -163,6 +167,7 @@ def get_full_name_map():
     return df
 
 
+
 def sheet_to_db_rename_map(schema_name, table_name):
     # Check that schema and table exists:
     
@@ -180,16 +185,23 @@ def sheet_to_db_rename_map(schema_name, table_name):
     column_names = name_maps().column_names()
     table_names = name_maps().table_names()
     schema_names = name_maps().schema_names()
-
+    
     q = f'''
-	select "{column_names.column_name_sheet}", "{column_names.column_name_db}" from "{name_maps()}"."{column_names}" cn 
+	select "{column_names.column_name_sheet}", "{column_names.column_name_db}"  from "{name_maps()}"."{column_names}" cn 
 	join "{name_maps()}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
 	join "{name_maps()}"."{schema_names}" sn on tn."{table_names.schema_id}" = sn."{schema_names.schema_id}"
  	where sn."{schema_names.schema_name}" = '{schema_name}' and tn."{table_names.table_name}" = '{table_name}' 
   	and cn."{column_names.column_name_sheet}" is not null;
 	'''
+    q_test = f'''
+select "{column_names.new_template_column_name}", "{column_names.column_name_db}"  from "{name_maps()}"."{column_names}" cn 
+join "{name_maps()}"."{table_names}" tn on cn."{column_names.table_id}" = tn."{table_names.table_id}" 
+join "{name_maps()}"."{schema_names}" sn on tn."{table_names.schema_id}" = sn."{schema_names.schema_id}"
+where sn."{schema_names.schema_name}" = '{schema_name}' and tn."{table_names.table_name}" = '{table_name}' 
+and cn."{column_names.in_template}" in ('both', '2');
+'''
 
-    df = pd.read_sql(q, ENGINE_READ_ONLY)
+    df = pd.read_sql(q_test, ENGINE_READ_ONLY)
     d = {key: value for (key, value) in df.values}
 
     return d

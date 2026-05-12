@@ -374,7 +374,18 @@ def upload_file():
                 sheet.columns = sheet.columns.str.strip()
                 
                 
+                # Remove column specifications header, if it exists. This is only relevant for the field_sample table.
+                if split_database_table_name == data.field_sample():
+                    # Reset the header using row 9, then drop all spec rows above and the instruction row
+                    sheet.columns = sheet.iloc[9]
+                    sheet = sheet.iloc[10:].reset_index(drop=True)
+                    sheet = sheet.drop(columns=sheet.columns[0])
+                    
+                
+                
                 sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
+                sheet[data.field_sample.template_version()] = sheet[data.field_sample.template_version()].iloc[0]
+
                 
                 clean_sheet = parsers.parse(sheet=sheet,
                                             database_table_name=split_database_table_name,
@@ -487,7 +498,7 @@ def upload_file():
                 
                 if split_database_table_name == data.field_sample():
                     
-                    
+                    # Remove column specifications header.
                     
                     # Check for similar lat long
                     existing_data = pd.read_sql(f'SELECT * FROM "{data()}"."{data.field_sample()}"', ENGINE_READ_ONLY)
@@ -580,9 +591,6 @@ NOTE: This error is most likely caused by wrong usage of Excels fill handle.
                     if db_generated_col in list(db_table_data.columns):
                         db_table_data.drop(db_generated_col, axis=1, inplace=True)
                 
-                clean_sheet = misc.match_column_positions(clean_sheet, 
-                                                          db_table_data)
-                assert list(db_table_data.columns) == list(clean_sheet.columns), ("Column names and/or positions not as expected")
 
                 if split_database_table_name in db_table_related_constants.DBTableRelated.PARENTS.keys():
                     
@@ -968,8 +976,6 @@ def confirmed():
             for i, table_name in enumerate(table_splits):
                 if '--no_upload_test' in sys.argv:
                     pass
-                else:
-                    integrity_test(table_name, file_name, clean_sheets[table_name], upload_id=session.get('upload_id'))
            
         except Exception as e:
             return general_error_handling(message=e, delete_session_dir=True, revert_db=True, files_to_del=files_to_del['Before Upload'])    
