@@ -66,12 +66,12 @@ def generate(table_name, schema_name, conn):
     
     df = df.drop(columns=SCRIPT_GENERATED_COLUMNS, errors='ignore')
 
-    context_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_context_types()}" order by "{data.field_sample_context_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
-    environment_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_environment_types()}" order by "{data.field_sample_environment_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
-    material_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_material_type()}" order by "{data.field_sample_material_type.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
-    sample_types = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types()}" order by "{data.field_sample_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
-    country_ocean = pd.read_sql(f'select * from "{schema_name}"."{data.country_ocean()}" order by "{data.country_ocean.name()}"', con=ENGINE_READ_ONLY)[[data.country_ocean.name(), data.country_ocean.country_code()]]
-    field_sample_types_gm = pd.read_sql(f'select * from "{schema_name}"."{data.field_sample_types_gm()}"', con=ENGINE_READ_ONLY)[data.field_sample_types_gm.name()]
+    context_types = pd.read_sql(f'select * from "{allowed_values()}"."{data.field_sample_context_types()}" order by "{data.field_sample_context_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_context_types.name()]
+    environment_types = pd.read_sql(f'select * from "{allowed_values()}"."{data.field_sample_environment_types()}" order by "{data.field_sample_environment_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_environment_types.name()]
+    material_types = pd.read_sql(f'select * from "{allowed_values()}"."{data.field_sample_material_type()}" order by "{data.field_sample_material_type.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_material_type.name()]
+    sample_types = pd.read_sql(f'select * from "{allowed_values()}"."{data.field_sample_types()}" order by "{data.field_sample_types.name()}"', con=ENGINE_READ_ONLY)[data.field_sample_types.name()]
+    country_ocean = pd.read_sql(f'select * from "{allowed_values()}"."{data.country_ocean()}" order by "{data.country_ocean.name()}"', con=ENGINE_READ_ONLY)[[data.country_ocean.name(), data.country_ocean.country_code()]]
+    field_sample_types_gm = pd.read_sql(f'select * from "{allowed_values()}"."{data.field_sample_types_gm()}"', con=ENGINE_READ_ONLY)[data.field_sample_types_gm.name()]
     storage_facilities = pd.read_sql(f'select * from "{allowed_values()}"."{allowed_values.field_sample_storage_facility()}" order by "{allowed_values.field_sample_storage_facility.id()}"', con=ENGINE_READ_ONLY)[allowed_values.field_sample_storage_facility.name()]
     storage_locations = pd.read_sql(f'select * from "{allowed_values()}"."{allowed_values.field_sample_storage_locations()}" order by "{allowed_values.field_sample_storage_locations.id()}"', con=ENGINE_READ_ONLY)[allowed_values.field_sample_storage_locations.name()]
     
