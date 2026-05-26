@@ -1,8 +1,3 @@
-
-import csv
-from datetime import date
-import geopandas as gpd
-import leafmap
 import folium
 from utils.send_email import send_email
 import table_merges
@@ -51,7 +46,6 @@ from utils.CustomExceptions import DontTriggerFileDeletion
 from utils import parsers
 import decorators
 from datetime import datetime
-import logging
 import uuid
 from geopy.distance import geodesic
 
