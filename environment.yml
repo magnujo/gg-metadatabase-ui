@@ -32,7 +32,6 @@ dependencies:
   - geopy
   - cartopy
   - geopandas
-  - leafmap
   - pip:
     - pretty_html_table
     - pillow
