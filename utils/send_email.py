@@ -53,9 +53,15 @@ def send_email_old(receivers, message, subject, paths_to_attachments=[], sender=
         print(f"Failed to send email: {e}")
 
 
-def send_email(receiver, message, subject, path_to_attachment,
+def send_email(receiver: str, message, subject, path_to_attachment,
                sender="glj523@dandyweb01fl.unicph.domain"):
 
+    if receiver is None or receiver == "":
+        raise ValueError("Email address must be provided.")
+    
+    if receiver == "UglyHackToAvoidSendingEmail@hack.dk":
+        return None
+    
     cmd = [
         "mail",
         "-s", subject,

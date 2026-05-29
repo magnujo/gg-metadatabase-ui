@@ -358,6 +358,7 @@ def upload_file():
             clean_sheets = []
             
             for i, sheet in enumerate(sheets_to_parse):
+                sheet = sheet.dropna(how='all', axis='index')
                 split_database_table_name = db_table_related_constants.DBTableRelated.TABLE_SPLITTER[database_table_name][i]
                 
                 sheet_to_db_col_name_map = sheet_to_db_rename_map(schema_name=SQL_ALCH_CONFIG['schema_name'], table_name=split_database_table_name)
@@ -371,8 +372,8 @@ def upload_file():
                 # Remove column specifications header, if it exists. This is only relevant for the field_sample table.
                 if split_database_table_name == data.field_sample():
                     # Reset the header using row 9, then drop all spec rows above and the instruction row
-                    sheet.columns = sheet.iloc[9]
-                    sheet = sheet.iloc[10:].reset_index(drop=True)
+                    sheet.columns = sheet.iloc[8]
+                    sheet = sheet.iloc[9:].reset_index(drop=True)
                     sheet = sheet.drop(columns=sheet.columns[0])
                     
                 
