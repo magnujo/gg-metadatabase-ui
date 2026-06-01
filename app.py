@@ -917,7 +917,9 @@ def confirmed():
                         if isinstance(e, SQLAlchemyError):
                             return general_error_handling(message=e.orig, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload']) 
                         else:
-                            return general_error_handling(message=e, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload'])        
+                            
+
+                            return general_error_handling(message=e.__cause__.orig, delete_session_dir=True, revert_db=False, files_to_del=files_to_del['Before Upload'])        
                 # Commit if no exception happened
                 else:
                     trans.commit() 
