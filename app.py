@@ -376,10 +376,10 @@ def upload_file():
                     sheet = sheet.iloc[9:].reset_index(drop=True)
                     sheet = sheet.drop(columns=sheet.columns[0])
                     
+                    sheet[data.field_sample.template_version()] = sheet[data.field_sample.template_version()].iloc[0]
                 
                 
                 sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
-                sheet[data.field_sample.template_version()] = sheet[data.field_sample.template_version()].iloc[0]
 
                 
                 clean_sheet = parsers.parse(sheet=sheet,
