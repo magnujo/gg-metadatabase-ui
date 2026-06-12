@@ -1,0 +1,330 @@
+[33mcommit 397940822c03f6120e566ee44561ee21fcfa19d0[m[33m ([m[1;36mHEAD -> [m[1;32mnew_template_parser[m[33m)[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Mon Jun 1 11:04:38 2026 +0200
+
+    fixed error message issue
+
+[33mcommit 5311ee134f011349d6809350122ab2ad3e981177[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri May 29 14:55:39 2026 +0200
+
+    parser works
+
+[33mcommit 12b27245ed1caaeee917f693070f1049aeed836c[m
+Merge: 3915d67 1d3756e
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri May 29 11:04:53 2026 +0200
+
+    Merge branch 'main' of https://github.com/magnujo/gg-metadatabase-ui into new_template_parser
+
+[33mcommit 1d3756e155ea65a2320dc91c765a1696511a9df5[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue May 26 09:53:47 2026 +0200
+
+    removed unused deps
+
+[33mcommit afea6aca5d0696569cf372551603bef23fb86f96[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue May 12 15:31:14 2026 +0200
+
+    fixed template download
+
+[33mcommit 3915d671db2fa4bccf92e0daf54668e8731d7763[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue May 12 15:19:46 2026 +0200
+
+    init
+
+[33mcommit 9c05357fb870129d005ab7a8e09d80b3b71a24f5[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Thu Mar 5 13:27:57 2026 +0100
+
+    made geo location validator
+
+[33mcommit b0f94f2ea477f829f99f35b76548f27e984e9105[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Tue Feb 24 11:19:48 2026 +0100
+
+    added timestamp to curl
+
+[33mcommit a7b10d8ff2f5cc65541a3f7be6f0a84625c78286[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Tue Feb 24 10:49:31 2026 +0100
+
+    added timestamps to download files
+
+[33mcommit f6d18991dfc053ba93df4d558e97d5649ad2bf60[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Mon Feb 23 10:08:03 2026 +0100
+
+    now mega table download exports both tsv and csv
+
+[33mcommit 1cc4b5f86b9234c7ec7a12dfe1ebe74ac9a9070e[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Sun Feb 22 10:56:31 2026 +0100
+
+    changed mega table export to use psycopg2 instead of pandas
+
+[33mcommit c21b54e0f2cff9f210c97f681c3d73a7c6b51f6b[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Feb 20 12:00:00 2026 +0100
+
+    changes mega table export settings
+
+[33mcommit 358383655db3165136f12eae923d0a38ceb3d7df[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Feb 20 11:19:42 2026 +0100
+
+    removed warnings from search html
+
+[33mcommit 1fa9aef234e861d719d8220eb81c0d1e3f16cf29[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Thu Feb 19 15:22:18 2026 +0100
+
+    made mega table into mini mega outer view
+
+[33mcommit bdaaaadb76373dd1fabac893aeb6e4b412d54973[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Feb 6 12:18:26 2026 +0100
+
+    disabled foreign key check
+
+[33mcommit c6fa242eff265ff0330e1a3a5497561fd4327b8e[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Feb 3 10:25:15 2026 +0100
+
+    email adjustments
+
+[33mcommit 5a71cce7eabd24cf6301d28672cf95ee56e036b0[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Feb 3 09:56:04 2026 +0100
+
+    new email functionality
+
+[33mcommit f7a71784379777ced87c25baea5a073c5d7a5b10[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Feb 3 09:48:10 2026 +0100
+
+    added storage ID functionality
+
+[33mcommit 73124cda5183322d9c55cfaf28a5031e7ad8e3a4[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Mon Feb 2 09:59:52 2026 +0100
+
+    added dropdowns to template generateor
+
+[33mcommit 1ec434b84665a29ecd60db201802da476bf44a52[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Mon Jan 26 10:50:33 2026 +0100
+
+    disabled qc merge button and made default merge download SMDB
+
+[33mcommit aa6658f3234c69d114d3dad22e25a7d320604473[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Jan 16 17:18:44 2026 +0100
+
+    added download all individual binf qc functionality on the download page
+
+[33mcommit f7e69458183d693365d000293e549e3d12038005[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Jan 16 14:59:41 2026 +0100
+
+    notebooks
+
+[33mcommit b6c8dcbdb3272541cfdf2f686683eb6cbbde0c56[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Thu Nov 13 11:22:06 2025 +0100
+
+    reenabled qc download and added curl commands to download page
+
+[33mcommit ff9dfadd83245d2dabf8722a969ac51f39d41aa1[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Thu Sep 11 12:47:05 2025 +0200
+
+    added country code to template
+
+[33mcommit b19e0db33e9b4c2cc130c69a0d1ac472f24f1a73[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Fri Sep 5 11:43:31 2025 +0200
+
+    added datetime to template
+
+[33mcommit 0903be92912f7813648b91b8afd2afcff2c19f33[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Sep 2 11:05:20 2025 +0200
+
+    disabled qc checkbox
+
+[33mcommit 9f1bff793da768d6c2c5cae1afda1b253b2231ff[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Mon Sep 1 17:44:27 2025 +0200
+
+    fixed bug
+
+[33mcommit a83b3d772500d496fd4b87693ccf3d9f9d8c20de[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Mon Sep 1 17:29:21 2025 +0200
+
+    updated examples in template
+
+[33mcommit 75528d86cd66fbe19287bd0f34071e2932d923ce[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Thu Aug 28 08:58:02 2025 +0200
+
+    fixed xihan bug
+
+[33mcommit 90bb0581a0983ee0996e1d4f67a0fab084c8558e[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Aug 22 14:46:20 2025 +0200
+
+    excluded xihans controls from parent checker - now works
+
+[33mcommit 469bd2d7e3896ff29ee4c0946d4cc7d55533e799[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Aug 22 11:55:44 2025 +0200
+
+    excluded xihans controls from parent checker
+
+[33mcommit f13276dfa4e288b1839473c3b1116604d3946143[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 20 15:43:43 2025 +0200
+
+    added dates to some file names
+
+[33mcommit 2a180e2340256d0376775799deb960fb46d465ba[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 20 14:00:40 2025 +0200
+
+    added print stuff for debugging
+
+[33mcommit e5a3d53de5aa508b151a06fca1b67f03646823b4[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 20 10:13:22 2025 +0200
+
+    fixed ml stuff
+
+[33mcommit 89803527dc17ce372598329f907a654bc07b4bce[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 19 11:13:26 2025 +0200
+
+    deleted old script
+
+[33mcommit d76c855a2cb9fc7fe432a90678b290ecb6b69c0e[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 19 11:12:17 2025 +0200
+
+    fixed marie louise template
+
+[33mcommit 88f253f99b03db1796dfc85a5dedee57aa35e89f[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 13 11:29:35 2025 +0200
+
+    fixed --help
+
+[33mcommit 438f55766082e838d00878b884a8b8fcc4e1ef9e[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 13 11:24:40 2025 +0200
+
+    fixed --help
+
+[33mcommit 609dde983dc866c4edc4f2524c410e8f19ef3ef8[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 13 11:02:08 2025 +0200
+
+    added readme
+
+[33mcommit 3ccc7b2895300bf52114e5dca879f146ba45701f[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 13 10:49:00 2025 +0200
+
+    added butterfly data getter script
+
+[33mcommit 55e7c6d92b4664a875594a38ecbb1bd1ed492409[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Thu Aug 7 13:53:50 2025 +0200
+
+    added proper example row
+
+[33mcommit d88395f1d761f7f4e4531af70b5449f67ccc71be[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Aug 6 15:50:30 2025 +0200
+
+    small change to field sample template
+
+[33mcommit c056e18d80dcd7a4d047a1d11e1e22eff8e72a40[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 5 17:02:27 2025 +0200
+
+    small change to field sample template
+
+[33mcommit 2e533f16069ebd2cf05fc07765f2d989fce6289c[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 5 15:38:18 2025 +0200
+
+    small change to field sample template
+
+[33mcommit 0f9523e9ec0ea2b833d8234b8f2c0af5d55f109c[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 5 12:21:18 2025 +0200
+
+    small change to field sample template
+
+[33mcommit 5b27bef37b2435d9fedafe1387330055b534fb2f[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 5 12:13:01 2025 +0200
+
+    updated field sample template readme
+
+[33mcommit 671acfa1e1c10584c375b757d0af3e1019810906[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Aug 5 11:55:21 2025 +0200
+
+    stuff done
+
+[33mcommit 22e66996b0f41d33a09d69629a324fea77be3b76[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Jun 27 16:17:37 2025 +0200
+
+    finished CGG3 cleanup guide
+
+[33mcommit 346fa64f23fe58ca4ee29af0b1a4964be0f6801c[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Fri Jun 27 10:09:46 2025 +0200
+
+    init
+
+[33mcommit 69d37a54883ee17473c50fa8eb62a6d3f2e098a4[m
+Author: Julian Regalado <julian.perez@sund.ku.dk>
+Date:   Wed Jun 25 10:33:01 2025 +0200
+
+    Added some comments
+
+[33mcommit 46ff0515125d3aae422e8c6d29bb2246acf32589[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Tue Jun 24 14:27:50 2025 +0200
+
+    added new columns
+
+[33mcommit 76ed1cd90246362ff502d455755c60df2f91e7d0[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Fri Jun 20 18:29:57 2025 +0200
+
+    ef
+
+[33mcommit 93c45f8894b79210d4d80c7fe7df46c780efb7d5[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Thu Jun 19 15:52:24 2025 +0200
+
+    fixed ml error
+
+[33mcommit 3b0d1b7a81b1111732deda33e1bc3304b18caa0e[m
+Author: Magnus Johannsen <Magnus Johannsen>
+Date:   Thu Jun 19 10:42:03 2025 +0200
+
+    removed path columns
+
+[33mcommit 388144084b5af791e9c541da6d930b3d2e7f7ae0[m
+Author: Magnus Johannsen <magnus.johannsen@sund.ku.dk>
+Date:   Wed Jun 11 12:45:12 2025 +0200
+
+    added some cgg clean stuff

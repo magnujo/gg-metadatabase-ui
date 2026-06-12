@@ -387,7 +387,7 @@ def upload_file():
                                             date_format=date_format,
                                             decimal_point=decimal_point,
                                             thousands_seperator=thousands_seperator,
-                                            engine=ENGINE_READ_ONLY)    
+                                            engine=ENGINE_READ_ONLY)
                        
                 # clean_sheet.columns = clean_sheet.columns.str.strip()
                 # clean_sheet = clean_sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")     

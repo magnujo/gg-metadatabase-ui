@@ -201,7 +201,7 @@ where sn."{schema_names.schema_name}" = '{schema_name}' and tn."{table_names.tab
 and cn."{column_names.in_template}" in ('both', '2');
 '''
 
-    df = pd.read_sql(q_test, ENGINE_READ_ONLY)
+    df = pd.read_sql(q, ENGINE_READ_ONLY)
     d = {key: value for (key, value) in df.values}
 
     return d
