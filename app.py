@@ -375,8 +375,9 @@ def upload_file():
                     sheet.columns = sheet.iloc[8]
                     sheet = sheet.iloc[9:].reset_index(drop=True)
                     sheet = sheet.drop(columns=sheet.columns[0])
+                    template_version = sheet[data.field_sample.template_version(template=True)].iloc[0]
                     
-                    sheet[data.field_sample.template_version()] = sheet[data.field_sample.template_version()].iloc[0]
+                    sheet[data.field_sample.template_version(template=True)] = template_version
                 
                 
                 sheet = sheet.rename(columns=sheet_to_db_col_name_map, errors="raise")
