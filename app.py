@@ -31,7 +31,7 @@ import shutil
 import constants.misc_constants as misc_constants
 import log_util
 from utils import queries
-from flask import Flask, render_template, jsonify, after_this_request, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
+from flask import Flask, abort, render_template, jsonify, after_this_request, render_template_string, request, send_file, redirect, url_for, send_from_directory, session, has_request_context
 import os
 import sys
 from constants.misc_constants import SHEET_TYPES, ADMIN_EMAIL, PARSED_SHEETS_FOLDER, ORIGINAL_FILES, TEMP_FOLDER
@@ -1191,13 +1191,26 @@ def allowed_file(filename):
 def download_manual():
     return send_file(misc_constants.MANUAL(), as_attachment=True)
 
-@app.route('/download/<path:filename>')
+@app.route('/templates/download')
 @decorators.log_info(app)
-def download_file(filename): 
-    if filename == 'Field Sampling Meta data reporting template.xlsx':
-        save_path = generate_template.generate(data.field_sample(), data(), ENGINE_READ_ONLY)    
+def download_file(): 
+    
+    TEMPLATE_DIR = Path(misc_constants.PATH_TO_STANDARD_SHEETS)
+    files = [p for p in TEMPLATE_DIR.iterdir() if p.is_file()]
 
-        return send_from_directory(os.path.dirname(save_path), os.path.basename(save_path), as_attachment=True)
+    if len(files) != 1:
+        abort(404)
+
+    file = files[0]
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    download_name = f"{file.stem}_downloaded{timestamp}{file.suffix}"
+
+    return send_file(
+        file,
+        as_attachment=True,
+        download_name=download_name
+    )
 
 def current_function_name():
     return inspect.currentframe().f_back.f_code.co_name

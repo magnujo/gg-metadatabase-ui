@@ -193,9 +193,6 @@
         <h1>Upload to <i>SMDB</i> (Sample Metadata DataBase)</h1>    
 
         <div class="section">
-            <h2>READ THIS BEFORE UPLOADING:</h2>
-            <p>It is very important that you download, read and understand the manual below <b>before uploading any data</b>. If you have any questions to the manual, contact magnus.johannsen@sund.ku.dk</p>
-            <p><a href="/download_manual" download>Download Manual (PDF)</a></p>
         </div>
 
         <div class="section">
@@ -211,9 +208,8 @@
                 <br>
                 <h3>Download templates here:</h3>
             </p>
-            {% for sheet in example_sheets %}
-            <p><a href="{{ url_for('download_file', filename=sheet) }}" download>{{ sheet }}</a></p>
-            {% endfor %}
+            <a href="/templates/download">Download eDNA field sample template</a>
+            
             <p>Template for master depth specification can be found <a href="{{ url_for('download') }}">here</a></p>
         </div>
 
